@@ -1,0 +1,95 @@
+import { useState } from "react"
+import { useStore } from "./store.js"
+
+import Dashboard from "./Screens/Dashboard.jsx"
+import Income from "./Screens/Income.jsx"
+import Commitments from "./Screens/Commitments.jsx"
+import Debt from "./Screens/Debt.jsx"
+import Deposit from "./Screens/Deposit.jsx"
+import Leftover from "./Screens/Leftover.jsx"
+import Savings from "./Screens/Savings.jsx"
+import Goals from "./Screens/Goals.jsx"
+import Profile from "./Screens/Profile.jsx"
+import Settings from "./Screens/Settings.jsx"
+import Reports from "./Screens/Reports.jsx"
+import Notifications from "./Screens/Notifications.jsx"
+import Help from "./Screens/Help.jsx"
+import Children from "./Screens/Children.jsx"
+import Investments from "./Screens/Investments.jsx"
+import Tools from "./Screens/Tools.jsx"
+import Planner from "./Screens/Planner.jsx"
+import History from "./Screens/History.jsx"
+import Bank from "./Screens/Bank.jsx"
+import NetWorth from "./Screens/NetWorth.jsx"
+
+import Sidebar from "./Sidebar.jsx"
+import Header from "./Header.jsx"
+
+export default function App() {
+  const [screen, setScreen] = useState("Dashboard")
+
+  const {
+    store,
+    update,
+    add,
+    remove,
+    autoMonth,
+    debtFreeDate,
+    savingsGoalForecast
+  } = useStore()
+
+  const screens = {
+    Dashboard,
+    Income,
+    Commitments,
+    Debt,
+    Deposit,
+    Leftover,
+    Savings,
+    Goals,
+    Profile,
+    Settings,
+    Reports,
+    Notifications,
+    Help,
+    Children,
+    Investments,
+    Tools,
+    Planner,
+    History,
+    Bank,
+    NetWorth
+  }
+
+  const ActiveScreen = screens[screen]
+
+  return (
+    <div style={{ display: "flex", height: "100vh" }}>
+      <Sidebar screen={screen} setScreen={setScreen} />
+
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <Header screen={screen} />
+
+        <div
+          style={{
+            flex: 1,
+            padding: "30px",
+            color: "white",
+            overflowY: "auto",
+            background: "#1a1a1a"
+          }}
+        >
+          <ActiveScreen
+            store={store}
+            update={update}
+            add={add}
+            remove={remove}
+            autoMonth={autoMonth}
+            debtFreeDate={debtFreeDate}
+            savingsGoalForecast={savingsGoalForecast}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
