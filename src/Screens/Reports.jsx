@@ -1,19 +1,26 @@
 import Card from "../components/Card.jsx"
 
 export default function Reports({ store, debtFreeDate, savingsGoalForecast }) {
-  const incomeTotal = store.income.reduce((sum, i) => sum + i.amount, 0)
-  const commitmentsTotal = store.commitments.reduce((sum, c) => sum + c.amount, 0)
+  const income = store.income || []
+  const commitments = store.commitments || []
+  const savings = store.savings || []
+  const investments = store.investments || []
+  const debts = store.debts || []
+  const history = store.history || []
+
+  const incomeTotal = income.reduce((sum, i) => sum + (i.amount || 0), 0)
+  const commitmentsTotal = commitments.reduce((sum, c) => sum + (c.amount || 0), 0)
   const leftover = incomeTotal - commitmentsTotal
 
-  const wasted = store.commitments
+  const wasted = commitments
     .filter(c => ["Wants", "Shopping", "Misc"].includes(c.category))
-    .reduce((sum, c) => sum + c.amount, 0)
+    .reduce((sum, c) => sum + (c.amount || 0), 0)
 
   const netWorth =
-    store.savings.reduce((sum, s) => sum + s.balance, 0) +
-    store.investments.reduce((sum, i) => sum + i.balance, 0) +
+    savings.reduce((sum, s) => sum + (s.balance || 0), 0) +
+    investments.reduce((sum, i) => sum + (i.balance || 0), 0) +
     leftover -
-    store.debts.reduce((sum, d) => sum + d.balance, 0)
+    debts.reduce((sum, d) => sum + (d.balance || 0), 0)
 
   const report = {
     incomeTotal,
@@ -21,9 +28,9 @@ export default function Reports({ store, debtFreeDate, savingsGoalForecast }) {
     leftover,
     wasted,
     netWorth,
-    debtFreeDate: debtFreeDate(),
-    depositForecast: savingsGoalForecast(20000),
-    history: store.history
+    debtFreeDate: debtFreeDate ? debtFreeDate() : "N/A",
+    depositForecast: savingsGoalForecast ? savingsGoalForecast(20000) : "N/A",
+    history
   }
 
   return (
