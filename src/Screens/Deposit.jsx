@@ -1,9 +1,12 @@
 import Card from "../components/Card.jsx"
 
 export default function Deposit({ store, update }) {
-  const lisaIndex = store.savings.findIndex(s => s.name === "LISA")
-  const lisa = store.savings[lisaIndex]?.balance || 0
-  const target = store.goals.houseDepositTarget
+  const savings = store.savings || []
+  const lisaIndex = savings.findIndex(s => s.name === "LISA")
+  const lisa = lisaIndex >= 0 ? savings[lisaIndex].balance : 0
+
+  const goals = store.goals || { houseDepositTarget: 0 }
+  const target = goals.houseDepositTarget || 0
 
   return (
     <div>
@@ -11,7 +14,11 @@ export default function Deposit({ store, update }) {
         <input
           type="number"
           value={lisa}
-          onChange={(e) => update(`savings.${lisaIndex}.balance`, Number(e.target.value))}
+          onChange={(e) => {
+            if (lisaIndex >= 0) {
+              update(`savings.${lisaIndex}.balance`, Number(e.target.value))
+            }
+          }}
           style={{
             padding: "8px",
             width: "200px",

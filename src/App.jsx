@@ -43,7 +43,7 @@ export default function App() {
     Income,
     Commitments,
     Debt,
-    Deposit,
+    Deposit,        // ⭐ MUST BE HERE
     Leftover,
     Savings,
     Goals,
@@ -79,15 +79,17 @@ export default function App() {
             background: "#1a1a1a"
           }}
         >
-          <ActiveScreen
-            store={store}
-            update={update}
-            add={add}
-            remove={remove}
-            autoMonth={autoMonth}
-            debtFreeDate={debtFreeDate}
-            savingsGoalForecast={savingsGoalForecast}
-          />
+          {ActiveScreen && (
+            <ActiveScreen
+              store={store}
+              update={update}
+              add={add}
+              remove={remove}
+              autoMonth={autoMonth}
+              debtFreeDate={debtFreeDate}
+              savingsGoalForecast={savingsGoalForecast}
+            />
+          )}
         </div>
       </div>
     </div>
