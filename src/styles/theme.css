@@ -1,24 +1,43 @@
-:root {
-  --bg: #0F0F0F;
-  --card-bg: #1A1A1A;
-  --primary: #7C3AED;
-  --accent: #22D3EE;
-  --text: #FFFFFF;
-  --subtext: #9CA3AF;
-  --border: #2A2A2A;
-
-  --radius: 12px;
-  --shadow: 0 0 20px rgba(0,0,0,0.3);
-
-  --space-1: 8px;
-  --space-2: 16px;
-  --space-3: 24px;
-  --space-4: 32px;
+/* Hide 3-dots button on desktop */
+.mobile-menu-btn {
+  display: none;
 }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', sans-serif;
-  margin: 0;
+/* Desktop sidebar stays normal */
+.sidebar {
+  transition: transform 0.3s ease;
+}
+
+/* MOBILE MODE */
+@media (max-width: 480px) {
+
+  /* Show 3-dots button */
+  .mobile-menu-btn {
+    display: block;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    font-size: 32px;
+    background: none;
+    border: none;
+    color: var(--text);
+    z-index: 1000;
+    cursor: pointer;
+  }
+
+  /* Sidebar becomes slide-in */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px !important;
+    height: 100vh;
+    background: var(--bg);
+    transform: translateX(-100%);
+    z-index: 999;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
 }

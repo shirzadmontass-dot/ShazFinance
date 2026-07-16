@@ -28,6 +28,10 @@ import Header from "./Header.jsx"
 export default function App() {
   const [screen, setScreen] = useState("Dashboard")
 
+  // MOBILE SIDEBAR STATE
+  const [isSidebarOpen, setSidebarOpen] = useState(false)
+  const toggleSidebar = () => setSidebarOpen(prev => !prev)
+
   const {
     store,
     update,
@@ -65,6 +69,7 @@ export default function App() {
 
   return (
     <div
+      className="app"
       style={{
         display: "flex",
         height: "100vh",
@@ -73,8 +78,17 @@ export default function App() {
       }}
     >
 
-      {/* SIDEBAR — scrolls independently */}
+      {/* MOBILE 3-DOTS BUTTON */}
+      <button
+        className="mobile-menu-btn"
+        onClick={toggleSidebar}
+      >
+        ⋮
+      </button>
+
+      {/* SIDEBAR (desktop always visible, mobile slides in) */}
       <div
+        className={`sidebar ${isSidebarOpen ? "open" : ""}`}
         style={{
           width: "240px",
           overflowY: "auto",
@@ -84,7 +98,7 @@ export default function App() {
         <Sidebar screen={screen} setScreen={setScreen} />
       </div>
 
-      {/* MAIN CONTENT — scrolls independently */}
+      {/* MAIN CONTENT */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <Header screen={screen} />
 

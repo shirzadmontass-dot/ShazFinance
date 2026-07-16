@@ -9,7 +9,7 @@ export default function Dashboard({ store }) {
   const debtTotal = store.debts?.reduce((t, d) => t + (d.balance || 0), 0) || 0
 
   return (
-    <Page title="Dashboard">
+    <Page>
       {/* HERO HEADER */}
       <div
         style={{
