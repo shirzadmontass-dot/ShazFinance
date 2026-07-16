@@ -1,4 +1,4 @@
-export default function Sidebar({ screen, setScreen }) {
+export default function Sidebar({ screen, setScreen, isSidebarOpen, toggleSidebar }) {
   const items = [
     "Dashboard",
     "Income",
@@ -24,6 +24,7 @@ export default function Sidebar({ screen, setScreen }) {
 
   return (
     <div
+      className={`sidebar ${isSidebarOpen ? "open" : ""}`}
       style={{
         width: "260px",
         background: "#111",
@@ -49,7 +50,10 @@ export default function Sidebar({ screen, setScreen }) {
       {items.map((item) => (
         <div
           key={item}
-          onClick={() => setScreen(item)}
+          onClick={() => {
+            setScreen(item)
+            toggleSidebar()   // closes sidebar on mobile
+          }}
           style={{
             padding: "var(--space-2)",
             borderRadius: "var(--radius)",

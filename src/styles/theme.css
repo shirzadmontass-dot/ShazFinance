@@ -1,24 +1,127 @@
+/* ============================
+   ROOT VARIABLES
+   ============================ */
+
 :root {
-  --bg: #0F0F0F;
-  --card-bg: #1A1A1A;
-  --primary: #7C3AED;
-  --accent: #22D3EE;
-  --text: #FFFFFF;
-  --subtext: #9CA3AF;
-  --border: #2A2A2A;
+  --bg: #0f172a;
+  --bg-light: #1e293b;
+  --text: #f8fafc;
+  --subtext: #94a3b8;
+  --accent: #38bdf8;
+  --primary: #7c3aed;
+  --border: #334155;
 
-  --radius: 12px;
-  --shadow: 0 0 20px rgba(0,0,0,0.3);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 20px;
+  --space-5: 28px;
 
-  --space-1: 8px;
-  --space-2: 16px;
-  --space-3: 24px;
-  --space-4: 32px;
+  --radius: 10px;
+  --shadow: 0 0 10px rgba(0,0,0,0.4);
 }
 
-body {
+/* ============================
+   GLOBAL
+   ============================ */
+
+html, body {
+  margin: 0;
+  padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', sans-serif;
-  margin: 0;
+  font-family: Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ============================
+   SIDEBAR (DESKTOP)
+   ============================ */
+
+.sidebar {
+  width: 260px;
+  background: #111;
+  padding: var(--space-4) var(--space-2);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  overflow-y: auto;
+}
+
+/* ============================
+   MOBILE MENU BUTTON
+   ============================ */
+
+.mobile-menu-btn {
+  display: none; /* hidden on laptop */
+}
+
+/* ============================
+   MOBILE MODE
+   ============================ */
+
+@media (max-width: 480px) {
+
+  /* ============================
+     MOBILE MENU BUTTON
+     ============================ */
+  .mobile-menu-btn {
+    display: block;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    font-size: 32px;
+    background: none;
+    border: none;
+    color: var(--text);
+    z-index: 1000;
+    cursor: pointer;
+  }
+
+  /* ============================
+     MOBILE SIDEBAR (SLIDE-IN)
+     ============================ */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 100vh;
+    background: #111;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 999;
+    overflow-y: auto;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* ============================
+     MAIN CONTENT MOBILE PADDING
+     ============================ */
+  .main-content {
+    padding: 12px !important;
+  }
+
+  /* ============================
+     CARD MOBILE TIGHTENING
+     ============================ */
+  .card {
+    padding: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .card h3 {
+    font-size: 16px !important;
+  }
+
+  .card div {
+    font-size: 20px !important;
+  }
 }

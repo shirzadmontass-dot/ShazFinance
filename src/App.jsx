@@ -38,6 +38,12 @@ export default function App() {
     savingsGoalForecast
   } = useStore()
 
+  // ============================
+  // MOBILE SIDEBAR STATE
+  // ============================
+  const [isSidebarOpen, setSidebarOpen] = useState(false)
+  const toggleSidebar = () => setSidebarOpen(prev => !prev)
+
   const screens = {
     Dashboard,
     Income,
@@ -73,18 +79,36 @@ export default function App() {
       }}
     >
 
-      {/* SIDEBAR — scrolls independently */}
+      {/* ============================
+          MOBILE MENU BUTTON
+          (hidden on laptop via CSS)
+      ============================ */}
+      <button className="mobile-menu-btn" onClick={toggleSidebar}>
+        ⋮
+      </button>
+
+      {/* ============================
+          SIDEBAR — desktop + mobile
+      ============================ */}
       <div
+        className={`sidebar-wrapper ${isSidebarOpen ? "open" : ""}`}
         style={{
           width: "240px",
           overflowY: "auto",
           borderRight: "1px solid var(--border)"
         }}
       >
-        <Sidebar screen={screen} setScreen={setScreen} />
+        <Sidebar
+          screen={screen}
+          setScreen={setScreen}
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+        />
       </div>
 
-      {/* MAIN CONTENT — scrolls independently */}
+      {/* ============================
+          MAIN CONTENT
+      ============================ */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <Header screen={screen} />
 
