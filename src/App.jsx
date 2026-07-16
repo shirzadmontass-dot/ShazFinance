@@ -32,10 +32,7 @@ export default function App() {
     store,
     update,
     add,
-    remove,
-    autoMonth,
-    debtFreeDate,
-    savingsGoalForecast
+    remove
   } = useStore()
 
   // ============================
@@ -126,9 +123,6 @@ export default function App() {
               update={update}
               add={add}
               remove={remove}
-              autoMonth={autoMonth}
-              debtFreeDate={debtFreeDate}
-              savingsGoalForecast={savingsGoalForecast}
             />
           )}
         </div>

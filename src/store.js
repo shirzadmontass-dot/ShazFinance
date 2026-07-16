@@ -1,39 +1,54 @@
 import { useState, useEffect } from "react"
+import { dbRef, onValue, set } from "./firebase"
 
 export function useStore() {
-  // Load from localStorage OR use defaults
-  const [store, setStore] = useState(() => {
-    const saved = localStorage.getItem("shazplan-store")
-    if (saved) return JSON.parse(saved)
+  const [store, setStore] = useState(null)
 
-    return {
-      income: [],
-      commitments: [],
-      debts: [
-        { name: "Credit Card", balance: 1200, minPayment: 50 },
-        { name: "Loan", balance: 5000, minPayment: 120 }
-      ],
-      savings: [
-        { name: "LISA", balance: 0 }
-      ],
-      goals: [],
-      investments: [],
-      planner: [],
-      history: [],
-      children: [],
-      deposit: 0,
-      bankAccounts: [
-        { name: "Main Account", balance: 0, lastSync: null },
-        { name: "Savings Account", balance: 0, lastSync: null }
-      ]
-    }
-  })
-
-  // Save to localStorage whenever store changes
+  // Load from Firebase
   useEffect(() => {
-    localStorage.setItem("shazplan-store", JSON.stringify(store))
-  }, [store])
+    onValue(dbRef, (snapshot) => {
+      const data = snapshot.val()
 
+      if (data) {
+        setStore(data)
+      } else {
+        // Your exact default store
+        const defaultStore = {
+          income: [],
+          commitments: [],
+          debts: [
+            { name: "Credit Card", balance: 1200, minPayment: 50 },
+            { name: "Loan", balance: 5000, minPayment: 120 }
+          ],
+          savings: [
+            { name: "LISA", balance: 0 }
+          ],
+          goals: [],
+          investments: [],
+          planner: [],
+          history: [],
+          children: [],
+          deposit: 0,
+          bankAccounts: [
+            { name: "Main Account", balance: 0, lastSync: null },
+            { name: "Savings Account", balance: 0, lastSync: null }
+          ]
+        }
+
+        // Save default store to Firebase
+        set(dbRef, defaultStore)
+        setStore(defaultStore)
+      }
+    })
+  }, [])
+
+  // Save entire store to Firebase
+  function save(newStore) {
+    setStore(newStore)
+    set(dbRef, newStore)
+  }
+
+  // Update a single value
   function update(path, value) {
     const newStore = structuredClone(store)
     const keys = path.split(".")
@@ -44,9 +59,10 @@ export function useStore() {
     }
 
     ref[keys[keys.length - 1]] = value
-    setStore(newStore)
+    save(newStore)
   }
 
+  // Add item to array
   function add(path, item) {
     const newStore = structuredClone(store)
     const keys = path.split(".")
@@ -57,9 +73,10 @@ export function useStore() {
     }
 
     ref.push(item)
-    setStore(newStore)
+    save(newStore)
   }
 
+  // Remove item from array
   function remove(path, index) {
     const newStore = structuredClone(store)
     const keys = path.split(".")
@@ -70,7 +87,7 @@ export function useStore() {
     }
 
     ref.splice(index, 1)
-    setStore(newStore)
+    save(newStore)
   }
 
   return { store, update, add, remove }
