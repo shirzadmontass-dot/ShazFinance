@@ -1,64 +1,118 @@
+import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
-export default function Income({ store, update, add, remove }) {
+export default function Income({ store, add, remove }) {
+  const income = store.income || []
+  const total = income.reduce((sum, i) => sum + i.amount, 0)
+
   return (
-    <div>
-      <Card title="Income Sources">
-        {store.income.map((item, index) => (
-          <div key={index} style={{ marginBottom: "15px" }}>
-            <strong>{item.name}</strong><br />
+    <Page title="Income">
+      <Card title="Total Income" icon="💷">
+        <div style={{ fontSize: "22px", fontWeight: "700" }}>
+          £{total}
+        </div>
+      </Card>
 
-            <input
-              type="number"
-              value={item.amount}
-              onChange={(e) => update(`income.${index}.amount`, Number(e.target.value))}
-              style={{
-                marginTop: "8px",
-                padding: "8px",
-                width: "200px",
-                borderRadius: "6px",
-                border: "1px solid #444",
-                background: "#222",
-                color: "white"
-              }}
-            />
+      <Card title="Income Sources" icon="📄">
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+          {income.length === 0 && (
+            <div style={{ color: "var(--subtext)" }}>No income added yet.</div>
+          )}
 
-            <button
-              onClick={() => remove("income", index)}
+          {income.map((item, index) => (
+            <div
+              key={index}
               style={{
-                marginLeft: "10px",
-                padding: "6px 12px",
-                background: "#aa0000",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer"
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "var(--space-2)",
+                background: "var(--bg)",
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--border)"
               }}
             >
-              Remove
-            </button>
-          </div>
-        ))}
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: "600" }}>{item.name}</div>
+                <div style={{ color: "var(--subtext)" }}>£{item.amount}</div>
+              </div>
 
-        <button
-          onClick={() => add("income", { name: "New Income", amount: 0 })}
+              <button
+                onClick={() => remove("income", index)}
+                style={{
+                  background: "var(--primary)",
+                  border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "var(--radius)",
+                  color: "white",
+                  cursor: "pointer",
+                  fontWeight: "600"
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="Add Income" icon="➕">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            const name = e.target.name.value
+            const amount = Number(e.target.amount.value)
+            if (!name || !amount) return
+            add("income", { name, amount })
+            e.target.reset()
+          }}
           style={{
-            marginTop: "10px",
-            padding: "10px 16px",
-            background: "#0066ff",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer"
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
           }}
         >
-          + Add Income Source
-        </button>
-      </Card>
+          <input
+            name="name"
+            placeholder="Income name"
+            style={{
+              padding: "var(--space-2)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)"
+            }}
+          />
 
-      <Card title="Monthly Total">
-        £{store.income.reduce((sum, item) => sum + item.amount, 0)}
+          <input
+            name="amount"
+            type="number"
+            placeholder="Amount"
+            style={{
+              padding: "var(--space-2)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)"
+            }}
+          />
+
+          <button
+            type="submit"
+            style={{
+              background: "var(--accent)",
+              border: "none",
+              padding: "10px",
+              borderRadius: "var(--radius)",
+              color: "black",
+              fontWeight: "700",
+              cursor: "pointer"
+            }}
+          >
+            Add Income
+          </button>
+        </form>
       </Card>
-    </div>
+    </Page>
   )
 }

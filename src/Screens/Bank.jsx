@@ -1,35 +1,127 @@
+import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
-export default function Bank({ store, update }) {
+export default function Bank({ store, add, remove }) {
+  const accounts = store.bank || []
+  const total = accounts.reduce((sum, acc) => sum + acc.balance, 0)
+
   return (
-    <div>
-      <Card title="Bank Accounts (Manual Sync)">
-        {store.bankAccounts.map((acc, index) => (
-          <div key={index} style={{ marginBottom: "20px" }}>
-            <strong>{acc.name}</strong><br />
-
-            Balance:
-            <input
-              type="number"
-              value={acc.balance}
-              onChange={(e) => update(`bankAccounts.${index}.balance`, Number(e.target.value))}
-              style={{
-                marginLeft: "10px",
-                padding: "6px",
-                width: "150px",
-                borderRadius: "6px",
-                border: "1px solid #444",
-                background: "#222",
-                color: "white"
-              }}
-            />
-
-            <div style={{ marginTop: "10px", color: "#aaa" }}>
-              Last Sync: {acc.lastSync || "Never"}
-            </div>
-          </div>
-        ))}
+    <Page title="Bank Accounts">
+      <Card title="Total Balance" icon="🏦">
+        <div style={{ fontSize: "26px", fontWeight: "700" }}>
+          £{total}
+        </div>
+        <div style={{ color: "var(--subtext)" }}>
+          Combined balance across all bank accounts
+        </div>
       </Card>
-    </div>
+
+      <Card title="Accounts" icon="💳">
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+          {accounts.length === 0 && (
+            <div style={{ color: "var(--subtext)" }}>
+              No bank accounts added yet.
+            </div>
+          )}
+
+          {accounts.map((acc, index) => (
+            <div
+              key={index}
+              style={{
+                padding: "var(--space-2)",
+                background: "var(--bg)",
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--border)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}
+            >
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: "600" }}>
+                  {acc.name}
+                </div>
+                <div style={{ color: "var(--subtext)" }}>
+                  £{acc.balance}
+                </div>
+              </div>
+
+              <button
+                onClick={() => remove("bank", index)}
+                style={{
+                  background: "var(--primary)",
+                  border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "var(--radius)",
+                  color: "white",
+                  cursor: "pointer",
+                  fontWeight: "600"
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="Add Bank Account" icon="➕">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            const name = e.target.name.value
+            const balance = Number(e.target.balance.value)
+            if (!name || !balance) return
+            add("bank", { name, balance })
+            e.target.reset()
+          }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
+          }}
+        >
+          <input
+            name="name"
+            placeholder="Account name"
+            style={{
+              padding: "var(--space-2)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)"
+            }}
+          />
+
+          <input
+            name="balance"
+            type="number"
+            placeholder="Balance"
+            style={{
+              padding: "var(--space-2)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)"
+            }}
+          />
+
+          <button
+            type="submit"
+            style={{
+              background: "var(--accent)",
+              border: "none",
+              padding: "10px",
+              borderRadius: "var(--radius)",
+              color: "black",
+              fontWeight: "700",
+              cursor: "pointer"
+            }}
+          >
+            Add Account
+          </button>
+        </form>
+      </Card>
+    </Page>
   )
 }

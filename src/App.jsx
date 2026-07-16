@@ -43,7 +43,7 @@ export default function App() {
     Income,
     Commitments,
     Debt,
-    Deposit,        // ⭐ MUST BE HERE
+    Deposit,
     Leftover,
     Savings,
     Goals,
@@ -64,19 +64,36 @@ export default function App() {
   const ActiveScreen = screens[screen]
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
-      <Sidebar screen={screen} setScreen={setScreen} />
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        background: "var(--bg)",
+        color: "var(--text)"
+      }}
+    >
 
+      {/* SIDEBAR — scrolls independently */}
+      <div
+        style={{
+          width: "240px",
+          overflowY: "auto",
+          borderRight: "1px solid var(--border)"
+        }}
+      >
+        <Sidebar screen={screen} setScreen={setScreen} />
+      </div>
+
+      {/* MAIN CONTENT — scrolls independently */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <Header screen={screen} />
 
         <div
           style={{
             flex: 1,
-            padding: "30px",
-            color: "white",
             overflowY: "auto",
-            background: "#1a1a1a"
+            padding: "var(--space-4)",
+            background: "var(--bg)"
           }}
         >
           {ActiveScreen && (
@@ -92,6 +109,7 @@ export default function App() {
           )}
         </div>
       </div>
+
     </div>
   )
 }

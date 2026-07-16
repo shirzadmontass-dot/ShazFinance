@@ -1,72 +1,69 @@
 export default function Sidebar({ screen, setScreen }) {
-  const baseStyle = {
-    width: "100%",
-    padding: "12px 16px",
-    marginBottom: "6px",
-    background: "transparent",
-    color: "white",
-    border: "none",
-    textAlign: "left",
-    cursor: "pointer",
-    fontSize: "16px",
-    borderRadius: "8px",
-    transition: "0.2s"
-  }
-
-  const activeStyle = {
-    ...baseStyle,
-    background: "#2d2d2d",
-    fontWeight: "bold",
-    boxShadow: "0 0 10px rgba(0,0,0,0.4)"
-  }
-
-  const menuItems = [
-    { name: "Dashboard", icon: "📊" },
-    { name: "Income", icon: "💷" },
-    { name: "Commitments", icon: "📄" },
-    { name: "Debt", icon: "💳" },
-    { name: "Deposit", icon: "🏦" },
-    { name: "Leftover", icon: "💰" },
-    { name: "Savings", icon: "🪙" },
-    { name: "Goals", icon: "🎯" },
-    { name: "Profile", icon: "👤" },
-    { name: "Settings", icon: "⚙️" },
-    { name: "Reports", icon: "📈" },
-    { name: "Notifications", icon: "🔔" },
-    { name: "Help", icon: "❓" },
-    { name: "Children", icon: "👶" },
-    { name: "Investments", icon: "📉" },
-    { name: "Tools", icon: "🛠️" },
-    { name: "Planner", icon: "🗓️" },
-    { name: "History", icon: "📚" }
+  const items = [
+    "Dashboard",
+    "Income",
+    "Commitments",
+    "Debt",
+    "Deposit",
+    "Leftover",
+    "Savings",
+    "Goals",
+    "Profile",
+    "Settings",
+    "Reports",
+    "Notifications",
+    "Help",
+    "Children",
+    "Investments",
+    "Tools",
+    "Planner",
+    "History",
+    "Bank",
+    "NetWorth"
   ]
 
   return (
-    <div style={{
-      width: "240px",
-      background: "#111",
-      height: "100vh",
-      padding: "20px",
-      borderRight: "1px solid #333",
-      boxShadow: "4px 0 10px rgba(0,0,0,0.4)"
-    }}>
-      <h2 style={{
-        color: "white",
-        marginBottom: "20px",
-        fontSize: "24px",
-        fontWeight: "bold"
-      }}>
+    <div
+      style={{
+        width: "260px",
+        background: "#111",
+        borderRight: "1px solid var(--border)",
+        padding: "var(--space-4) var(--space-2)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--space-2)",
+        boxShadow: "var(--shadow)"
+      }}
+    >
+      <div
+        style={{
+          fontSize: "22px",
+          fontWeight: "700",
+          color: "var(--primary)",
+          marginBottom: "var(--space-3)"
+        }}
+      >
         ShazPlan
-      </h2>
+      </div>
 
-      {menuItems.map(item => (
-        <button
-          key={item.name}
-          style={screen === item.name ? activeStyle : baseStyle}
-          onClick={() => setScreen(item.name)}
+      {items.map((item) => (
+        <div
+          key={item}
+          onClick={() => setScreen(item)}
+          style={{
+            padding: "var(--space-2)",
+            borderRadius: "var(--radius)",
+            cursor: "pointer",
+            fontSize: "16px",
+            fontWeight: "500",
+            color: screen === item ? "var(--accent)" : "var(--text)",
+            background: screen === item ? "rgba(124, 58, 237, 0.15)" : "transparent",
+            transition: "0.2s",
+            border: screen === item ? "1px solid var(--primary)" : "1px solid transparent"
+          }}
         >
-          {item.icon} {item.name}
-        </button>
+          {item}
+        </div>
       ))}
     </div>
   )

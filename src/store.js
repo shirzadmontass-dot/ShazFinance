@@ -11,9 +11,7 @@ export function useStore() {
     savings: [
       { name: "LISA", balance: 0 }
     ],
-    goals: {
-      houseDepositTarget: 0
-    },
+    goals: [],   // ← FIXED
     investments: [],
     planner: [],
     history: [],

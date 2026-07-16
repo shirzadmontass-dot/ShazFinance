@@ -8,6 +8,7 @@ export default function Sidebar({ screen, setScreen }) {
     "Deposit",
     "Reports",
     "Settings"
+    "Tools"
   ]
 
   return (

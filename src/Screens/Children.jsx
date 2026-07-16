@@ -1,60 +1,113 @@
+import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
-export default function Children({ store, update, add, remove }) {
+export default function Children({ store, update }) {
+  const children = store.children || []
+
   return (
-    <div>
-      <Card title="Children ISA Accounts">
-        {store.children.map((child, index) => (
-          <div key={index} style={{ marginBottom: "15px" }}>
-            <strong>{child.name}</strong><br />
+    <Page title="Children Savings">
+      <Card title="Junior ISA Balances" icon="🧒">
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+          {children.length === 0 && (
+            <div style={{ color: "var(--subtext)" }}>No children added yet.</div>
+          )}
 
-            <input
-              type="number"
-              value={child.isa}
-              onChange={(e) => update(`children.${index}.isa`, Number(e.target.value))}
+          {children.map((child, index) => (
+            <div
+              key={index}
               style={{
-                marginTop: "8px",
-                padding: "8px",
-                width: "200px",
-                borderRadius: "6px",
-                border: "1px solid #444",
-                background: "#222",
-                color: "white"
-              }}
-            />
-
-            <button
-              onClick={() => remove("children", index)}
-              style={{
-                marginLeft: "10px",
-                padding: "6px 12px",
-                background: "#aa0000",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer"
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "var(--space-2)",
+                background: "var(--bg)",
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--border)"
               }}
             >
-              Remove
-            </button>
-          </div>
-        ))}
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: "600" }}>{child.name}</div>
+                <div style={{ color: "var(--subtext)" }}>
+                  £{child.balance}
+                </div>
+              </div>
 
-        <button
-          onClick={() => add("children", { name: "New Child", isa: 0 })}
+              <button
+                onClick={() => update("childrenRemove", index)}
+                style={{
+                  background: "var(--primary)",
+                  border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "var(--radius)",
+                  color: "white",
+                  cursor: "pointer",
+                  fontWeight: "600"
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="Add Child" icon="➕">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            const name = e.target.name.value
+            const balance = Number(e.target.balance.value)
+            if (!name || !balance) return
+            update("childrenAdd", { name, balance })
+            e.target.reset()
+          }}
           style={{
-            marginTop: "10px",
-            padding: "10px 16px",
-            background: "#0066ff",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer"
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
           }}
         >
-          + Add Child
-        </button>
+          <input
+            name="name"
+            placeholder="Child name"
+            style={{
+              padding: "var(--space-2)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)"
+            }}
+          />
+
+          <input
+            name="balance"
+            type="number"
+            placeholder="Junior ISA balance"
+            style={{
+              padding: "var(--space-2)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)"
+            }}
+          />
+
+          <button
+            type="submit"
+            style={{
+              background: "var(--accent)",
+              border: "none",
+              padding: "10px",
+              borderRadius: "var(--radius)",
+              color: "black",
+              fontWeight: "700",
+              cursor: "pointer"
+            }}
+          >
+            Add Child
+          </button>
+        </form>
       </Card>
-    </div>
+    </Page>
   )
 }

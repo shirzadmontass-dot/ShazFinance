@@ -1,60 +1,80 @@
+import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
-export default function Planner({ store, update, add, remove }) {
+export default function Planner({ store, add, remove, update }) {
+  const planner = store.planner || []
+
   return (
-    <div>
-      <Card title="Monthly Planner">
-        {store.planner.map((item, index) => (
-          <div key={index} style={{ marginBottom: "20px" }}>
-            <strong>{item.month}</strong><br />
+    <Page title="Planner">
+      <Card title="Monthly Planner" icon="📝">
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          {planner.length === 0 && (
+            <div style={{ color: "var(--subtext)" }}>
+              No planner items yet.
+            </div>
+          )}
 
-            <textarea
-              value={item.notes}
-              onChange={(e) => update(`planner.${index}.notes`, e.target.value)}
+          {planner.map((item, index) => (
+            <div
+              key={index}
               style={{
-                marginTop: "8px",
-                padding: "10px",
-                width: "300px",
-                height: "80px",
-                borderRadius: "6px",
-                border: "1px solid #444",
-                background: "#222",
-                color: "white"
-              }}
-            />
-
-            <button
-              onClick={() => remove("planner", index)}
-              style={{
-                marginLeft: "10px",
-                padding: "6px 12px",
-                background: "#aa0000",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer"
+                padding: "var(--space-2)",
+                background: "var(--bg)",
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--border)"
               }}
             >
-              Remove
-            </button>
-          </div>
-        ))}
+              <input
+                type="text"
+                value={item.text}
+                onChange={(e) =>
+                  update(`planner.${index}.text`, e.target.value)
+                }
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  borderRadius: "6px",
+                  border: "1px solid var(--border)",
+                  background: "var(--bg)",
+                  color: "var(--text)",
+                  marginBottom: "10px"
+                }}
+              />
+
+              <button
+                onClick={() => remove("planner", index)}
+                style={{
+                  padding: "8px 14px",
+                  background: "var(--primary)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: "600"
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
 
         <button
-          onClick={() => add("planner", { month: "New Month", notes: "" })}
+          onClick={() => add("planner", { text: "New planner item" })}
           style={{
-            marginTop: "10px",
+            marginTop: "20px",
             padding: "10px 16px",
-            background: "#0066ff",
-            color: "white",
+            background: "var(--accent)",
+            color: "black",
             border: "none",
             borderRadius: "6px",
-            cursor: "pointer"
+            cursor: "pointer",
+            fontWeight: "700"
           }}
         >
-          + Add Month
+          + Add Planner Item
         </button>
       </Card>
-    </div>
+    </Page>
   )
 }

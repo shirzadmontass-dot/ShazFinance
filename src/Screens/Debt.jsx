@@ -1,81 +1,139 @@
+import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
-export default function Debt({ store, update, add, remove }) {
+export default function Debt({ store, add, remove }) {
+  const debts = store.debts || []
+  const total = debts.reduce((sum, d) => sum + d.balance, 0)
+
   return (
-    <div>
-      <Card title="Debts">
-        {store.debts.map((item, index) => (
-          <div key={index} style={{ marginBottom: "20px" }}>
-            <strong>{item.name}</strong><br />
+    <Page title="Debt">
+      <Card title="Total Debt" icon="💳">
+        <div style={{ fontSize: "22px", fontWeight: "700" }}>
+          £{total}
+        </div>
+      </Card>
 
-            Balance:
-            <input
-              type="number"
-              value={item.balance}
-              onChange={(e) => update(`debts.${index}.balance`, Number(e.target.value))}
-              style={{
-                marginLeft: "10px",
-                padding: "6px",
-                width: "150px",
-                borderRadius: "6px",
-                border: "1px solid #444",
-                background: "#222",
-                color: "white"
-              }}
-            /><br /><br />
+      <Card title="Debt Accounts" icon="📄">
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+          {debts.length === 0 && (
+            <div style={{ color: "var(--subtext)" }}>No debt added yet.</div>
+          )}
 
-            Minimum Payment:
-            <input
-              type="number"
-              value={item.minPayment}
-              onChange={(e) => update(`debts.${index}.minPayment`, Number(e.target.value))}
+          {debts.map((item, index) => (
+            <div
+              key={index}
               style={{
-                marginLeft: "10px",
-                padding: "6px",
-                width: "150px",
-                borderRadius: "6px",
-                border: "1px solid #444",
-                background: "#222",
-                color: "white"
-              }}
-            />
-
-            <button
-              onClick={() => remove("debts", index)}
-              style={{
-                marginLeft: "10px",
-                padding: "6px 12px",
-                background: "#aa0000",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer"
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "var(--space-2)",
+                background: "var(--bg)",
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--border)"
               }}
             >
-              Remove
-            </button>
-          </div>
-        ))}
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: "600" }}>{item.name}</div>
+                <div style={{ color: "var(--subtext)" }}>
+                  £{item.balance} — {item.type}
+                </div>
+              </div>
 
-        <button
-          onClick={() => add("debts", { name: "New Debt", balance: 0, minPayment: 0 })}
+              <button
+                onClick={() => remove("debts", index)}
+                style={{
+                  background: "var(--primary)",
+                  border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "var(--radius)",
+                  color: "white",
+                  cursor: "pointer",
+                  fontWeight: "600"
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="Add Debt" icon="➕">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            const name = e.target.name.value
+            const balance = Number(e.target.balance.value)
+            const type = e.target.type.value
+            if (!name || !balance || !type) return
+            add("debts", { name, balance, type })
+            e.target.reset()
+          }}
           style={{
-            marginTop: "10px",
-            padding: "10px 16px",
-            background: "#0066ff",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer"
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
           }}
         >
-          + Add Debt
-        </button>
-      </Card>
+          <input
+            name="name"
+            placeholder="Debt name"
+            style={{
+              padding: "var(--space-2)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)"
+            }}
+          />
 
-      <Card title="Total Debt">
-        £{store.debts.reduce((sum, d) => sum + d.balance, 0)}
+          <input
+            name="balance"
+            type="number"
+            placeholder="Balance"
+            style={{
+              padding: "var(--space-2)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)"
+            }}
+          />
+
+          <select
+            name="type"
+            style={{
+              padding: "var(--space-2)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)"
+            }}
+          >
+            <option value="">Select type</option>
+            <option value="Loan">Loan</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="Car Finance">Car Finance</option>
+            <option value="Mortgage">Mortgage</option>
+            <option value="Other">Other</option>
+          </select>
+
+          <button
+            type="submit"
+            style={{
+              background: "var(--accent)",
+              border: "none",
+              padding: "10px",
+              borderRadius: "var(--radius)",
+              color: "black",
+              fontWeight: "700",
+              cursor: "pointer"
+            }}
+          >
+            Add Debt
+          </button>
+        </form>
       </Card>
-    </div>
+    </Page>
   )
 }

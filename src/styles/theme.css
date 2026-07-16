@@ -1,0 +1,24 @@
+:root {
+  --bg: #0F0F0F;
+  --card-bg: #1A1A1A;
+  --primary: #7C3AED;
+  --accent: #22D3EE;
+  --text: #FFFFFF;
+  --subtext: #9CA3AF;
+  --border: #2A2A2A;
+
+  --radius: 12px;
+  --shadow: 0 0 20px rgba(0,0,0,0.3);
+
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+}

@@ -1,54 +1,64 @@
+import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Deposit({ store, update }) {
-  const savings = store.savings || []
-  const lisaIndex = savings.findIndex(s => s.name === "LISA")
-  const lisa = lisaIndex >= 0 ? savings[lisaIndex].balance : 0
-
-  const goals = store.goals || { houseDepositTarget: 0 }
-  const target = goals.houseDepositTarget || 0
+  const deposit = store.deposit || 0
 
   return (
-    <div>
-      <Card title="LISA Balance">
-        <input
-          type="number"
-          value={lisa}
-          onChange={(e) => {
-            if (lisaIndex >= 0) {
-              update(`savings.${lisaIndex}.balance`, Number(e.target.value))
-            }
-          }}
-          style={{
-            padding: "8px",
-            width: "200px",
-            borderRadius: "6px",
-            border: "1px solid #444",
-            background: "#222",
-            color: "white"
-          }}
-        />
+    <Page title="Deposit">
+      <Card title="Current Deposit" icon="🏦">
+        <div style={{ fontSize: "26px", fontWeight: "700" }}>
+          £{deposit}
+        </div>
+        <div style={{ color: "var(--subtext)" }}>
+          Your saved deposit amount
+        </div>
       </Card>
 
-      <Card title="Deposit Target">
-        <input
-          type="number"
-          value={target}
-          onChange={(e) => update("goals.houseDepositTarget", Number(e.target.value))}
-          style={{
-            padding: "8px",
-            width: "200px",
-            borderRadius: "6px",
-            border: "1px solid #444",
-            background: "#222",
-            color: "white"
+      <Card title="Update Deposit" icon="✏️">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            const value = Number(e.target.deposit.value)
+            if (!value && value !== 0) return
+            update("deposit", value)
           }}
-        />
-      </Card>
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
+          }}
+        >
+          <input
+            name="deposit"
+            type="number"
+            defaultValue={deposit}
+            placeholder="Enter deposit amount"
+            style={{
+              padding: "var(--space-2)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)"
+            }}
+          />
 
-      <Card title="Progress">
-        {target > 0 ? `${((lisa / target) * 100).toFixed(1)}%` : "No target set"}
+          <button
+            type="submit"
+            style={{
+              background: "var(--accent)",
+              border: "none",
+              padding: "10px",
+              borderRadius: "var(--radius)",
+              color: "black",
+              fontWeight: "700",
+              cursor: "pointer"
+            }}
+          >
+            Save Deposit
+          </button>
+        </form>
       </Card>
-    </div>
+    </Page>
   )
 }
