@@ -4,21 +4,20 @@ import { dbRef, onValue, set } from "./firebase"
 export function useStore() {
   const [store, setStore] = useState(null)
 
-  // Load from Firebase
   useEffect(() => {
-    console.log("🔌 Connecting to Firebase...") // DEBUG
+    console.log("🔌 Connecting to Firebase...")
 
     onValue(dbRef, (snapshot) => {
-      console.log("🔥 Firebase connected") // DEBUG
-      console.log("📥 Snapshot received:", snapshot.val()) // DEBUG
+      console.log("🔥 Firebase connected")
+      console.log("📥 Snapshot received:", snapshot.val())
 
       const data = snapshot.val()
 
       if (data) {
-        console.log("📦 Store loaded from Firebase:", data) // DEBUG
+        console.log("📦 Store loaded from Firebase:", data)
         setStore(data)
       } else {
-        console.log("⚠️ Firebase store empty — creating default store") // DEBUG
+        console.log("⚠️ Firebase store empty — creating default store")
 
         const defaultStore = {
           income: [],
@@ -45,22 +44,20 @@ export function useStore() {
         set(dbRef, defaultStore)
         setStore(defaultStore)
 
-        console.log("📦 Default store saved to Firebase:", defaultStore) // DEBUG
+        console.log("📦 Default store saved to Firebase:", defaultStore)
       }
     })
   }, [])
 
-  // Save entire store to Firebase
   function save(newStore) {
-    console.log("💾 Saving store to Firebase:", newStore) // DEBUG
+    console.log("💾 Saving store to Firebase:", newStore)
     setStore(newStore)
     set(dbRef, newStore)
   }
 
-  // Update a single value
   function update(path, value) {
     if (!store) {
-      console.log("⚠️ Cannot update — store is null") // DEBUG
+      console.log("⚠️ Cannot update — store is null")
       return
     }
 
@@ -76,10 +73,9 @@ export function useStore() {
     save(newStore)
   }
 
-  // Add item to array
   function add(path, item) {
     if (!store) {
-      console.log("⚠️ Cannot add — store is null") // DEBUG
+      console.log("⚠️ Cannot add — store is null")
       return
     }
 
@@ -95,10 +91,9 @@ export function useStore() {
     save(newStore)
   }
 
-  // Remove item from array
   function remove(path, index) {
     if (!store) {
-      console.log("⚠️ Cannot remove — store is null") // DEBUG
+      console.log("⚠️ Cannot remove — store is null")
       return
     }
 
