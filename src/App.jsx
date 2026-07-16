@@ -66,6 +66,25 @@ export default function App() {
 
   const ActiveScreen = screens[screen]
 
+  // ⭐ CRITICAL FIX — prevent crash when store is null
+  if (!store) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          height: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--bg)",
+          color: "var(--text)",
+          fontSize: "20px"
+        }}
+      >
+        Loading…
+      </div>
+    )
+  }
+
   return (
     <div
       style={{
@@ -78,7 +97,6 @@ export default function App() {
 
       {/* ============================
           MOBILE MENU BUTTON
-          (hidden on laptop via CSS)
       ============================ */}
       <button className="mobile-menu-btn" onClick={toggleSidebar}>
         ⋮
