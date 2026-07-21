@@ -2,11 +2,22 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Investments({ store, add, remove }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Prevent crash if investments array is missing
   const investments = store.investments || []
-  const total = investments.reduce((sum, inv) => sum + inv.balance, 0)
+
+  // ⭐ Safe total
+  const total =
+    investments.length > 0
+      ? investments.reduce((sum, inv) => sum + (inv.balance || 0), 0)
+      : 0
 
   return (
     <Page title="Investments">
+
       <Card title="Total Investments" icon="📈">
         <div style={{ fontSize: "22px", fontWeight: "700" }}>
           £{total}
@@ -15,8 +26,11 @@ export default function Investments({ store, add, remove }) {
 
       <Card title="Investment Accounts" icon="💼">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+
           {investments.length === 0 && (
-            <div style={{ color: "var(--subtext)" }}>No investments added yet.</div>
+            <div style={{ color: "var(--subtext)" }}>
+              No investments added yet.
+            </div>
           )}
 
           {investments.map((item, index) => (
@@ -33,7 +47,9 @@ export default function Investments({ store, add, remove }) {
               }}
             >
               <div>
-                <div style={{ fontSize: "16px", fontWeight: "600" }}>{item.name}</div>
+                <div style={{ fontSize: "16px", fontWeight: "600" }}>
+                  {item.name}
+                </div>
                 <div style={{ color: "var(--subtext)" }}>
                   £{item.balance} — {item.type}
                 </div>
@@ -62,10 +78,14 @@ export default function Investments({ store, add, remove }) {
         <form
           onSubmit={(e) => {
             e.preventDefault()
+
             const name = e.target.name.value
             const balance = Number(e.target.balance.value)
             const type = e.target.type.value
-            if (!name || !balance || !type) return
+
+            // ⭐ Safe validation (allows balance = 0)
+            if (!name || isNaN(balance) || !type) return
+
             add("investments", { name, balance, type })
             e.target.reset()
           }}
@@ -134,6 +154,7 @@ export default function Investments({ store, add, remove }) {
           </button>
         </form>
       </Card>
+
     </Page>
   )
 }

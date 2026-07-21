@@ -135,7 +135,7 @@ export default function App() {
             background: "var(--bg)"
           }}
         >
-          {ActiveScreen && (
+          {store && ActiveScreen && (
             <ActiveScreen
               store={store}
               update={update}

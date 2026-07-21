@@ -2,11 +2,39 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function NetWorth({ store }) {
-  const savingsTotal = store.savings.reduce((sum, s) => sum + s.balance, 0)
-  const investmentsTotal = store.investments.reduce((sum, i) => sum + i.balance, 0)
-  const childrenTotal = store.children.reduce((sum, c) => sum + c.balance, 0)
-  const depositTotal = store.deposit || 0
-  const debtTotal = store.debts.reduce((sum, d) => sum + d.balance, 0)
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Safe arrays
+  const savings = store.savings || []
+  const investments = store.investments || []
+  const children = store.children || []
+  const debts = store.debts || []
+
+  // ⭐ Safe totals
+  const savingsTotal =
+    savings.length > 0
+      ? savings.reduce((sum, s) => sum + (s.balance || 0), 0)
+      : 0
+
+  const investmentsTotal =
+    investments.length > 0
+      ? investments.reduce((sum, i) => sum + (i.balance || 0), 0)
+      : 0
+
+  const childrenTotal =
+    children.length > 0
+      ? children.reduce((sum, c) => sum + (c.balance || 0), 0)
+      : 0
+
+  const depositTotal =
+    typeof store.deposit === "number" ? store.deposit : 0
+
+  const debtTotal =
+    debts.length > 0
+      ? debts.reduce((sum, d) => sum + (d.balance || 0), 0)
+      : 0
 
   const netWorth =
     savingsTotal +
@@ -17,6 +45,7 @@ export default function NetWorth({ store }) {
 
   return (
     <Page title="Net Worth">
+
       <Card title="Total Net Worth" icon="💷">
         <div style={{ fontSize: "28px", fontWeight: "700" }}>
           £{netWorth}
@@ -27,7 +56,13 @@ export default function NetWorth({ store }) {
       </Card>
 
       <Card title="Assets Breakdown" icon="📈">
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
+          }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Savings</span>
             <span>£{savingsTotal}</span>
@@ -48,15 +83,32 @@ export default function NetWorth({ store }) {
             <span>£{depositTotal}</span>
           </div>
 
-          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "700" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontWeight: "700"
+            }}
+          >
             <span>Total Assets</span>
-            <span>£{savingsTotal + investmentsTotal + childrenTotal + depositTotal}</span>
+            <span>
+              £{savingsTotal +
+                investmentsTotal +
+                childrenTotal +
+                depositTotal}
+            </span>
           </div>
         </div>
       </Card>
 
       <Card title="Debt Overview" icon="💳">
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "18px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: "18px"
+          }}
+        >
           <span>Total Debt</span>
           <span>£{debtTotal}</span>
         </div>
@@ -64,9 +116,11 @@ export default function NetWorth({ store }) {
 
       <Card title="Summary" icon="📘">
         <div style={{ color: "var(--text)" }}>
-          Your net worth represents your financial position by subtracting all debts from your total assets.
+          Your net worth represents your financial position by subtracting all
+          debts from your total assets.
         </div>
       </Card>
+
     </Page>
   )
 }

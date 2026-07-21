@@ -2,14 +2,28 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Dashboard({ store }) {
-  const incomeTotal = store.income?.reduce((t, i) => t + (i.amount || 0), 0) || 0
-  const commitmentsTotal = store.commitments?.reduce((t, c) => t + (c.amount || 0), 0) || 0
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Safe totals (store fields may be missing)
+  const incomeTotal =
+    store.income?.reduce((t, i) => t + (i.amount || 0), 0) || 0
+
+  const commitmentsTotal =
+    store.commitments?.reduce((t, c) => t + (c.amount || 0), 0) || 0
+
   const leftover = incomeTotal - commitmentsTotal
-  const savingsTotal = store.savings?.reduce((t, s) => t + (s.balance || 0), 0) || 0
-  const debtTotal = store.debts?.reduce((t, d) => t + (d.balance || 0), 0) || 0
+
+  const savingsTotal =
+    store.savings?.reduce((t, s) => t + (s.balance || 0), 0) || 0
+
+  const debtTotal =
+    store.debts?.reduce((t, d) => t + (d.balance || 0), 0) || 0
 
   return (
     <Page>
+
       {/* HERO HEADER */}
       <div
         style={{
@@ -52,10 +66,18 @@ export default function Dashboard({ store }) {
         </Card>
 
         <Card title="Leftover" icon="💰">
-          <div style={{ fontSize: "28px", fontWeight: "700", color: leftover >= 0 ? "#00C853" : "#D50000" }}>
+          <div
+            style={{
+              fontSize: "28px",
+              fontWeight: "700",
+              color: leftover >= 0 ? "#00C853" : "#D50000"
+            }}
+          >
             £{leftover}
           </div>
-          <div style={{ color: "var(--subtext)" }}>Remaining after commitments</div>
+          <div style={{ color: "var(--subtext)" }}>
+            Remaining after commitments
+          </div>
         </Card>
 
         <Card title="Savings" icon="🏦">
@@ -75,13 +97,7 @@ export default function Dashboard({ store }) {
 
       {/* QUICK ACTIONS */}
       <Card title="Quick Actions" icon="⚡" style={{ marginTop: "var(--space-4)" }}>
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            flexWrap: "wrap"
-          }}
-        >
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
           {[
             { label: "Add Income", icon: "➕" },
             { label: "Add Commitment", icon: "📄" },
@@ -126,6 +142,7 @@ export default function Dashboard({ store }) {
           Trend graph coming soon…
         </div>
       </Card>
+
     </Page>
   )
 }

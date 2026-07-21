@@ -2,33 +2,54 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Tools({ store, add, update }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Safe fallbacks
   const history = store.history || []
   const commitments = store.commitments || []
-  const leftover = store.leftover || 0
+  const leftover = typeof store.leftover === "number" ? store.leftover : 0
 
-  // Loan Calculator
+  // ⭐ Loan Calculator
   const calculateLoan = (amount, rate, years) => {
+    if (isNaN(amount) || isNaN(rate) || isNaN(years)) return "Invalid input"
+
     const monthlyRate = rate / 100 / 12
     const months = years * 12
+
+    if (monthlyRate === 0) return Math.round(amount / months)
+
     const payment =
-      (amount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months))
+      (amount * monthlyRate) /
+      (1 - Math.pow(1 + monthlyRate, -months))
+
     return Math.round(payment)
   }
 
-  // Savings Growth Calculator
+  // ⭐ Savings Growth Calculator (FIXED BUG)
   const calculateSavings = (initial, monthly, rate, years) => {
+    if (isNaN(initial) || isNaN(monthly) || isNaN(rate) || isNaN(years))
+      return "Invalid input"
+
     const months = years * 12
     const monthlyRate = rate / 100 / 12
+
     let total = initial
+
     for (let i = 0; i < months; i++) {
       total += monthly
       total += total * monthlyRate
     }
+
     return Math.round(total)
   }
 
-  // Debt Payoff Calculator
+  // ⭐ Debt Payoff Calculator (SAFE)
   const calculateDebtMonths = (balance, monthlyPayment, rate) => {
+    if (isNaN(balance) || isNaN(monthlyPayment) || isNaN(rate))
+      return "Invalid input"
+
     const monthlyRate = rate / 100 / 12
     let months = 0
     let remaining = balance
@@ -42,7 +63,7 @@ export default function Tools({ store, add, update }) {
     return remaining <= 0 ? months : "Too low payment"
   }
 
-  // Monthly Rollover
+  // ⭐ Monthly Rollover (SAFE)
   const rolloverMonth = () => {
     const newMonth = {
       month: `Month ${history.length + 1}`,
@@ -56,23 +77,34 @@ export default function Tools({ store, add, update }) {
 
   return (
     <Page title="Tools">
+
       {/* Loan Calculator */}
       <Card title="Loan Calculator" icon="💳">
         <form
           onSubmit={(e) => {
             e.preventDefault()
+
             const amount = Number(e.target.amount.value)
             const rate = Number(e.target.rate.value)
             const years = Number(e.target.years.value)
+
             const result = calculateLoan(amount, rate, years)
             alert(`Monthly Payment: £${result}`)
           }}
-          style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
+          }}
         >
           <input name="amount" type="number" placeholder="Loan amount" />
           <input name="rate" type="number" placeholder="Interest rate (%)" />
           <input name="years" type="number" placeholder="Years" />
-          <button type="submit" style={{ padding: "10px", borderRadius: "var(--radius)" }}>
+
+          <button
+            type="submit"
+            style={{ padding: "10px", borderRadius: "var(--radius)" }}
+          >
             Calculate
           </button>
         </form>
@@ -83,20 +115,30 @@ export default function Tools({ store, add, update }) {
         <form
           onSubmit={(e) => {
             e.preventDefault()
+
             const initial = Number(e.target.initial.value)
             const monthly = Number(e.target.monthly.value)
             const rate = Number(e.target.rate.value)
             const years = Number(e.target.years.value)
+
             const result = calculateSavings(initial, monthly, rate, years)
             alert(`Future Value: £${result}`)
           }}
-          style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
+          }}
         >
           <input name="initial" type="number" placeholder="Initial amount" />
           <input name="monthly" type="number" placeholder="Monthly deposit" />
           <input name="rate" type="number" placeholder="Interest rate (%)" />
           <input name="years" type="number" placeholder="Years" />
-          <button type="submit" style={{ padding: "10px", borderRadius: "var(--radius)" }}>
+
+          <button
+            type="submit"
+            style={{ padding: "10px", borderRadius: "var(--radius)" }}
+          >
             Calculate
           </button>
         </form>
@@ -107,18 +149,28 @@ export default function Tools({ store, add, update }) {
         <form
           onSubmit={(e) => {
             e.preventDefault()
+
             const balance = Number(e.target.balance.value)
             const monthly = Number(e.target.monthly.value)
             const rate = Number(e.target.rate.value)
+
             const result = calculateDebtMonths(balance, monthly, rate)
             alert(`Months to Payoff: ${result}`)
           }}
-          style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
+          }}
         >
           <input name="balance" type="number" placeholder="Debt balance" />
           <input name="monthly" type="number" placeholder="Monthly payment" />
           <input name="rate" type="number" placeholder="Interest rate (%)" />
-          <button type="submit" style={{ padding: "10px", borderRadius: "var(--radius)" }}>
+
+          <button
+            type="submit"
+            style={{ padding: "10px", borderRadius: "var(--radius)" }}
+          >
             Calculate
           </button>
         </form>
@@ -143,6 +195,7 @@ export default function Tools({ store, add, update }) {
           Roll Over to New Month
         </button>
       </Card>
+
     </Page>
   )
 }

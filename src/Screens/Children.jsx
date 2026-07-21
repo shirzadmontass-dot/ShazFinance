@@ -2,14 +2,22 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Children({ store, update }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Prevent crash if children array is missing
   const children = store.children || []
 
   return (
     <Page title="Children Savings">
       <Card title="Junior ISA Balances" icon="🧒">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+          
           {children.length === 0 && (
-            <div style={{ color: "var(--subtext)" }}>No children added yet.</div>
+            <div style={{ color: "var(--subtext)" }}>
+              No children added yet.
+            </div>
           )}
 
           {children.map((child, index) => (
@@ -26,14 +34,20 @@ export default function Children({ store, update }) {
               }}
             >
               <div>
-                <div style={{ fontSize: "16px", fontWeight: "600" }}>{child.name}</div>
+                <div style={{ fontSize: "16px", fontWeight: "600" }}>
+                  {child.name}
+                </div>
                 <div style={{ color: "var(--subtext)" }}>
                   £{child.balance}
                 </div>
               </div>
 
               <button
-                onClick={() => update("childrenRemove", index)}
+                onClick={() => {
+                  const updated = [...children]
+                  updated.splice(index, 1)
+                  update("children", updated)
+                }}
                 style={{
                   background: "var(--primary)",
                   border: "none",
@@ -57,8 +71,12 @@ export default function Children({ store, update }) {
             e.preventDefault()
             const name = e.target.name.value
             const balance = Number(e.target.balance.value)
-            if (!name || !balance) return
-            update("childrenAdd", { name, balance })
+
+            if (!name || isNaN(balance)) return
+
+            const updated = [...children, { name, balance }]
+            update("children", updated)
+
             e.target.reset()
           }}
           style={{

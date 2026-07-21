@@ -2,21 +2,29 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Profile({ store, update }) {
-  const profile = store.profile || {
-    name: "",
-    incomeType: "",
-    notes: ""
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Safe fallback for profile
+  const profile = {
+    name: store.profile?.name || "",
+    incomeType: store.profile?.incomeType || "",
+    notes: store.profile?.notes || ""
   }
 
   return (
     <Page title="Profile">
+
       <Card title="Your Details" icon="👤">
         <form
           onSubmit={(e) => {
             e.preventDefault()
+
             const name = e.target.name.value
             const incomeType = e.target.incomeType.value
             const notes = e.target.notes.value
+
             update("profile", { name, incomeType, notes })
           }}
           style={{
@@ -25,6 +33,8 @@ export default function Profile({ store, update }) {
             gap: "var(--space-3)"
           }}
         >
+
+          {/* Name */}
           <div>
             <label style={{ fontWeight: "600" }}>Name</label>
             <input
@@ -43,6 +53,7 @@ export default function Profile({ store, update }) {
             />
           </div>
 
+          {/* Income Type */}
           <div>
             <label style={{ fontWeight: "600" }}>Income Type</label>
             <select
@@ -66,6 +77,7 @@ export default function Profile({ store, update }) {
             </select>
           </div>
 
+          {/* Notes */}
           <div>
             <label style={{ fontWeight: "600" }}>Notes</label>
             <textarea
@@ -99,11 +111,18 @@ export default function Profile({ store, update }) {
           >
             Save Profile
           </button>
+
         </form>
       </Card>
 
       <Card title="Profile Summary" icon="📘">
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
+          }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Name</span>
             <span>{profile.name || "—"}</span>
@@ -122,6 +141,7 @@ export default function Profile({ store, update }) {
           </div>
         </div>
       </Card>
+
     </Page>
   )
 }

@@ -2,21 +2,33 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Settings({ store, update }) {
-  const settings = store.settings || {
-    darkMode: true,
-    notifications: true,
-    autoMonth: true
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Safe fallback for settings (preserves existing values)
+  const settings = {
+    darkMode: store.settings?.darkMode ?? true,
+    notifications: store.settings?.notifications ?? true,
+    autoMonth: store.settings?.autoMonth ?? true
   }
 
   return (
     <Page title="Settings">
+
       <Card title="Preferences" icon="⚙️">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
 
+          {/* Dark Mode */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Dark Mode</span>
             <button
-              onClick={() => update("settings", { ...settings, darkMode: !settings.darkMode })}
+              onClick={() =>
+                update("settings", {
+                  ...settings,
+                  darkMode: !settings.darkMode
+                })
+              }
               style={{
                 background: settings.darkMode ? "var(--accent)" : "var(--border)",
                 border: "none",
@@ -30,11 +42,15 @@ export default function Settings({ store, update }) {
             </button>
           </div>
 
+          {/* Notifications */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Notifications</span>
             <button
               onClick={() =>
-                update("settings", { ...settings, notifications: !settings.notifications })
+                update("settings", {
+                  ...settings,
+                  notifications: !settings.notifications
+                })
               }
               style={{
                 background: settings.notifications ? "var(--accent)" : "var(--border)",
@@ -49,11 +65,15 @@ export default function Settings({ store, update }) {
             </button>
           </div>
 
+          {/* Auto Month Update */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Auto Month Update</span>
             <button
               onClick={() =>
-                update("settings", { ...settings, autoMonth: !settings.autoMonth })
+                update("settings", {
+                  ...settings,
+                  autoMonth: !settings.autoMonth
+                })
               }
               style={{
                 background: settings.autoMonth ? "var(--accent)" : "var(--border)",
@@ -88,6 +108,7 @@ export default function Settings({ store, update }) {
           Reset All Data
         </button>
       </Card>
+
     </Page>
   )
 }

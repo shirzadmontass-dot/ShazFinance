@@ -2,10 +2,16 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Deposit({ store, update }) {
-  const deposit = store.deposit || 0
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Prevent crash if deposit is missing
+  const deposit = typeof store.deposit === "number" ? store.deposit : 0
 
   return (
     <Page title="Deposit">
+
       <Card title="Current Deposit" icon="🏦">
         <div style={{ fontSize: "26px", fontWeight: "700" }}>
           £{deposit}
@@ -19,8 +25,12 @@ export default function Deposit({ store, update }) {
         <form
           onSubmit={(e) => {
             e.preventDefault()
+
             const value = Number(e.target.deposit.value)
-            if (!value && value !== 0) return
+
+            // ⭐ Safe validation
+            if (isNaN(value)) return
+
             update("deposit", value)
           }}
           style={{
@@ -59,6 +69,7 @@ export default function Deposit({ store, update }) {
           </button>
         </form>
       </Card>
+
     </Page>
   )
 }

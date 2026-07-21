@@ -2,12 +2,19 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function History({ store, update, add, remove }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Prevent crash if history array is missing
   const history = store.history || []
 
   return (
     <Page title="History">
+
       <Card title="Monthly History" icon="📅">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+
           {history.length === 0 && (
             <div style={{ color: "var(--subtext)" }}>
               No history entries yet.
@@ -24,18 +31,31 @@ export default function History({ store, update, add, remove }) {
                 border: "1px solid var(--border)"
               }}
             >
-              <div style={{ fontSize: "16px", fontWeight: "700", marginBottom: "10px" }}>
+              <div
+                style={{
+                  fontSize: "16px",
+                  fontWeight: "700",
+                  marginBottom: "10px"
+                }}
+              >
                 {item.month}
               </div>
 
+              {/* Update Leftover */}
               <label style={{ display: "block", marginBottom: "10px" }}>
                 Leftover:
                 <input
                   type="number"
                   value={item.leftover}
-                  onChange={(e) =>
-                    update(`history.${index}.leftover`, Number(e.target.value))
-                  }
+                  onChange={(e) => {
+                    const newValue = Number(e.target.value)
+                    if (isNaN(newValue)) return
+
+                    // ⭐ Correct update pattern (no nested paths)
+                    const updated = [...history]
+                    updated[index].leftover = newValue
+                    update("history", updated)
+                  }}
                   style={{
                     marginLeft: "10px",
                     padding: "6px",
@@ -48,14 +68,20 @@ export default function History({ store, update, add, remove }) {
                 />
               </label>
 
+              {/* Update Debt Paid */}
               <label style={{ display: "block", marginBottom: "10px" }}>
                 Debt Paid:
                 <input
                   type="number"
                   value={item.debtPaid}
-                  onChange={(e) =>
-                    update(`history.${index}.debtPaid`, Number(e.target.value))
-                  }
+                  onChange={(e) => {
+                    const newValue = Number(e.target.value)
+                    if (isNaN(newValue)) return
+
+                    const updated = [...history]
+                    updated[index].debtPaid = newValue
+                    update("history", updated)
+                  }}
                   style={{
                     marginLeft: "10px",
                     padding: "6px",
@@ -89,7 +115,11 @@ export default function History({ store, update, add, remove }) {
 
         <button
           onClick={() =>
-            add("history", { month: "New Month", leftover: 0, debtPaid: 0 })
+            add("history", {
+              month: "New Month",
+              leftover: 0,
+              debtPaid: 0
+            })
           }
           style={{
             marginTop: "20px",
@@ -105,6 +135,7 @@ export default function History({ store, update, add, remove }) {
           + Add History Entry
         </button>
       </Card>
+
     </Page>
   )
 }

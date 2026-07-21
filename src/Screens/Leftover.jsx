@@ -2,18 +2,42 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Leftover({ store }) {
-  const incomeTotal = store.income.reduce((sum, i) => sum + i.amount, 0)
-  const commitmentsTotal = store.commitments.reduce((sum, c) => sum + c.amount, 0)
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Safe arrays
+  const income = store.income || []
+  const commitments = store.commitments || []
+
+  // ⭐ Safe totals
+  const incomeTotal =
+    income.length > 0
+      ? income.reduce((sum, i) => sum + (i.amount || 0), 0)
+      : 0
+
+  const commitmentsTotal =
+    commitments.length > 0
+      ? commitments.reduce((sum, c) => sum + (c.amount || 0), 0)
+      : 0
+
   const leftover = incomeTotal - commitmentsTotal
 
-  const wasted = store.commitments
-    .filter(c => ["Wants", "Shopping", "Misc"].includes(c.category))
-    .reduce((sum, c) => sum + c.amount, 0)
+  // ⭐ Safe wasted calculation
+  const wasted =
+    commitments.length > 0
+      ? commitments
+          .filter(c =>
+            ["Wants", "Shopping", "Misc"].includes(c.category)
+          )
+          .reduce((sum, c) => sum + (c.amount || 0), 0)
+      : 0
 
   const actualLeftover = leftover - wasted
 
   return (
     <Page title="Leftover">
+
       <Card title="Total Leftover" icon="💰">
         <div style={{ fontSize: "22px", fontWeight: "700" }}>
           £{leftover}
@@ -21,7 +45,13 @@ export default function Leftover({ store }) {
       </Card>
 
       <Card title="Wasted Money" icon="⚠️">
-        <div style={{ fontSize: "22px", fontWeight: "700", color: "var(--accent)" }}>
+        <div
+          style={{
+            fontSize: "22px",
+            fontWeight: "700",
+            color: "var(--accent)"
+          }}
+        >
           £{wasted}
         </div>
         <div style={{ color: "var(--subtext)" }}>
@@ -39,7 +69,13 @@ export default function Leftover({ store }) {
       </Card>
 
       <Card title="Breakdown" icon="📄">
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
+          }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Income</span>
             <span>£{incomeTotal}</span>
@@ -60,12 +96,19 @@ export default function Leftover({ store }) {
             <span>£{wasted}</span>
           </div>
 
-          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "700" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontWeight: "700"
+            }}
+          >
             <span>Actual Leftover</span>
             <span>£{actualLeftover}</span>
           </div>
         </div>
       </Card>
+
     </Page>
   )
 }

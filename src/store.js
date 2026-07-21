@@ -7,44 +7,15 @@ export function useStore() {
   useEffect(() => {
     console.log("🔌 Connecting to Firebase...")
 
-    onValue(dbRef, (snapshot) => {
-      console.log("🔥 Firebase connected")
-      console.log("📥 Snapshot received:", snapshot.val())
-
+    onValue(dbRef("store"), (snapshot) => {
       const data = snapshot.val()
 
       if (data) {
         console.log("📦 Store loaded from Firebase:", data)
         setStore(data)
       } else {
-        console.log("⚠️ Firebase store empty — creating default store")
-
-        const defaultStore = {
-          income: [],
-          commitments: [],
-          debts: [
-            { name: "Credit Card", balance: 1200, minPayment: 50 },
-            { name: "Loan", balance: 5000, minPayment: 120 }
-          ],
-          savings: [
-            { name: "LISA", balance: 0 }
-          ],
-          goals: [],
-          investments: [],
-          planner: [],
-          history: [],
-          children: [],
-          deposit: 0,
-          bankAccounts: [
-            { name: "Main Account", balance: 0, lastSync: null },
-            { name: "Savings Account", balance: 0, lastSync: null }
-          ]
-        }
-
-        set(dbRef, defaultStore)
-        setStore(defaultStore)
-
-        console.log("📦 Default store saved to Firebase:", defaultStore)
+        console.log("⚠️ Firebase store empty — not overwriting")
+        setStore(null)
       }
     })
   }, [])
@@ -52,7 +23,7 @@ export function useStore() {
   function save(newStore) {
     console.log("💾 Saving store to Firebase:", newStore)
     setStore(newStore)
-    set(dbRef, newStore)
+    set(dbRef("store"), newStore)
   }
 
   function update(path, value) {

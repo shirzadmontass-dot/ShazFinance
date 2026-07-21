@@ -2,6 +2,11 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Notifications({ store, update }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Safe fallback if settings is missing
   const settings = store.settings || {
     notifications: true,
     alerts: true,
@@ -10,21 +15,19 @@ export default function Notifications({ store, update }) {
 
   return (
     <Page title="Notifications">
+
       <Card title="Notification Settings" icon="🔔">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
 
           {/* App Notifications */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>App Notifications</span>
             <button
               onClick={() =>
-                update("settings", { ...settings, notifications: !settings.notifications })
+                update("settings", {
+                  ...settings,
+                  notifications: !settings.notifications
+                })
               }
               style={{
                 background: settings.notifications ? "var(--accent)" : "var(--border)",
@@ -40,17 +43,14 @@ export default function Notifications({ store, update }) {
           </div>
 
           {/* Alerts */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Financial Alerts</span>
             <button
               onClick={() =>
-                update("settings", { ...settings, alerts: !settings.alerts })
+                update("settings", {
+                  ...settings,
+                  alerts: !settings.alerts
+                })
               }
               style={{
                 background: settings.alerts ? "var(--accent)" : "var(--border)",
@@ -66,17 +66,14 @@ export default function Notifications({ store, update }) {
           </div>
 
           {/* Reminders */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Monthly Reminders</span>
             <button
               onClick={() =>
-                update("settings", { ...settings, reminders: !settings.reminders })
+                update("settings", {
+                  ...settings,
+                  reminders: !settings.reminders
+                })
               }
               style={{
                 background: settings.reminders ? "var(--accent)" : "var(--border)",
@@ -103,11 +100,17 @@ export default function Notifications({ store, update }) {
           {settings.notifications && <li>General app notifications</li>}
           {settings.alerts && <li>High spending alerts</li>}
           {settings.reminders && <li>Monthly financial reminders</li>}
-          {!settings.notifications && !settings.alerts && !settings.reminders && (
-            <li style={{ color: "var(--subtext)" }}>All notifications are turned off</li>
-          )}
+
+          {!settings.notifications &&
+            !settings.alerts &&
+            !settings.reminders && (
+              <li style={{ color: "var(--subtext)" }}>
+                All notifications are turned off
+              </li>
+            )}
         </ul>
       </Card>
+
     </Page>
   )
 }

@@ -2,12 +2,19 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Planner({ store, add, remove, update }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Prevent crash if planner array is missing
   const planner = store.planner || []
 
   return (
     <Page title="Planner">
+
       <Card title="Monthly Planner" icon="📝">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+
           {planner.length === 0 && (
             <div style={{ color: "var(--subtext)" }}>
               No planner items yet.
@@ -27,9 +34,11 @@ export default function Planner({ store, add, remove, update }) {
               <input
                 type="text"
                 value={item.text}
-                onChange={(e) =>
-                  update(`planner.${index}.text`, e.target.value)
-                }
+                onChange={(e) => {
+                  const updated = [...planner]
+                  updated[index].text = e.target.value
+                  update("planner", updated)
+                }}
                 style={{
                   width: "100%",
                   padding: "8px",
@@ -75,6 +84,7 @@ export default function Planner({ store, add, remove, update }) {
           + Add Planner Item
         </button>
       </Card>
+
     </Page>
   )
 }

@@ -2,11 +2,22 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Savings({ store, add, remove }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Prevent crash if savings array is missing
   const savings = store.savings || []
-  const total = savings.reduce((sum, s) => sum + s.balance, 0)
+
+  // ⭐ Safe total
+  const total =
+    savings.length > 0
+      ? savings.reduce((sum, s) => sum + (s.balance || 0), 0)
+      : 0
 
   return (
     <Page title="Savings">
+
       <Card title="Total Savings" icon="💰">
         <div style={{ fontSize: "22px", fontWeight: "700" }}>
           £{total}
@@ -15,8 +26,11 @@ export default function Savings({ store, add, remove }) {
 
       <Card title="Savings Accounts" icon="🏦">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+
           {savings.length === 0 && (
-            <div style={{ color: "var(--subtext)" }}>No savings added yet.</div>
+            <div style={{ color: "var(--subtext)" }}>
+              No savings added yet.
+            </div>
           )}
 
           {savings.map((item, index) => (
@@ -33,7 +47,9 @@ export default function Savings({ store, add, remove }) {
               }}
             >
               <div>
-                <div style={{ fontSize: "16px", fontWeight: "600" }}>{item.name}</div>
+                <div style={{ fontSize: "16px", fontWeight: "600" }}>
+                  {item.name}
+                </div>
                 <div style={{ color: "var(--subtext)" }}>
                   £{item.balance}
                 </div>
@@ -62,9 +78,13 @@ export default function Savings({ store, add, remove }) {
         <form
           onSubmit={(e) => {
             e.preventDefault()
+
             const name = e.target.name.value
             const balance = Number(e.target.balance.value)
-            if (!name || !balance) return
+
+            // ⭐ Safe validation (allows balance = 0)
+            if (!name || isNaN(balance)) return
+
             add("savings", { name, balance })
             e.target.reset()
           }}
@@ -115,6 +135,7 @@ export default function Savings({ store, add, remove }) {
           </button>
         </form>
       </Card>
+
     </Page>
   )
 }

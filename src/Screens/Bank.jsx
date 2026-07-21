@@ -2,8 +2,17 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Bank({ store, add, remove }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Prevent crash if store.bank is missing
   const accounts = store.bank || []
-  const total = accounts.reduce((sum, acc) => sum + acc.balance, 0)
+
+  // ⭐ Prevent crash if accounts is empty
+  const total = accounts.length > 0
+    ? accounts.reduce((sum, acc) => sum + acc.balance, 0)
+    : 0
 
   return (
     <Page title="Bank Accounts">
@@ -71,7 +80,7 @@ export default function Bank({ store, add, remove }) {
             e.preventDefault()
             const name = e.target.name.value
             const balance = Number(e.target.balance.value)
-            if (!name || !balance) return
+            if (!name || isNaN(balance)) return
             add("bank", { name, balance })
             e.target.reset()
           }}

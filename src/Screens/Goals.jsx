@@ -2,12 +2,19 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Goals({ store, add, remove, update }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Prevent crash if goals array is missing
   const goals = store.goals || []
 
   return (
     <Page title="Goals">
+
       <Card title="Your Goals" icon="🎯">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+
           {goals.length === 0 && (
             <div style={{ color: "var(--subtext)" }}>
               No goals added yet.
@@ -64,9 +71,15 @@ export default function Goals({ store, add, remove, update }) {
                   <input
                     type="number"
                     value={goal.current}
-                    onChange={(e) =>
-                      update(`goals.${index}.current`, Number(e.target.value))
-                    }
+                    onChange={(e) => {
+                      const newValue = Number(e.target.value)
+                      if (isNaN(newValue)) return
+
+                      // ⭐ Correct update pattern (your store does NOT support nested paths)
+                      const updatedGoals = [...goals]
+                      updatedGoals[index].current = newValue
+                      update("goals", updatedGoals)
+                    }}
                     style={{
                       marginLeft: "10px",
                       padding: "6px",
@@ -103,9 +116,12 @@ export default function Goals({ store, add, remove, update }) {
         <form
           onSubmit={(e) => {
             e.preventDefault()
+
             const name = e.target.name.value
             const target = Number(e.target.target.value)
-            if (!name || !target) return
+
+            if (!name || isNaN(target)) return
+
             add("goals", { name, target, current: 0 })
             e.target.reset()
           }}
@@ -156,6 +172,7 @@ export default function Goals({ store, add, remove, update }) {
           </button>
         </form>
       </Card>
+
     </Page>
   )
 }

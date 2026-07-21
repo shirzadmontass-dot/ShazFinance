@@ -2,40 +2,61 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Debt({ store, add, remove }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Prevent crash if debts array is missing
   const debts = store.debts || []
-  const total = debts.reduce((sum, d) => sum + d.balance, 0)
+
+  // ⭐ Safe total
+  const totalDebt = debts.length > 0
+    ? debts.reduce((sum, d) => sum + (d.balance || 0), 0)
+    : 0
 
   return (
-    <Page title="Debt">
-      <Card title="Total Debt" icon="💳">
-        <div style={{ fontSize: "22px", fontWeight: "700" }}>
-          £{total}
+    <Page title="Debt Overview">
+
+      <Card title="Total Debt" icon="📉">
+        <div style={{ fontSize: "28px", fontWeight: "700", color: "#D50000" }}>
+          £{totalDebt}
+        </div>
+        <div style={{ color: "var(--subtext)" }}>
+          Total outstanding debt across all accounts
         </div>
       </Card>
 
-      <Card title="Debt Accounts" icon="📄">
+      <Card title="Debt Accounts" icon="💳">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+          
           {debts.length === 0 && (
-            <div style={{ color: "var(--subtext)" }}>No debt added yet.</div>
+            <div style={{ color: "var(--subtext)" }}>
+              No debt accounts added yet.
+            </div>
           )}
 
-          {debts.map((item, index) => (
+          {debts.map((debt, index) => (
             <div
               key={index}
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
                 padding: "var(--space-2)",
                 background: "var(--bg)",
                 borderRadius: "var(--radius)",
-                border: "1px solid var(--border)"
+                border: "1px solid var(--border)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
               }}
             >
               <div>
-                <div style={{ fontSize: "16px", fontWeight: "600" }}>{item.name}</div>
+                <div style={{ fontSize: "16px", fontWeight: "600" }}>
+                  {debt.name}
+                </div>
                 <div style={{ color: "var(--subtext)" }}>
-                  £{item.balance} — {item.type}
+                  Balance: £{debt.balance}
+                </div>
+                <div style={{ color: "var(--subtext)" }}>
+                  Min Payment: £{debt.minPayment}
                 </div>
               </div>
 
@@ -58,15 +79,18 @@ export default function Debt({ store, add, remove }) {
         </div>
       </Card>
 
-      <Card title="Add Debt" icon="➕">
+      <Card title="Add Debt Account" icon="➕">
         <form
           onSubmit={(e) => {
             e.preventDefault()
+
             const name = e.target.name.value
             const balance = Number(e.target.balance.value)
-            const type = e.target.type.value
-            if (!name || !balance || !type) return
-            add("debts", { name, balance, type })
+            const minPayment = Number(e.target.minPayment.value)
+
+            if (!name || isNaN(balance) || isNaN(minPayment)) return
+
+            add("debts", { name, balance, minPayment })
             e.target.reset()
           }}
           style={{
@@ -100,8 +124,10 @@ export default function Debt({ store, add, remove }) {
             }}
           />
 
-          <select
-            name="type"
+          <input
+            name="minPayment"
+            type="number"
+            placeholder="Minimum payment"
             style={{
               padding: "var(--space-2)",
               borderRadius: "var(--radius)",
@@ -109,14 +135,7 @@ export default function Debt({ store, add, remove }) {
               background: "var(--bg)",
               color: "var(--text)"
             }}
-          >
-            <option value="">Select type</option>
-            <option value="Loan">Loan</option>
-            <option value="Credit Card">Credit Card</option>
-            <option value="Car Finance">Car Finance</option>
-            <option value="Mortgage">Mortgage</option>
-            <option value="Other">Other</option>
-          </select>
+          />
 
           <button
             type="submit"
@@ -134,6 +153,7 @@ export default function Debt({ store, add, remove }) {
           </button>
         </form>
       </Card>
+
     </Page>
   )
 }

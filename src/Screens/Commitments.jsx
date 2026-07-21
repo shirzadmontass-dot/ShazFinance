@@ -2,40 +2,43 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Commitments({ store, add, remove }) {
+
+  // ⭐ Prevent crash if store is null
+  if (!store) return null
+
+  // ⭐ Prevent crash if commitments array is missing
   const commitments = store.commitments || []
-  const total = commitments.reduce((sum, c) => sum + c.amount, 0)
 
   return (
-    <Page title="Commitments">
-      <Card title="Total Commitments" icon="📄">
-        <div style={{ fontSize: "22px", fontWeight: "700" }}>
-          £{total}
-        </div>
-      </Card>
-
-      <Card title="Monthly Bills & Expenses" icon="💸">
+    <Page title="Monthly Commitments">
+      <Card title="Your Commitments" icon="📄">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+          
           {commitments.length === 0 && (
-            <div style={{ color: "var(--subtext)" }}>No commitments added yet.</div>
+            <div style={{ color: "var(--subtext)" }}>
+              No commitments added yet.
+            </div>
           )}
 
           {commitments.map((item, index) => (
             <div
               key={index}
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
                 padding: "var(--space-2)",
                 background: "var(--bg)",
                 borderRadius: "var(--radius)",
-                border: "1px solid var(--border)"
+                border: "1px solid var(--border)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
               }}
             >
               <div>
-                <div style={{ fontSize: "16px", fontWeight: "600" }}>{item.name}</div>
+                <div style={{ fontSize: "16px", fontWeight: "600" }}>
+                  {item.name}
+                </div>
                 <div style={{ color: "var(--subtext)" }}>
-                  £{item.amount} — {item.category}
+                  £{item.amount}
                 </div>
               </div>
 
@@ -64,9 +67,10 @@ export default function Commitments({ store, add, remove }) {
             e.preventDefault()
             const name = e.target.name.value
             const amount = Number(e.target.amount.value)
-            const category = e.target.category.value
-            if (!name || !amount || !category) return
-            add("commitments", { name, amount, category })
+
+            if (!name || isNaN(amount)) return
+
+            add("commitments", { name, amount })
             e.target.reset()
           }}
           style={{
@@ -90,7 +94,7 @@ export default function Commitments({ store, add, remove }) {
           <input
             name="amount"
             type="number"
-            placeholder="Amount"
+            placeholder="Monthly amount"
             style={{
               padding: "var(--space-2)",
               borderRadius: "var(--radius)",
@@ -99,24 +103,6 @@ export default function Commitments({ store, add, remove }) {
               color: "var(--text)"
             }}
           />
-
-          <select
-            name="category"
-            style={{
-              padding: "var(--space-2)",
-              borderRadius: "var(--radius)",
-              border: "1px solid var(--border)",
-              background: "var(--bg)",
-              color: "var(--text)"
-            }}
-          >
-            <option value="">Select category</option>
-            <option value="Needs">Needs</option>
-            <option value="Wants">Wants</option>
-            <option value="Shopping">Shopping</option>
-            <option value="Bills">Bills</option>
-            <option value="Misc">Misc</option>
-          </select>
 
           <button
             type="submit"
