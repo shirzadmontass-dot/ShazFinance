@@ -1,36 +1,68 @@
 import { useState, useEffect } from "react"
-import { dbRef, onValue, set } from "./firebase"
+import { supabase } from "./supabase"
+
+// Your Supabase row ID
+const STORE_ID = "eb910809-1a92-434d-8059-c8d7563a5ea2"
 
 export function useStore() {
   const [store, setStore] = useState(null)
 
   useEffect(() => {
-    console.log("🔌 Connecting to Firebase...")
+    async function load() {
+      console.log("🔌 Connecting to Supabase...")
 
-    onValue(dbRef("store"), (snapshot) => {
-      const data = snapshot.val()
+      const { data, error } = await supabase
+        .from("store")
+        .select("data")
+        .eq("id", STORE_ID)
+        .single()
 
-      if (data) {
-        console.log("📦 Store loaded from Firebase:", data)
-        setStore(data)
-      } else {
-        console.log("⚠️ Firebase store empty — not overwriting")
-        setStore(null)
+      if (error) {
+        console.error("❌ Error loading store:", error)
+        return
       }
-    })
+
+      console.log("📦 Store loaded:", data)
+
+      const defaultStore = {
+        income: [],
+        commitments: [],
+        debts: [],
+        savings: [],
+        children: [],
+        investments: [],
+        goals: {
+          houseDepositTarget: 0,
+          debtFreeTargetDate: ""
+        },
+        planner: [],
+        history: []
+      }
+
+      setStore({
+        ...defaultStore,
+        ...(data?.data || {})
+      })
+    }
+
+    load()
   }, [])
 
-  function save(newStore) {
-    console.log("💾 Saving store to Firebase:", newStore)
+  async function save(newStore) {
     setStore(newStore)
-    set(dbRef("store"), newStore)
+
+    const { error } = await supabase
+      .from("store")
+      .update({ data: newStore })
+      .eq("id", STORE_ID)
+
+    if (error) {
+      console.error("❌ Error saving store:", error)
+    }
   }
 
   function update(path, value) {
-    if (!store) {
-      console.log("⚠️ Cannot update — store is null")
-      return
-    }
+    if (!store) return
 
     const newStore = structuredClone(store)
     const keys = path.split(".")
@@ -41,42 +73,40 @@ export function useStore() {
     }
 
     ref[keys[keys.length - 1]] = value
+
     save(newStore)
   }
 
   function add(path, item) {
-    if (!store) {
-      console.log("⚠️ Cannot add — store is null")
-      return
-    }
+    if (!store) return
 
     const newStore = structuredClone(store)
     const keys = path.split(".")
     let ref = newStore
 
-    for (let i = 0; i < keys.length; i++) {
-      ref = ref[keys[i]]
+    for (const key of keys) {
+      if (!ref[key]) ref[key] = []
+      ref = ref[key]
     }
 
     ref.push(item)
+
     save(newStore)
   }
 
   function remove(path, index) {
-    if (!store) {
-      console.log("⚠️ Cannot remove — store is null")
-      return
-    }
+    if (!store) return
 
     const newStore = structuredClone(store)
     const keys = path.split(".")
     let ref = newStore
 
-    for (let i = 0; i < keys.length; i++) {
-      ref = ref[keys[i]]
+    for (const key of keys) {
+      ref = ref[key]
     }
 
     ref.splice(index, 1)
+
     save(newStore)
   }
 
