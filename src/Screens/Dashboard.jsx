@@ -98,16 +98,23 @@ export default function Dashboard({ store, setScreen }) {
 
   return (
     <Page>
+      {/* Responsive top layout: stacks on mobile, 2 cols on larger screens */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns:
             "minmax(0,1.6fr) minmax(0,1.2fr)",
           gap: 24,
-          alignItems: "flex-start"
+          alignItems: "flex-start",
+          marginBottom: 24
         }}
       >
-        <div>
+        {/* Left column: hero + net worth + quick monthly overview */}
+        <div
+          style={{
+            minWidth: 0
+          }}
+        >
           <HeroBanner
             title="Welcome back, Shirzad 👋"
             subtitle="Your money at a glance – clear, calm and under control."
@@ -268,12 +275,14 @@ export default function Dashboard({ store, setScreen }) {
           </div>
         </div>
 
+        {/* Right column: activity & bills */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             gap: 16,
-            marginTop: 8
+            marginTop: 8,
+            minWidth: 0
           }}
         >
           <Card
@@ -489,6 +498,7 @@ export default function Dashboard({ store, setScreen }) {
         </div>
       </div>
 
+      {/* Core stats grid stays responsive via existing Grid component */}
       <Section>
         <Grid>
           <StatCard
@@ -553,6 +563,7 @@ export default function Dashboard({ store, setScreen }) {
         </Grid>
       </Section>
 
+      {/* Goals section: deposit + September plan */}
       <Section>
         <div
           style={{
@@ -853,6 +864,7 @@ export default function Dashboard({ store, setScreen }) {
         </div>
       </Section>
 
+      {/* Monthly snapshot at the bottom */}
       <Section>
         <Card
           title="📊 Monthly Snapshot"
