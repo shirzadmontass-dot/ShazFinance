@@ -1,144 +1,368 @@
 import React from "react"
-import { View, Text, ScrollView, StyleSheet, Dimensions } from "react-native"
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Dimensions
+} from "react-native"
 import { PieChart, LineChart } from "react-native-chart-kit"
 import NumberCard from "../components/NumberCard"
 import ChartCard from "../components/ChartCard"
 
+const screenWidth = Dimensions.get("window").width
+
 export default function Dashboard({ store }) {
-  const incomeTotal = store.income.reduce((sum, i) => sum + i.amount, 0)
-  const commitmentsTotal = store.commitments.reduce((sum, c) => sum + c.amount, 0)
+  const incomeTotal = store.income.reduce(
+    (sum, i) => sum + i.amount,
+    0
+  )
+  const commitmentsTotal =
+    store.commitments.reduce(
+      (sum, c) => sum + c.amount,
+      0
+    )
   const leftover = incomeTotal - commitmentsTotal
 
   const wasted = store.commitments
-    .filter(c => ["Wants", "Shopping", "Misc"].includes(c.category))
+    .filter((c) =>
+      ["Wants", "Shopping", "Misc"].includes(
+        c.category
+      )
+    )
     .reduce((sum, c) => sum + c.amount, 0)
 
-  const savingsTotal = store.savings.reduce((sum, s) => sum + s.balance, 0)
-  const debtTotal = store.debts.reduce((sum, d) => sum + d.balance, 0)
+  const savingsTotal = store.savings.reduce(
+    (sum, s) => sum + s.balance,
+    0
+  )
+  const debtTotal = store.debts.reduce(
+    (sum, d) => sum + d.balance,
+    0
+  )
   const depositTotal = store.deposit || 0
 
   const actualLeftover = leftover - wasted
 
-  const lastMonthIncome = store.incomeLastMonth || 0
-  const lastMonthDebt = store.debtLastMonth || debtTotal
+  const lastMonthIncome =
+    store.incomeLastMonth || 0
+  const lastMonthDebt =
+    store.debtLastMonth || debtTotal
 
   const incomeColor = () =>
-    incomeTotal < lastMonthIncome ? "#f44336" :
-    incomeTotal === lastMonthIncome ? "#ff9800" : "#4caf50"
+    incomeTotal < lastMonthIncome
+      ? "#f87171"
+      : incomeTotal === lastMonthIncome
+      ? "#facc15"
+      : "#4ade80"
 
-  const commitmentsColor = () =>
-    commitmentsTotal / incomeTotal > 0.6 ? "#f44336" :
-    commitmentsTotal / incomeTotal > 0.4 ? "#ff9800" : "#4caf50"
+  const commitmentsColor = () => {
+    const ratio =
+      incomeTotal > 0
+        ? commitmentsTotal / incomeTotal
+        : 1
+    return ratio > 0.6
+      ? "#f87171"
+      : ratio > 0.4
+      ? "#facc15"
+      : "#4ade80"
+  }
 
   const leftoverColor = () =>
-    leftover < 1000 ? "#f44336" :
-    leftover < 2000 ? "#ff9800" : "#4caf50"
+    leftover < 1000
+      ? "#f87171"
+      : leftover < 2000
+      ? "#f97316"
+      : "#4ade80"
 
   const wastedColor = () =>
-    wasted > 300 ? "#f44336" :
-    wasted > 100 ? "#ff9800" : "#4caf50"
+    wasted > 300
+      ? "#f87171"
+      : wasted > 100
+      ? "#f97316"
+      : "#4ade80"
 
   const savingsColor = () =>
-    savingsTotal < 10000 ? "#f44336" :
-    savingsTotal < 20000 ? "#ff9800" : "#4caf50"
+    savingsTotal < 10000
+      ? "#f87171"
+      : savingsTotal < 20000
+      ? "#facc15"
+      : "#4ade80"
 
   const debtColor = () =>
-    debtTotal > lastMonthDebt ? "#f44336" :
-    debtTotal === lastMonthDebt ? "#ff9800" : "#4caf50"
+    debtTotal > lastMonthDebt
+      ? "#f87171"
+      : debtTotal === lastMonthDebt
+      ? "#facc15"
+      : "#4ade80"
 
   const depositColor = () =>
-    depositTotal < 6000 ? "#f44336" :
-    depositTotal < 18000 ? "#ff9800" : "#4caf50"
+    depositTotal < 6000
+      ? "#f87171"
+      : depositTotal < 18000
+      ? "#f97316"
+      : "#4ade80"
 
-  const screenWidth = Dimensions.get("window").width
+  const cardWidth =
+    screenWidth - 2 * styles.container.padding
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={
+        styles.contentContainer
+      }
+    >
+      {/* HEADER / HERO */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>
+            ShazPlan
+          </Text>
+          <Text style={styles.subTitle}>
+            Your month in one clean view
+          </Text>
+        </View>
 
-      {/* TOP GRID */}
-      <View style={styles.grid}>
-        <NumberCard title="Income" value={incomeTotal} color={incomeColor()} />
-        <NumberCard title="Commitments" value={commitmentsTotal} color={commitmentsColor()} />
-
-        <NumberCard title="Leftover" value={leftover} color={leftoverColor()} />
-        <NumberCard title="Wasted Money" value={wasted} color={wastedColor()} />
+        <View style={styles.netChip}>
+          <Text style={styles.netChipLabel}>
+            Net position
+          </Text>
+          <Text style={styles.netChipValue}>
+            £
+            {(
+              savingsTotal +
+              depositTotal -
+              debtTotal
+            ).toLocaleString()}
+          </Text>
+        </View>
       </View>
 
-      {/* SECOND GRID */}
-      <View style={styles.grid}>
-        <NumberCard title="Savings" value={savingsTotal} color={savingsColor()} />
-        <NumberCard title="Debt" value={debtTotal} color={debtColor()} />
+      {/* KEY NUMBERS – SINGLE COLUMN, APP-LIKE */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          Overview
+        </Text>
+        <Text style={styles.sectionSubtitle}>
+          Key numbers for this month
+        </Text>
 
-        <NumberCard title="Deposit" value={depositTotal} color={depositColor()} />
-        <NumberCard title="Actual Leftover" value={actualLeftover} color={leftoverColor()} />
+        <View style={styles.stack}>
+          <NumberCard
+            title="Income"
+            value={incomeTotal}
+            color={incomeColor()}
+            fullWidth
+          />
+          <NumberCard
+            title="Commitments"
+            value={commitmentsTotal}
+            color={commitmentsColor()}
+            fullWidth
+          />
+          <NumberCard
+            title="Leftover"
+            value={leftover}
+            color={leftoverColor()}
+            fullWidth
+          />
+        </View>
       </View>
 
-      {/* CHARTS */}
-      <View style={styles.grid}>
-        <ChartCard title="Income vs Commitments Pie">
-          <PieChart
-            data={[
-              { name: "Income", amount: incomeTotal, color: "#4caf50", legendFontColor: "#fff", legendFontSize: 12 },
-              { name: "Commitments", amount: commitmentsTotal, color: "#f44336", legendFontColor: "#fff", legendFontSize: 12 },
-              { name: "Leftover", amount: leftover, color: "#2196f3", legendFontColor: "#fff", legendFontSize: 12 }
-            ]}
-            width={screenWidth - 40}
-            height={180}
-            accessor="amount"
-            backgroundColor="transparent"
-            paddingLeft="15"
-          />
-        </ChartCard>
+      {/* CASH & GOALS */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          Cash & goals
+        </Text>
 
-        <ChartCard title="Wasted vs Actual Leftover Pie">
-          <PieChart
-            data={[
-              { name: "Wasted", amount: wasted, color: "#ff9800", legendFontColor: "#fff", legendFontSize: 12 },
-              { name: "Actual Leftover", amount: actualLeftover, color: "#4caf50", legendFontColor: "#fff", legendFontSize: 12 }
-            ]}
-            width={screenWidth - 40}
-            height={180}
-            accessor="amount"
-            backgroundColor="transparent"
-            paddingLeft="15"
+        <View style={styles.stack}>
+          <NumberCard
+            title="Wasted money"
+            value={wasted}
+            color={wastedColor()}
+            fullWidth
           />
-        </ChartCard>
-
-        <ChartCard title="Savings vs Debt Pie">
-          <PieChart
-            data={[
-              { name: "Savings", amount: savingsTotal, color: "#00bcd4", legendFontColor: "#fff", legendFontSize: 12 },
-              { name: "Debt", amount: debtTotal, color: "#e91e63", legendFontColor: "#fff", legendFontSize: 12 }
-            ]}
-            width={screenWidth - 40}
-            height={180}
-            accessor="amount"
-            backgroundColor="transparent"
-            paddingLeft="15"
+          <NumberCard
+            title="Actual leftover"
+            value={actualLeftover}
+            color={leftoverColor()}
+            fullWidth
           />
-        </ChartCard>
-
-        <ChartCard title="Income Trend">
-          <LineChart
-            data={{
-              labels: ["Jan", "Feb", "Mar", "Apr"],
-              datasets: [{ data: [500, 600, 550, 700] }]
-            }}
-            width={screenWidth - 40}
-            height={220}
-            chartConfig={{
-              backgroundColor: "#1a1a1a",
-              backgroundGradientFrom: "#1a1a1a",
-              backgroundGradientTo: "#1a1a1a",
-              decimalPlaces: 0,
-              color: () => "#4caf50",
-              labelColor: () => "#fff"
-            }}
-            bezier
+          <NumberCard
+            title="Savings"
+            value={savingsTotal}
+            color={savingsColor()}
+            fullWidth
           />
-        </ChartCard>
+          <NumberCard
+            title="Debt"
+            value={debtTotal}
+            color={debtColor()}
+            fullWidth
+          />
+          <NumberCard
+            title="House deposit"
+            value={depositTotal}
+            color={depositColor()}
+            fullWidth
+          />
+        </View>
       </View>
 
+      {/* CHARTS – ONE PER ROW ON MOBILE */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          Charts
+        </Text>
+
+        <View style={styles.stack}>
+          <ChartCard
+            title="Income vs commitments"
+            fullWidth
+          >
+            <PieChart
+              data={[
+                {
+                  name: "Income",
+                  amount: incomeTotal,
+                  color: "#22c55e",
+                  legendFontColor: "#e5e7eb",
+                  legendFontSize: 11
+                },
+                {
+                  name: "Commitments",
+                  amount: commitmentsTotal,
+                  color: "#f97316",
+                  legendFontColor: "#e5e7eb",
+                  legendFontSize: 11
+                },
+                {
+                  name: "Leftover",
+                  amount: leftover,
+                  color: "#3b82f6",
+                  legendFontColor: "#e5e7eb",
+                  legendFontSize: 11
+                }
+              ]}
+              width={cardWidth - 16}
+              height={180}
+              accessor="amount"
+              backgroundColor="transparent"
+              paddingLeft="12"
+              hasLegend={true}
+            />
+          </ChartCard>
+
+          <ChartCard
+            title="Wasted vs actual leftover"
+            fullWidth
+          >
+            <PieChart
+              data={[
+                {
+                  name: "Wasted",
+                  amount: wasted,
+                  color: "#f97316",
+                  legendFontColor: "#e5e7eb",
+                  legendFontSize: 11
+                },
+                {
+                  name: "Actual leftover",
+                  amount: actualLeftover,
+                  color: "#22c55e",
+                  legendFontColor: "#e5e7eb",
+                  legendFontSize: 11
+                }
+              ]}
+              width={cardWidth - 16}
+              height={180}
+              accessor="amount"
+              backgroundColor="transparent"
+              paddingLeft="12"
+              hasLegend={true}
+            />
+          </ChartCard>
+
+          <ChartCard
+            title="Savings vs debt"
+            fullWidth
+          >
+            <PieChart
+              data={[
+                {
+                  name: "Savings",
+                  amount: savingsTotal,
+                  color: "#06b6d4",
+                  legendFontColor: "#e5e7eb",
+                  legendFontSize: 11
+                },
+                {
+                  name: "Debt",
+                  amount: debtTotal,
+                  color: "#e11d48",
+                  legendFontColor: "#e5e7eb",
+                  legendFontSize: 11
+                }
+              ]}
+              width={cardWidth - 16}
+              height={180}
+              accessor="amount"
+              backgroundColor="transparent"
+              paddingLeft="12"
+              hasLegend={true}
+            />
+          </ChartCard>
+
+          <ChartCard
+            title="Income trend"
+            fullWidth
+          >
+            <LineChart
+              data={{
+                labels: [
+                  "Jan",
+                  "Feb",
+                  "Mar",
+                  "Apr"
+                ],
+                datasets: [
+                  {
+                    data: [
+                      500, 600, 550, 700
+                    ]
+                  }
+                ]
+              }}
+              width={cardWidth - 16}
+              height={210}
+              chartConfig={{
+                backgroundColor: "#020617",
+                backgroundGradientFrom:
+                  "#020617",
+                backgroundGradientTo:
+                  "#020617",
+                decimalPlaces: 0,
+                color: () => "#22c55e",
+                labelColor: () => "#9ca3af",
+                propsForDots: {
+                  r: "3",
+                  strokeWidth: "2",
+                  stroke: "#22c55e"
+                },
+                propsForBackgroundLines: {
+                  stroke:
+                    "rgba(55,65,81,0.6)"
+                }
+              }}
+              bezier
+              style={{
+                borderRadius: 12
+              }}
+            />
+          </ChartCard>
+        </View>
+      </View>
     </ScrollView>
   )
 }
@@ -146,13 +370,62 @@ export default function Dashboard({ store }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#111"
+    padding: 16,
+    backgroundColor: "#020617"
   },
-  grid: {
+  contentContainer: {
+    paddingBottom: 24
+  },
+  header: {
+    marginBottom: 16,
     flexDirection: "row",
-    flexWrap: "wrap",
     justifyContent: "space-between",
-    marginBottom: 20
+    alignItems: "center"
+  },
+  greeting: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#e5e7eb"
+  },
+  subTitle: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#9ca3af"
+  },
+  netChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "#111827",
+    borderWidth: 1,
+    borderColor: "#1f2933",
+    alignItems: "flex-end"
+  },
+  netChipLabel: {
+    fontSize: 10,
+    color: "#9ca3af"
+  },
+  netChipValue: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#4ade80"
+  },
+  section: {
+    marginBottom: 18
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#e5e7eb",
+    marginBottom: 2
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: "#9ca3af",
+    marginBottom: 8
+  },
+  stack: {
+    marginTop: 6,
+    gap: 8
   }
 })
