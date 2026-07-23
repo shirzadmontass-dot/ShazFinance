@@ -13,7 +13,7 @@ const isWideScreen = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(min-width: 960px)").matches
 
-export default function Dashboard({ store, setScreen }) {
+export default function Dashboard({ store }) {
   if (!store) return null
 
   const incomeTotal =
@@ -104,21 +104,22 @@ export default function Dashboard({ store, setScreen }) {
 
   return (
     <Page>
+      {/* Top row: hero + net worth & compact monthly overview */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: wide
-            ? "minmax(0,1.6fr) minmax(0,1.2fr)"
+            ? "minmax(0,1.5fr) minmax(0,1.1fr)"
             : "minmax(0,1fr)",
           gap: wide ? 24 : 16,
           alignItems: "flex-start",
-          marginBottom: wide ? 24 : 16
+          marginBottom: wide ? 20 : 12
         }}
       >
         <div style={{ minWidth: 0 }}>
           <HeroBanner
             title="Welcome back, Shirzad 👋"
-            subtitle="Your money at a glance – clear, calm and under control."
+            subtitle="Stay on top of your money with a clear, calm overview."
           />
 
           <div
@@ -126,7 +127,7 @@ export default function Dashboard({ store, setScreen }) {
               marginTop: wide ? 16 : 12,
               display: "grid",
               gridTemplateColumns: wide
-                ? "minmax(0,1.4fr) minmax(0,1fr)"
+                ? "minmax(0,1.1fr) minmax(0,1fr)"
                 : "minmax(0,1fr)",
               gap: 16
             }}
@@ -134,9 +135,9 @@ export default function Dashboard({ store, setScreen }) {
             <NetWorthCard store={store} />
 
             <Card
-              title="📅 This Month"
-              subtitle="Key signals for your plan"
-              compact={!wide}
+              title="This Month"
+              subtitle="Quick signal check"
+              compact
             >
               <div
                 style={{
@@ -146,14 +147,15 @@ export default function Dashboard({ store, setScreen }) {
                   gap: 10
                 }}
               >
+                {/* Money Left – subtle green, smaller than before */}
                 <div
                   style={{
-                    padding: wide ? 14 : 12,
-                    borderRadius: 14,
+                    padding: wide ? 12 : 10,
+                    borderRadius: 12,
                     background:
-                      "linear-gradient(135deg,#064E3B,#022C22)",
+                      "linear-gradient(135deg,#022C22,#011619)",
                     border:
-                      "1px solid rgba(34,197,94,0.3)"
+                      "1px solid rgba(34,197,94,0.35)"
                   }}
                 >
                   <div
@@ -161,15 +163,15 @@ export default function Dashboard({ store, setScreen }) {
                       fontSize: 11,
                       textTransform: "uppercase",
                       letterSpacing: 0.06,
-                      color: "rgba(209,250,229,0.7)"
+                      color: "rgba(190,242,100,0.8)"
                     }}
                   >
-                    Money Left
+                    Money left
                   </div>
                   <div
                     style={{
                       marginTop: 4,
-                      fontSize: wide ? 22 : 20,
+                      fontSize: wide ? 20 : 18,
                       fontWeight: 700,
                       color: "#BBF7D0"
                     }}
@@ -178,22 +180,23 @@ export default function Dashboard({ store, setScreen }) {
                   </div>
                   <div
                     style={{
-                      marginTop: 4,
-                      fontSize: 12,
-                      color: "rgba(209,250,229,0.8)"
+                      marginTop: 3,
+                      fontSize: 11,
+                      color: "rgba(148,163,184,0.9)"
                     }}
                   >
-                    After income, bills &amp; spending
+                    After income &amp; outgoings
                   </div>
                 </div>
 
+                {/* Savings rate – smaller, pill feel */}
                 <div
                   style={{
-                    padding: wide ? 14 : 12,
-                    borderRadius: 14,
+                    padding: wide ? 12 : 10,
+                    borderRadius: 12,
                     background: "#020617",
                     border:
-                      "1px solid rgba(148,163,184,0.35)"
+                      "1px solid rgba(148,163,184,0.28)"
                   }}
                 >
                   <div
@@ -204,12 +207,12 @@ export default function Dashboard({ store, setScreen }) {
                       color: "rgba(148,163,184,0.9)"
                     }}
                   >
-                    Savings Rate
+                    Savings rate
                   </div>
                   <div
                     style={{
                       marginTop: 4,
-                      fontSize: wide ? 22 : 20,
+                      fontSize: wide ? 20 : 18,
                       fontWeight: 700,
                       color:
                         safeRate >= 20
@@ -225,22 +228,23 @@ export default function Dashboard({ store, setScreen }) {
                   </div>
                   <div
                     style={{
-                      marginTop: 4,
-                      fontSize: 12,
-                      color: "var(--subtext)"
+                      marginTop: 3,
+                      fontSize: 11,
+                      color: "rgba(148,163,184,0.9)"
                     }}
                   >
-                    Of your income this month
+                    Of this month&apos;s income
                   </div>
                 </div>
 
+                {/* Cash cushion – calm blue */}
                 <div
                   style={{
-                    padding: wide ? 14 : 12,
-                    borderRadius: 14,
+                    padding: wide ? 12 : 10,
+                    borderRadius: 12,
                     background: "#020617",
                     border:
-                      "1px solid rgba(148,163,184,0.35)"
+                      "1px solid rgba(148,163,184,0.28)"
                   }}
                 >
                   <div
@@ -251,12 +255,12 @@ export default function Dashboard({ store, setScreen }) {
                       color: "rgba(148,163,184,0.9)"
                     }}
                   >
-                    Cash Cushion
+                    Cash cushion
                   </div>
                   <div
                     style={{
                       marginTop: 4,
-                      fontSize: wide ? 22 : 20,
+                      fontSize: wide ? 20 : 18,
                       fontWeight: 700,
                       color: "#38BDF8"
                     }}
@@ -265,12 +269,12 @@ export default function Dashboard({ store, setScreen }) {
                   </div>
                   <div
                     style={{
-                      marginTop: 4,
-                      fontSize: 12,
-                      color: "var(--subtext)"
+                      marginTop: 3,
+                      fontSize: 11,
+                      color: "rgba(148,163,184,0.9)"
                     }}
                   >
-                    Across your savings pots
+                    Across savings accounts
                   </div>
                 </div>
               </div>
@@ -278,30 +282,31 @@ export default function Dashboard({ store, setScreen }) {
           </div>
         </div>
 
+        {/* Right: Activity + Bills in a cleaner, app-like card stack */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 16,
-            marginTop: wide ? 8 : 16,
+            gap: 14,
+            marginTop: wide ? 4 : 16,
             minWidth: 0
           }}
         >
           <Card
-            title="📰 Recent Activity"
-            subtitle="Latest movements across your plan"
-            compact={!wide}
+            title="Recent activity"
+            subtitle="Latest movements"
+            compact
           >
             {recentActivity.length === 0 ? (
               <div
                 style={{
-                  padding: 14,
-                  fontSize: 14,
+                  padding: 12,
+                  fontSize: 13,
                   color: "var(--subtext)"
                 }}
               >
-                No recent activity yet. As you add
-                income, bills and spending, they'll
+                As you start adding income,
+                bills and spending, they&apos;ll
                 show here.
               </div>
             ) : (
@@ -309,7 +314,7 @@ export default function Dashboard({ store, setScreen }) {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 8
+                  gap: 6
                 }}
               >
                 {recentActivity.map((item, idx) => {
@@ -326,22 +331,22 @@ export default function Dashboard({ store, setScreen }) {
                         gridTemplateColumns: wide
                           ? "minmax(0,1.5fr) minmax(0,1fr) auto"
                           : "minmax(0,1fr)",
-                        gap: 8,
+                        gap: 6,
                         alignItems: wide
                           ? "baseline"
                           : "flex-start",
-                        padding: wide ? 10 : 8,
-                        borderRadius: 12,
+                        padding: wide ? 8 : 7,
+                        borderRadius: 10,
                         background:
                           "rgba(15,23,42,0.9)",
                         border:
-                          "1px solid rgba(51,65,85,0.9)"
+                          "1px solid rgba(30,41,59,0.9)"
                       }}
                     >
                       <div>
                         <div
                           style={{
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: 600
                           }}
                         >
@@ -349,8 +354,8 @@ export default function Dashboard({ store, setScreen }) {
                         </div>
                         <div
                           style={{
-                            marginTop: 2,
-                            fontSize: 12,
+                            marginTop: 1,
+                            fontSize: 11,
                             color: "var(--subtext)"
                           }}
                         >
@@ -363,7 +368,7 @@ export default function Dashboard({ store, setScreen }) {
                         <>
                           <div
                             style={{
-                              fontSize: 12,
+                              fontSize: 11,
                               color: "var(--subtext)"
                             }}
                           >
@@ -382,7 +387,7 @@ export default function Dashboard({ store, setScreen }) {
 
                           <div
                             style={{
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: 600,
                               color: positive
                                 ? "#22C55E"
@@ -399,7 +404,7 @@ export default function Dashboard({ store, setScreen }) {
                       ) : (
                         <div
                           style={{
-                            marginTop: 6,
+                            marginTop: 4,
                             display: "flex",
                             justifyContent:
                               "space-between",
@@ -409,7 +414,7 @@ export default function Dashboard({ store, setScreen }) {
                         >
                           <span
                             style={{
-                              fontSize: 12,
+                              fontSize: 11,
                               color: "var(--subtext)"
                             }}
                           >
@@ -427,7 +432,7 @@ export default function Dashboard({ store, setScreen }) {
                           </span>
                           <span
                             style={{
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: 600,
                               color: positive
                                 ? "#22C55E"
@@ -449,27 +454,27 @@ export default function Dashboard({ store, setScreen }) {
           </Card>
 
           <Card
-            title="📆 Upcoming Bills"
-            subtitle="What's leaving your account next"
-            compact={!wide}
+            title="Upcoming bills"
+            subtitle="What&apos;s due next"
+            compact
           >
             {upcomingBills.length === 0 ? (
               <div
                 style={{
-                  padding: 14,
-                  fontSize: 14,
+                  padding: 12,
+                  fontSize: 13,
                   color: "var(--subtext)"
                 }}
               >
-                Add your regular commitments and
-                direct debits to see them here.
+                Add your regular commitments to
+                see them here.
               </div>
             ) : (
               <div
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 8
+                  gap: 6
                 }}
               >
                 {upcomingBills.map((bill, idx) => (
@@ -480,20 +485,20 @@ export default function Dashboard({ store, setScreen }) {
                       gridTemplateColumns: wide
                         ? "minmax(0,1.4fr) auto auto"
                         : "minmax(0,1fr)",
-                      gap: 8,
+                      gap: 6,
                       alignItems: "center",
-                      padding: wide ? 10 : 8,
-                      borderRadius: 12,
+                      padding: wide ? 8 : 7,
+                      borderRadius: 10,
                       background:
                         "rgba(15,23,42,0.9)",
                       border:
-                        "1px solid rgba(51,65,85,0.9)"
+                        "1px solid rgba(30,41,59,0.9)"
                     }}
                   >
                     <div>
                       <div
                         style={{
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: 600
                         }}
                       >
@@ -503,8 +508,8 @@ export default function Dashboard({ store, setScreen }) {
                       </div>
                       <div
                         style={{
-                          marginTop: 2,
-                          fontSize: 12,
+                          marginTop: 1,
+                          fontSize: 11,
                           color: "var(--subtext)"
                         }}
                       >
@@ -517,7 +522,7 @@ export default function Dashboard({ store, setScreen }) {
                       <>
                         <div
                           style={{
-                            fontSize: 13,
+                            fontSize: 11,
                             color: "var(--subtext)",
                             textAlign: "right"
                           }}
@@ -537,7 +542,7 @@ export default function Dashboard({ store, setScreen }) {
 
                         <div
                           style={{
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: 600,
                             color: "#F97316",
                             textAlign: "right"
@@ -552,7 +557,7 @@ export default function Dashboard({ store, setScreen }) {
                     ) : (
                       <div
                         style={{
-                          marginTop: 6,
+                          marginTop: 4,
                           display: "flex",
                           justifyContent:
                             "space-between",
@@ -562,7 +567,7 @@ export default function Dashboard({ store, setScreen }) {
                       >
                         <span
                           style={{
-                            fontSize: 13,
+                            fontSize: 11,
                             color: "var(--subtext)"
                           }}
                         >
@@ -580,7 +585,7 @@ export default function Dashboard({ store, setScreen }) {
                         </span>
                         <span
                           style={{
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: 600,
                             color: "#F97316"
                           }}
@@ -600,6 +605,7 @@ export default function Dashboard({ store, setScreen }) {
         </div>
       </div>
 
+      {/* Core stats – smaller, more app-like tiles */}
       <Section>
         <Grid>
           <StatCard
@@ -664,6 +670,7 @@ export default function Dashboard({ store, setScreen }) {
         </Grid>
       </Section>
 
+      {/* Goals row – toned down, less loud than before */}
       <Section>
         <div
           style={{
@@ -671,14 +678,14 @@ export default function Dashboard({ store, setScreen }) {
             gridTemplateColumns: wide
               ? "minmax(0,1.4fr) minmax(0,1fr)"
               : "minmax(0,1fr)",
-            gap: 18,
+            gap: 16,
             alignItems: "stretch"
           }}
         >
           <Card
-            title="🏠 House Deposit Journey"
-            subtitle="Track how close you are to getting the keys"
-            compact={!wide}
+            title="House deposit"
+            subtitle="Progress towards your goal"
+            compact
           >
             <div
               style={{
@@ -686,21 +693,21 @@ export default function Dashboard({ store, setScreen }) {
                 justifyContent:
                   "space-between",
                 alignItems: "baseline",
-                marginBottom: wide ? 14 : 10
+                marginBottom: 10
               }}
             >
               <div>
                 <div
                   style={{
-                    fontSize: 13,
+                    fontSize: 12,
                     color: "var(--subtext)"
                   }}
                 >
-                  Current deposit
+                  Saved
                 </div>
                 <div
                   style={{
-                    fontSize: wide ? 26 : 22,
+                    fontSize: wide ? 24 : 22,
                     fontWeight: 700
                   }}
                 >
@@ -716,7 +723,7 @@ export default function Dashboard({ store, setScreen }) {
               >
                 <div
                   style={{
-                    fontSize: 13,
+                    fontSize: 12,
                     color: "var(--subtext)"
                   }}
                 >
@@ -724,7 +731,7 @@ export default function Dashboard({ store, setScreen }) {
                 </div>
                 <div
                   style={{
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: 600
                   }}
                 >
@@ -736,9 +743,8 @@ export default function Dashboard({ store, setScreen }) {
 
             <div
               style={{
-                height: wide ? 16 : 14,
-                background:
-                  "linear-gradient(90deg,#020617,#020617)",
+                height: 10,
+                background: "#020617",
                 borderRadius: 999,
                 overflow: "hidden",
                 position: "relative",
@@ -748,35 +754,24 @@ export default function Dashboard({ store, setScreen }) {
             >
               <div
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  background:
-                    "radial-gradient(circle at 0% 50%,rgba(74,222,128,0.35),transparent 60%)"
-                }}
-              />
-              <div
-                style={{
                   position: "relative",
                   width: `${depositPercent}%`,
                   maxWidth: "100%",
                   height: "100%",
                   background:
-                    "linear-gradient(135deg,#4ADE80,#22C55E)",
-                  boxShadow:
-                    "0 0 14px rgba(34,197,94,0.65)",
-                  transition: "width .35s ease-out"
+                    "linear-gradient(135deg,#4ADE80,#22C55E)"
                 }}
               />
             </div>
 
             <div
               style={{
-                marginTop: 10,
+                marginTop: 8,
                 display: "flex",
                 justifyContent:
                   "space-between",
                 alignItems: "center",
-                fontSize: 13
+                fontSize: 12
               }}
             >
               <span
@@ -784,46 +779,43 @@ export default function Dashboard({ store, setScreen }) {
                   color: "var(--subtext)"
                 }}
               >
-                {depositPercent}% of your deposit
-                target saved
+                {depositPercent}% of target
               </span>
 
               <span
                 style={{
                   padding:
-                    wide
-                      ? "4px 10px"
-                      : "3px 8px",
+                    "3px 8px",
                   borderRadius: 999,
-                  fontSize: 11,
+                  fontSize: 10,
                   textTransform: "uppercase",
                   letterSpacing: 0.08,
                   background:
-                    "rgba(34,197,94,0.12)",
+                    "rgba(34,197,94,0.10)",
                   color: "#4ADE80",
                   border:
                     "1px solid rgba(34,197,94,0.4)"
                 }}
               >
                 {depositPercent >= 100
-                  ? "Ready for completion"
+                  ? "Ready"
                   : depositPercent >= 60
                   ? "On track"
                   : depositPercent >= 30
-                  ? "Building momentum"
+                  ? "Building"
                   : "Early days"}
               </span>
             </div>
           </Card>
 
           <Card
-            title="🔥 September Attack Plan"
-            subtitle="Focused push to tidy and boost your finances"
-            compact={!wide}
+            title="September attack plan"
+            subtitle="One focused month"
+            compact
           >
             <div
               style={{
-                marginBottom: 12,
+                marginBottom: 10,
                 display: "flex",
                 justifyContent:
                   "space-between",
@@ -832,11 +824,11 @@ export default function Dashboard({ store, setScreen }) {
             >
               <span
                 style={{
-                  fontSize: 13,
+                  fontSize: 12,
                   color: "var(--subtext)"
                 }}
               >
-                Progress towards this month's plan
+                Progress
               </span>
               <span
                 style={{
@@ -850,7 +842,7 @@ export default function Dashboard({ store, setScreen }) {
 
             <div
               style={{
-                height: wide ? 12 : 10,
+                height: 9,
                 background: "#020617",
                 borderRadius: 999,
                 overflow: "hidden",
@@ -866,32 +858,30 @@ export default function Dashboard({ store, setScreen }) {
                   maxWidth: "100%",
                   height: "100%",
                   background:
-                    "linear-gradient(135deg,#3B82F6,#2563EB)",
-                  boxShadow:
-                    "0 0 14px rgba(37,99,235,0.6)"
+                    "linear-gradient(135deg,#60A5FA,#2563EB)"
                 }}
               />
             </div>
 
             <div
               style={{
-                marginTop: 12,
+                marginTop: 10,
                 display: "grid",
                 gridTemplateColumns: wide
                   ? "repeat(3,minmax(0,1fr))"
                   : "minmax(0,1fr)",
-                gap: 8,
-                fontSize: 12
+                gap: 6,
+                fontSize: 11
               }}
             >
               <div
                 style={{
-                  padding: wide ? 10 : 8,
-                  borderRadius: 10,
+                  padding: 8,
+                  borderRadius: 9,
                   background:
                     "rgba(15,23,42,0.9)",
                   border:
-                    "1px solid rgba(51,65,85,0.9)"
+                    "1px solid rgba(30,41,59,0.9)"
                 }}
               >
                 <div
@@ -899,7 +889,7 @@ export default function Dashboard({ store, setScreen }) {
                     fontWeight: 600
                   }}
                 >
-                  Debt clean‑up
+                  Debt tidy‑up
                 </div>
                 <div
                   style={{
@@ -907,18 +897,17 @@ export default function Dashboard({ store, setScreen }) {
                     color: "var(--subtext)"
                   }}
                 >
-                  Focus highest‑interest balances
-                  first.
+                  Hit highest‑interest first.
                 </div>
               </div>
               <div
                 style={{
-                  padding: wide ? 10 : 8,
-                  borderRadius: 10,
+                  padding: 8,
+                  borderRadius: 9,
                   background:
                     "rgba(15,23,42,0.9)",
                   border:
-                    "1px solid rgba(51,65,85,0.9)"
+                    "1px solid rgba(30,41,59,0.9)"
                 }}
               >
                 <div
@@ -934,18 +923,17 @@ export default function Dashboard({ store, setScreen }) {
                     color: "var(--subtext)"
                   }}
                 >
-                  Tighten variable expenses and
-                  subscriptions.
+                  Trim non‑essentials.
                 </div>
               </div>
               <div
                 style={{
-                  padding: wide ? 10 : 8,
-                  borderRadius: 10,
+                  padding: 8,
+                  borderRadius: 9,
                   background:
                     "rgba(15,23,42,0.9)",
                   border:
-                    "1px solid rgba(51,65,85,0.9)"
+                    "1px solid rgba(30,41,59,0.9)"
                 }}
               >
                 <div
@@ -961,8 +949,7 @@ export default function Dashboard({ store, setScreen }) {
                     color: "var(--subtext)"
                   }}
                 >
-                  Direct every spare £ into the
-                  house pot.
+                  Funnel surplus into house.
                 </div>
               </div>
             </div>
@@ -970,171 +957,141 @@ export default function Dashboard({ store, setScreen }) {
         </div>
       </Section>
 
+      {/* Bottom snapshot – calmer, more compact tiles */}
       <Section>
         <Card
-          title="📊 Monthly Snapshot"
-          subtitle="A clean overview of how this month stacks up"
-          compact={!wide}
+          title="Monthly snapshot"
+          subtitle="How this month stacks up"
+          compact
         >
           <div
             style={{
               display: "grid",
               gridTemplateColumns:
-                "repeat(auto-fit,minmax(220px,1fr))",
+                "repeat(auto-fit,minmax(200px,1fr))",
               gap: 14
             }}
           >
             <div
               style={{
-                padding: wide ? 20 : 16,
+                padding: 16,
                 background:
-                  "radial-gradient(circle at 0 0,#172554,#020617)",
-                borderRadius: 18,
+                  "radial-gradient(circle at 0 0,#111827,#020617)",
+                borderRadius: 14,
                 border:
-                  "1px solid rgba(59,130,246,0.5)"
+                  "1px solid rgba(55,65,81,0.8)"
               }}
             >
               <div
                 style={{
                   color: "var(--subtext)",
-                  fontSize: 13
+                  fontSize: 12
                 }}
               >
-                Monthly Income
+                Monthly income
               </div>
 
               <div
                 style={{
-                  fontSize: wide ? 30 : 24,
+                  fontSize: 22,
                   fontWeight: 700,
-                  marginTop: 6
+                  marginTop: 4
                 }}
               >
                 £{incomeTotal.toLocaleString()}
               </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: "var(--subtext)"
-                }}
-              >
-                All pay, benefits and side‑income
-              </div>
             </div>
 
             <div
               style={{
-                padding: wide ? 20 : 16,
+                padding: 16,
                 background:
-                  "radial-gradient(circle at 0 0,#451A03,#020617)",
-                borderRadius: 18,
+                  "radial-gradient(circle at 0 0,#111827,#020617)",
+                borderRadius: 14,
                 border:
-                  "1px solid rgba(249,115,22,0.4)"
+                  "1px solid rgba(55,65,81,0.8)"
               }}
             >
               <div
                 style={{
                   color: "var(--subtext)",
-                  fontSize: 13
+                  fontSize: 12
                 }}
               >
-                Monthly Expenses
+                Monthly expenses
               </div>
 
               <div
                 style={{
-                  fontSize: wide ? 30 : 24,
+                  fontSize: 22,
                   fontWeight: 700,
                   color: "#F97316",
-                  marginTop: 6
+                  marginTop: 4
                 }}
               >
                 £{expensesTotal.toLocaleString()}
               </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: "var(--subtext)"
-                }}
-              >
-                Everything outside fixed bills
-              </div>
             </div>
 
             <div
               style={{
-                padding: wide ? 20 : 16,
+                padding: 16,
                 background:
-                  "radial-gradient(circle at 0 0,#052E16,#020617)",
-                borderRadius: 18,
+                  "radial-gradient(circle at 0 0,#111827,#020617)",
+                borderRadius: 14,
                 border:
-                  "1px solid rgba(34,197,94,0.5)"
+                  "1px solid rgba(55,65,81,0.8)"
               }}
             >
               <div
                 style={{
                   color: "var(--subtext)",
-                  fontSize: 13
+                  fontSize: 12
                 }}
               >
-                Money Left
+                Money left
               </div>
 
               <div
                 style={{
-                  fontSize: wide ? 30 : 24,
+                  fontSize: 22,
                   fontWeight: 700,
                   color:
                     leftover >= 0
                       ? "#22C55E"
                       : "#EF4444",
-                  marginTop: 6
+                  marginTop: 4
                 }}
               >
                 £{leftover.toLocaleString()}
-              </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: "var(--subtext)"
-                }}
-              >
-                Ready for savings, investing or
-                overpayments
               </div>
             </div>
 
             <div
               style={{
-                padding: wide ? 20 : 16,
+                padding: 16,
                 background:
-                  "radial-gradient(circle at 0 0,#022C22,#020617)",
-                borderRadius: 18,
+                  "radial-gradient(circle at 0 0,#111827,#020617)",
+                borderRadius: 14,
                 border:
-                  "1px solid rgba(74,222,128,0.4)"
+                  "1px solid rgba(55,65,81,0.8)"
               }}
             >
               <div
                 style={{
                   color: "var(--subtext)",
-                  fontSize: 13
+                  fontSize: 12
                 }}
               >
-                Total Assets
+                Total assets
               </div>
 
               <div
                 style={{
-                  fontSize: wide ? 30 : 24,
+                  fontSize: 22,
                   fontWeight: 700,
                   color: "#4ADE80",
-                  marginTop: 6
+                  marginTop: 4
                 }}
               >
                 £
@@ -1143,17 +1100,6 @@ export default function Dashboard({ store, setScreen }) {
                   investmentsTotal +
                   depositSaved
                 ).toLocaleString()}
-              </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: "var(--subtext)"
-                }}
-              >
-                Savings, investments &amp; house
-                deposit combined
               </div>
             </div>
           </div>
