@@ -2,140 +2,232 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function History({ store, update, add, remove }) {
-
-  // ⭐ Prevent crash if store is null
   if (!store) return null
 
-  // ⭐ Prevent crash if history array is missing
   const history = store.history || []
 
+  const totalLeftover = history.reduce(
+    (sum, item) => sum + Number(item.leftover || 0),
+    0
+  )
+
+  const totalDebtPaid = history.reduce(
+    (sum, item) => sum + Number(item.debtPaid || 0),
+    0
+  )
+
+  const averageLeftover =
+    history.length > 0
+      ? Math.round(totalLeftover / history.length)
+      : 0
+
   return (
-    <Page title="History">
+    <Page title="Financial History">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+          gap: 20,
+          marginBottom: 24
+        }}
+      >
+        <Card title="Months Recorded" icon="📅">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800
+            }}
+          >
+            {history.length}
+          </div>
+        </Card>
 
-      <Card title="Monthly History" icon="📅">
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+        <Card title="Total Left Over" icon="💰">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800,
+              color: "#4ADE80"
+            }}
+          >
+            £{totalLeftover.toLocaleString()}
+          </div>
+        </Card>
 
-          {history.length === 0 && (
-            <div style={{ color: "var(--subtext)" }}>
-              No history entries yet.
-            </div>
-          )}
+        <Card title="Debt Paid" icon="💳">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800,
+              color: "#FF8A00"
+            }}
+          >
+            £{totalDebtPaid.toLocaleString()}
+          </div>
+        </Card>
 
-          {history.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                padding: "var(--space-2)",
-                background: "var(--bg)",
-                borderRadius: "var(--radius)",
-                border: "1px solid var(--border)"
-              }}
-            >
+        <Card title="Average Left Over" icon="📊">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800
+            }}
+          >
+            £{averageLeftover.toLocaleString()}
+          </div>
+        </Card>
+      </div>
+
+      <Card title="Monthly History" icon="🗓️">
+        {history.length === 0 ? (
+          <div style={{ color: "var(--subtext)" }}>
+            No history has been recorded yet.
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 18
+            }}
+          >
+            {history.map((item, index) => (
               <div
+                key={index}
                 style={{
-                  fontSize: "16px",
-                  fontWeight: "700",
-                  marginBottom: "10px"
+                  background: "#162032",
+                  border: "1px solid var(--border)",
+                  borderRadius: 16,
+                  padding: 18
                 }}
               >
-                {item.month}
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    marginBottom: 16
+                  }}
+                >
+                  {item.month}
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fit,minmax(220px,1fr))",
+                    gap: 16
+                  }}
+                >
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: 6,
+                        color: "var(--subtext)"
+                      }}
+                    >
+                      Money Left Over
+                    </label>
+
+                    <input
+                      type="number"
+                      value={item.leftover}
+                      onChange={(e) => {
+                        const updated = [...history]
+                        updated[index].leftover =
+                          Number(e.target.value) || 0
+                        update("history", updated)
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: 12,
+                        borderRadius: 12,
+                        border: "1px solid var(--border)",
+                        background: "var(--bg)",
+                        color: "var(--text)"
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: 6,
+                        color: "var(--subtext)"
+                      }}
+                    >
+                      Debt Paid
+                    </label>
+
+                    <input
+                      type="number"
+                      value={item.debtPaid}
+                      onChange={(e) => {
+                        const updated = [...history]
+                        updated[index].debtPaid =
+                          Number(e.target.value) || 0
+                        update("history", updated)
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: 12,
+                        borderRadius: 12,
+                        border: "1px solid var(--border)",
+                        background: "var(--bg)",
+                        color: "var(--text)"
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => remove("history", index)}
+                  style={{
+                    marginTop: 18,
+                    border: "none",
+                    background: "#d32f2f",
+                    color: "white",
+                    borderRadius: 10,
+                    padding: "10px 18px",
+                    cursor: "pointer",
+                    fontWeight: 700
+                  }}
+                >
+                  Remove Entry
+                </button>
               </div>
-
-              {/* Update Leftover */}
-              <label style={{ display: "block", marginBottom: "10px" }}>
-                Leftover:
-                <input
-                  type="number"
-                  value={item.leftover}
-                  onChange={(e) => {
-                    const newValue = Number(e.target.value)
-                    if (isNaN(newValue)) return
-
-                    // ⭐ Correct update pattern (no nested paths)
-                    const updated = [...history]
-                    updated[index].leftover = newValue
-                    update("history", updated)
-                  }}
-                  style={{
-                    marginLeft: "10px",
-                    padding: "6px",
-                    width: "150px",
-                    borderRadius: "6px",
-                    border: "1px solid var(--border)",
-                    background: "var(--bg)",
-                    color: "var(--text)"
-                  }}
-                />
-              </label>
-
-              {/* Update Debt Paid */}
-              <label style={{ display: "block", marginBottom: "10px" }}>
-                Debt Paid:
-                <input
-                  type="number"
-                  value={item.debtPaid}
-                  onChange={(e) => {
-                    const newValue = Number(e.target.value)
-                    if (isNaN(newValue)) return
-
-                    const updated = [...history]
-                    updated[index].debtPaid = newValue
-                    update("history", updated)
-                  }}
-                  style={{
-                    marginLeft: "10px",
-                    padding: "6px",
-                    width: "150px",
-                    borderRadius: "6px",
-                    border: "1px solid var(--border)",
-                    background: "var(--bg)",
-                    color: "var(--text)"
-                  }}
-                />
-              </label>
-
-              <button
-                onClick={() => remove("history", index)}
-                style={{
-                  marginTop: "10px",
-                  padding: "8px 14px",
-                  background: "var(--primary)",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: "600"
-                }}
-              >
-                Remove Entry
-              </button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <button
           onClick={() =>
             add("history", {
-              month: "New Month",
+              month: new Date().toLocaleString("default", {
+                month: "long",
+                year: "numeric"
+              }),
               leftover: 0,
               debtPaid: 0
             })
           }
           style={{
-            marginTop: "20px",
-            padding: "10px 16px",
-            background: "var(--accent)",
-            color: "black",
+            marginTop: 24,
             border: "none",
-            borderRadius: "6px",
+            borderRadius: 12,
+            padding: 14,
             cursor: "pointer",
-            fontWeight: "700"
+            fontWeight: 700,
+            color: "white",
+            background:
+              "linear-gradient(135deg,#4ADE80,#22C55E)"
           }}
         >
           + Add History Entry
         </button>
       </Card>
-
     </Page>
   )
 }

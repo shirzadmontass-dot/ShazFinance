@@ -1,105 +1,273 @@
+import { useState } from "react"
+
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
-export default function Savings({ store, add, remove }) {
+import {
+  HeroBanner,
+  Grid,
+  StatCard
+} from "../components/ui"
 
-  // ⭐ Prevent crash if store is null
+export default function Savings({
+  store,
+  add,
+  remove
+}) {
   if (!store) return null
 
-  // ⭐ Prevent crash if savings array is missing
-  const savings = store.savings || []
+  const savings = [...(store.savings || [])]
 
-  // ⭐ Safe total
-  const total =
+  savings.sort(
+    (a, b) =>
+      Number(b.balance || 0) -
+      Number(a.balance || 0)
+  )
+
+  const totalSavings = savings.reduce(
+    (sum, item) =>
+      sum + Number(item.balance || 0),
+    0
+  )
+
+  const averageSavings =
     savings.length > 0
-      ? savings.reduce((sum, s) => sum + (s.balance || 0), 0)
+      ? totalSavings / savings.length
       : 0
 
+  const largestSavings =
+    savings.length > 0
+      ? Math.max(
+          ...savings.map((s) =>
+            Number(s.balance || 0)
+          )
+        )
+      : 0
+
+  const [form, setForm] = useState({
+    name: "",
+    balance: ""
+  })
+
+  function submit(e) {
+    e.preventDefault()
+
+    if (!form.name.trim()) return
+
+    add("savings", {
+      name: form.name,
+      balance: Number(form.balance)
+    })
+
+    setForm({
+      name: "",
+      balance: ""
+    })
+  }
+
   return (
-    <Page title="Savings">
+    <Page>
 
-      <Card title="Total Savings" icon="💰">
-        <div style={{ fontSize: "22px", fontWeight: "700" }}>
-          £{total}
-        </div>
-      </Card>
+      <HeroBanner
+        title="Savings 💰"
+        subtitle="Track every savings account and watch your wealth grow."
+      />
 
-      <Card title="Savings Accounts" icon="🏦">
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+      <Grid>
 
-          {savings.length === 0 && (
-            <div style={{ color: "var(--subtext)" }}>
-              No savings added yet.
-            </div>
-          )}
+        <StatCard
+          title="Total Savings"
+          icon="💰"
+          value={`£${totalSavings.toLocaleString()}`}
+          colour="#22C55E"
+          subtitle="Across all accounts"
+        />
 
-          {savings.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "var(--space-2)",
-                background: "var(--bg)",
-                borderRadius: "var(--radius)",
-                border: "1px solid var(--border)"
-              }}
-            >
-              <div>
-                <div style={{ fontSize: "16px", fontWeight: "600" }}>
-                  {item.name}
+        <StatCard
+          title="Accounts"
+          icon="🏦"
+          value={savings.length}
+          colour="#3B82F6"
+          subtitle="Savings accounts"
+        />
+
+        <StatCard
+          title="Average Balance"
+          icon="📊"
+          value={`£${averageSavings.toFixed(0)}`}
+          colour="#F59E0B"
+          subtitle="Per account"
+        />
+
+        <StatCard
+          title="Largest Account"
+          icon="🏆"
+          value={`£${largestSavings.toLocaleString()}`}
+          colour="#8B5CF6"
+          subtitle="Highest balance"
+        />
+
+      </Grid>
+
+      <Card title="🏦 Savings Accounts">
+
+        {savings.length === 0 ? (
+
+          <div
+            style={{
+              color: "var(--subtext)"
+            }}
+          >
+            No savings accounts added yet.
+          </div>
+
+        ) : (
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 18
+            }}
+          >
+
+            {savings.map((item, index) => {
+
+              const percentage =
+                totalSavings > 0
+                  ? (Number(item.balance) /
+                      totalSavings) *
+                    100
+                  : 0
+
+              return (
+
+                <div
+                  key={index}
+                  style={{
+                    background: "#162032",
+                    border: "1px solid var(--border)",
+                    borderRadius: 18,
+                    padding: 20
+                  }}
+                >
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 20
+                    }}
+                  >
+
+                    <div>
+
+                      <div
+                        style={{
+                          fontSize: 20,
+                          fontWeight: 700
+                        }}
+                      >
+                        {item.name}
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: 8,
+                          color: "var(--subtext)"
+                        }}
+                      >
+                        Balance:
+                        £{Number(
+                          item.balance
+                        ).toLocaleString()}
+                      </div>
+
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        remove("savings", index)
+                      }
+                      style={{
+                        border: "none",
+                        borderRadius: 10,
+                        padding: "10px 18px",
+                        cursor: "pointer",
+                        background:
+                          "#DC2626",
+                        color: "#fff",
+                        fontWeight: 700
+                      }}
+                    >
+                      Remove
+                    </button>
+
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 18,
+                      height: 10,
+                      background: "#243244",
+                      borderRadius: 999,
+                      overflow: "hidden"
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${percentage}%`,
+                        height: "100%",
+                        background:
+                          "linear-gradient(135deg,#4ADE80,#22C55E)"
+                      }}
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 8,
+                      color: "var(--subtext)",
+                      fontSize: 13
+                    }}
+                  >
+                    {percentage.toFixed(1)}% of
+                    your total savings
+                  </div>
+
                 </div>
-                <div style={{ color: "var(--subtext)" }}>
-                  £{item.balance}
-                </div>
-              </div>
 
-              <button
-                onClick={() => remove("savings", index)}
-                style={{
-                  background: "var(--primary)",
-                  border: "none",
-                  padding: "8px 14px",
-                  borderRadius: "var(--radius)",
-                  color: "white",
-                  cursor: "pointer",
-                  fontWeight: "600"
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-        </div>
+              )
+            })}
+
+          </div>
+
+        )}
+
       </Card>
+      <Card title="➕ Add Savings Account">
 
-      <Card title="Add Savings" icon="➕">
         <form
-          onSubmit={(e) => {
-            e.preventDefault()
-
-            const name = e.target.name.value
-            const balance = Number(e.target.balance.value)
-
-            // ⭐ Safe validation (allows balance = 0)
-            if (!name || isNaN(balance)) return
-
-            add("savings", { name, balance })
-            e.target.reset()
-          }}
+          onSubmit={submit}
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-2)"
+            display: "grid",
+            gap: 16
           }}
         >
+
           <input
-            name="name"
-            placeholder="Savings name"
+            placeholder="Account Name"
+            value={form.name}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                name: e.target.value
+              })
+            }
             style={{
-              padding: "var(--space-2)",
-              borderRadius: "var(--radius)",
+              padding: 14,
+              borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg)",
               color: "var(--text)"
@@ -107,12 +275,18 @@ export default function Savings({ store, add, remove }) {
           />
 
           <input
-            name="balance"
             type="number"
-            placeholder="Balance"
+            placeholder="Current Balance"
+            value={form.balance}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                balance: e.target.value
+              })
+            }
             style={{
-              padding: "var(--space-2)",
-              borderRadius: "var(--radius)",
+              padding: 14,
+              borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg)",
               color: "var(--text)"
@@ -122,18 +296,21 @@ export default function Savings({ store, add, remove }) {
           <button
             type="submit"
             style={{
-              background: "var(--accent)",
               border: "none",
-              padding: "10px",
-              borderRadius: "var(--radius)",
-              color: "black",
-              fontWeight: "700",
-              cursor: "pointer"
+              borderRadius: 12,
+              padding: 15,
+              cursor: "pointer",
+              fontWeight: 700,
+              color: "#fff",
+              background:
+                "linear-gradient(135deg,#4ADE80,#22C55E)"
             }}
           >
             Add Savings
           </button>
+
         </form>
+
       </Card>
 
     </Page>

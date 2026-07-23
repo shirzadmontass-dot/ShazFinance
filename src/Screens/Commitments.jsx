@@ -2,89 +2,207 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Commitments({ store, add, remove }) {
-
-  // ⭐ Prevent crash if store is null
   if (!store) return null
 
-  // ⭐ Prevent crash if commitments array is missing
   const commitments = store.commitments || []
+
+  const totalCommitments = commitments.reduce(
+    (sum, item) => sum + Number(item.amount || 0),
+    0
+  )
+
+  const averageCommitment =
+    commitments.length > 0
+      ? Math.round(totalCommitments / commitments.length)
+      : 0
+
+  const highestCommitment =
+    commitments.length > 0
+      ? Math.max(...commitments.map((c) => Number(c.amount || 0)))
+      : 0
 
   return (
     <Page title="Monthly Commitments">
-      <Card title="Your Commitments" icon="📄">
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-          
-          {commitments.length === 0 && (
-            <div style={{ color: "var(--subtext)" }}>
-              No commitments added yet.
-            </div>
-          )}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+          gap: 20,
+          marginBottom: 24
+        }}
+      >
+        <Card title="Monthly Total" icon="💸">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800,
+              color: "#FF8A00"
+            }}
+          >
+            £{totalCommitments.toLocaleString()}
+          </div>
+        </Card>
 
-          {commitments.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                padding: "var(--space-2)",
-                background: "var(--bg)",
-                borderRadius: "var(--radius)",
-                border: "1px solid var(--border)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}
-            >
-              <div>
-                <div style={{ fontSize: "16px", fontWeight: "600" }}>
-                  {item.name}
-                </div>
-                <div style={{ color: "var(--subtext)" }}>
-                  £{item.amount}
-                </div>
-              </div>
+        <Card title="Commitments" icon="📋">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800
+            }}
+          >
+            {commitments.length}
+          </div>
+        </Card>
 
-              <button
-                onClick={() => remove("commitments", index)}
-                style={{
-                  background: "var(--primary)",
-                  border: "none",
-                  padding: "8px 14px",
-                  borderRadius: "var(--radius)",
-                  color: "white",
-                  cursor: "pointer",
-                  fontWeight: "600"
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-        </div>
+        <Card title="Average" icon="📊">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800
+            }}
+          >
+            £{averageCommitment.toLocaleString()}
+          </div>
+        </Card>
+
+        <Card title="Largest Bill" icon="🏆">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800
+            }}
+          >
+            £{highestCommitment.toLocaleString()}
+          </div>
+        </Card>
+      </div>
+
+      <Card title="Your Commitments" icon="🧾">
+        {commitments.length === 0 ? (
+          <div style={{ color: "var(--subtext)" }}>
+            No commitments have been added.
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 16
+            }}
+          >
+            {commitments.map((item, index) => {
+              const percentage =
+                totalCommitments > 0
+                  ? (Number(item.amount) / totalCommitments) * 100
+                  : 0
+
+              return (
+                <div
+                  key={index}
+                  style={{
+                    background: "#162032",
+                    border: "1px solid var(--border)",
+                    borderRadius: 16,
+                    padding: 18
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 12
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 18
+                        }}
+                      >
+                        {item.name}
+                      </div>
+
+                      <div
+                        style={{
+                          color: "var(--subtext)",
+                          marginTop: 4
+                        }}
+                      >
+                        £{Number(item.amount).toLocaleString()} / month
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => remove("commitments", index)}
+                      style={{
+                        border: "none",
+                        background: "#d32f2f",
+                        color: "white",
+                        borderRadius: 10,
+                        padding: "10px 18px",
+                        cursor: "pointer",
+                        fontWeight: 700
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      height: 10,
+                      background: "#243244",
+                      borderRadius: 999,
+                      overflow: "hidden"
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${percentage}%`,
+                        height: "100%",
+                        background:
+                          "linear-gradient(135deg,#FF8A00,#FF3D7F)"
+                      }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </Card>
 
       <Card title="Add Commitment" icon="➕">
         <form
           onSubmit={(e) => {
             e.preventDefault()
-            const name = e.target.name.value
+
+            const name = e.target.name.value.trim()
             const amount = Number(e.target.amount.value)
 
-            if (!name || isNaN(amount)) return
+            if (!name) return
+            if (isNaN(amount)) return
 
-            add("commitments", { name, amount })
+            add("commitments", {
+              name,
+              amount
+            })
+
             e.target.reset()
           }}
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-2)"
+            display: "grid",
+            gap: 16
           }}
         >
           <input
             name="name"
-            placeholder="Commitment name"
+            placeholder="Commitment Name"
             style={{
-              padding: "var(--space-2)",
-              borderRadius: "var(--radius)",
+              padding: 14,
+              borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg)",
               color: "var(--text)"
@@ -94,10 +212,10 @@ export default function Commitments({ store, add, remove }) {
           <input
             name="amount"
             type="number"
-            placeholder="Monthly amount"
+            placeholder="Monthly Amount"
             style={{
-              padding: "var(--space-2)",
-              borderRadius: "var(--radius)",
+              padding: 14,
+              borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg)",
               color: "var(--text)"
@@ -107,13 +225,14 @@ export default function Commitments({ store, add, remove }) {
           <button
             type="submit"
             style={{
-              background: "var(--accent)",
               border: "none",
-              padding: "10px",
-              borderRadius: "var(--radius)",
-              color: "black",
-              fontWeight: "700",
-              cursor: "pointer"
+              borderRadius: 12,
+              padding: 14,
+              cursor: "pointer",
+              fontWeight: 700,
+              color: "white",
+              background:
+                "linear-gradient(135deg,#FF8A00,#FF3D7F)"
             }}
           >
             Add Commitment

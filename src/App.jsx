@@ -4,6 +4,7 @@ import { useStore } from "./store.js"
 import Dashboard from "./Screens/Dashboard.jsx"
 import Income from "./Screens/Income.jsx"
 import Commitments from "./Screens/Commitments.jsx"
+import Expenses from "./Screens/Expenses.jsx"
 import Debt from "./Screens/Debt.jsx"
 import Deposit from "./Screens/Deposit.jsx"
 import Leftover from "./Screens/Leftover.jsx"
@@ -35,16 +36,16 @@ export default function App() {
     remove
   } = useStore()
 
-  // ============================
-  // MOBILE SIDEBAR STATE
-  // ============================
   const [isSidebarOpen, setSidebarOpen] = useState(false)
-  const toggleSidebar = () => setSidebarOpen(prev => !prev)
+
+  const toggleSidebar = () =>
+    setSidebarOpen((prev) => !prev)
 
   const screens = {
     Dashboard,
     Income,
     Commitments,
+    Expenses,
     Debt,
     Deposit,
     Leftover,
@@ -66,7 +67,6 @@ export default function App() {
 
   const ActiveScreen = screens[screen]
 
-  // ⭐ CRITICAL FIX — prevent crash when store is null
   if (!store) {
     return (
       <div
@@ -77,10 +77,10 @@ export default function App() {
           justifyContent: "center",
           background: "var(--bg)",
           color: "var(--text)",
-          fontSize: "20px"
+          fontSize: 20
         }}
       >
-        Loading…
+        Loading...
       </div>
     )
   }
@@ -94,21 +94,19 @@ export default function App() {
         color: "var(--text)"
       }}
     >
-
-      {/* ============================
-          MOBILE MENU BUTTON
-      ============================ */}
-      <button className="mobile-menu-btn" onClick={toggleSidebar}>
+      <button
+        className="mobile-menu-btn"
+        onClick={toggleSidebar}
+      >
         ⋮
       </button>
 
-      {/* ============================
-          SIDEBAR — desktop + mobile
-      ============================ */}
       <div
-        className={`sidebar-wrapper ${isSidebarOpen ? "open" : ""}`}
+        className={`sidebar-wrapper ${
+          isSidebarOpen ? "open" : ""
+        }`}
         style={{
-          width: "240px",
+          width: 240,
           overflowY: "auto",
           borderRight: "1px solid var(--border)"
         }}
@@ -121,10 +119,13 @@ export default function App() {
         />
       </div>
 
-      {/* ============================
-          MAIN CONTENT
-      ============================ */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column"
+        }}
+      >
         <Header screen={screen} />
 
         <div
@@ -135,17 +136,15 @@ export default function App() {
             background: "var(--bg)"
           }}
         >
-          {store && ActiveScreen && (
-            <ActiveScreen
-              store={store}
-              update={update}
-              add={add}
-              remove={remove}
-            />
-          )}
+          <ActiveScreen
+            store={store}
+            update={update}
+            add={add}
+            remove={remove}
+            setScreen={setScreen}
+          />
         </div>
       </div>
-
     </div>
   )
 }

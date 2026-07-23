@@ -2,95 +2,214 @@ import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
 export default function Children({ store, update }) {
-
-  // ⭐ Prevent crash if store is null
   if (!store) return null
 
-  // ⭐ Prevent crash if children array is missing
   const children = store.children || []
 
+  const totalSavings = children.reduce(
+    (sum, child) => sum + Number(child.balance || 0),
+    0
+  )
+
+  const averageSavings =
+    children.length > 0
+      ? Math.round(totalSavings / children.length)
+      : 0
+
+  const largestSavings =
+    children.length > 0
+      ? Math.max(...children.map((c) => Number(c.balance || 0)))
+      : 0
+
   return (
-    <Page title="Children Savings">
-      <Card title="Junior ISA Balances" icon="🧒">
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-          
-          {children.length === 0 && (
-            <div style={{ color: "var(--subtext)" }}>
-              No children added yet.
-            </div>
-          )}
+    <Page title="Children's Savings">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+          gap: 20,
+          marginBottom: 24
+        }}
+      >
+        <Card title="Children" icon="👨‍👧‍👦">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800
+            }}
+          >
+            {children.length}
+          </div>
+        </Card>
 
-          {children.map((child, index) => (
-            <div
-              key={index}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "var(--space-2)",
-                background: "var(--bg)",
-                borderRadius: "var(--radius)",
-                border: "1px solid var(--border)"
-              }}
-            >
-              <div>
-                <div style={{ fontSize: "16px", fontWeight: "600" }}>
-                  {child.name}
-                </div>
-                <div style={{ color: "var(--subtext)" }}>
-                  £{child.balance}
-                </div>
-              </div>
+        <Card title="Total Savings" icon="💰">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800,
+              color: "#4ADE80"
+            }}
+          >
+            £{totalSavings.toLocaleString()}
+          </div>
+        </Card>
 
-              <button
-                onClick={() => {
-                  const updated = [...children]
-                  updated.splice(index, 1)
-                  update("children", updated)
-                }}
-                style={{
-                  background: "var(--primary)",
-                  border: "none",
-                  padding: "8px 14px",
-                  borderRadius: "var(--radius)",
-                  color: "white",
-                  cursor: "pointer",
-                  fontWeight: "600"
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-        </div>
+        <Card title="Average Balance" icon="📊">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800
+            }}
+          >
+            £{averageSavings.toLocaleString()}
+          </div>
+        </Card>
+
+        <Card title="Largest Balance" icon="🏆">
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800
+            }}
+          >
+            £{largestSavings.toLocaleString()}
+          </div>
+        </Card>
+      </div>
+
+      <Card title="Junior ISA Accounts" icon="🧒">
+        {children.length === 0 ? (
+          <div style={{ color: "var(--subtext)" }}>
+            No children have been added.
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 16
+            }}
+          >
+            {children.map((child, index) => {
+              const percentage =
+                totalSavings > 0
+                  ? (Number(child.balance) / totalSavings) * 100
+                  : 0
+
+              return (
+                <div
+                  key={index}
+                  style={{
+                    background: "#162032",
+                    border: "1px solid var(--border)",
+                    borderRadius: 16,
+                    padding: 18
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 12
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 18
+                        }}
+                      >
+                        {child.name}
+                      </div>
+
+                      <div
+                        style={{
+                          color: "var(--subtext)",
+                          marginTop: 4
+                        }}
+                      >
+                        £{Number(child.balance).toLocaleString()}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        const updated = [...children]
+                        updated.splice(index, 1)
+                        update("children", updated)
+                      }}
+                      style={{
+                        border: "none",
+                        background: "#d32f2f",
+                        color: "white",
+                        borderRadius: 10,
+                        padding: "10px 18px",
+                        cursor: "pointer",
+                        fontWeight: 700
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      height: 10,
+                      background: "#243244",
+                      borderRadius: 999,
+                      overflow: "hidden"
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${percentage}%`,
+                        height: "100%",
+                        background:
+                          "linear-gradient(135deg,#4ADE80,#22C55E)"
+                      }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </Card>
 
       <Card title="Add Child" icon="➕">
         <form
           onSubmit={(e) => {
             e.preventDefault()
-            const name = e.target.name.value
+
+            const name = e.target.name.value.trim()
             const balance = Number(e.target.balance.value)
 
-            if (!name || isNaN(balance)) return
+            if (!name) return
+            if (isNaN(balance)) return
 
-            const updated = [...children, { name, balance }]
-            update("children", updated)
+            update("children", [
+              ...children,
+              {
+                name,
+                balance
+              }
+            ])
 
             e.target.reset()
           }}
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-2)"
+            display: "grid",
+            gap: 16
           }}
         >
           <input
             name="name"
-            placeholder="Child name"
+            placeholder="Child's Name"
             style={{
-              padding: "var(--space-2)",
-              borderRadius: "var(--radius)",
+              padding: 14,
+              borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg)",
               color: "var(--text)"
@@ -100,10 +219,10 @@ export default function Children({ store, update }) {
           <input
             name="balance"
             type="number"
-            placeholder="Junior ISA balance"
+            placeholder="Junior ISA Balance"
             style={{
-              padding: "var(--space-2)",
-              borderRadius: "var(--radius)",
+              padding: 14,
+              borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg)",
               color: "var(--text)"
@@ -113,13 +232,14 @@ export default function Children({ store, update }) {
           <button
             type="submit"
             style={{
-              background: "var(--accent)",
               border: "none",
-              padding: "10px",
-              borderRadius: "var(--radius)",
-              color: "black",
-              fontWeight: "700",
-              cursor: "pointer"
+              borderRadius: 12,
+              padding: 14,
+              cursor: "pointer",
+              fontWeight: 700,
+              color: "white",
+              background:
+                "linear-gradient(135deg,#4ADE80,#22C55E)"
             }}
           >
             Add Child

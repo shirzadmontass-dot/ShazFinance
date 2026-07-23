@@ -1,142 +1,293 @@
+import { useState } from "react"
+
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
-export default function Goals({ store, add, remove, update }) {
+import {
+  HeroBanner,
+  Grid,
+  StatCard
+} from "../components/ui"
 
-  // ⭐ Prevent crash if store is null
+export default function Goals({
+  store,
+  add,
+  remove,
+  update
+}) {
   if (!store) return null
 
-  // ⭐ Prevent crash if goals array is missing
-  const goals = store.goals || []
+  const goals = Array.isArray(store.goals)
+  ? [...store.goals]
+  : []
+
+  const totalTarget = goals.reduce(
+    (sum, goal) =>
+      sum + Number(goal.target || 0),
+    0
+  )
+
+  const totalCurrent = goals.reduce(
+    (sum, goal) =>
+      sum + Number(goal.current || 0),
+    0
+  )
+
+  const overallProgress =
+    totalTarget > 0
+      ? Math.round(
+          (totalCurrent / totalTarget) * 100
+        )
+      : 0
+
+  const [form, setForm] = useState({
+    name: "",
+    target: ""
+  })
+
+  function submit(e) {
+    e.preventDefault()
+
+    if (!form.name.trim()) return
+
+    add("goals", {
+      name: form.name,
+      target: Number(form.target),
+      current: 0
+    })
+
+    setForm({
+      name: "",
+      target: ""
+    })
+  }
 
   return (
-    <Page title="Goals">
+    <Page>
 
-      <Card title="Your Goals" icon="🎯">
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+      <HeroBanner
+        title="Financial Goals 🎯"
+        subtitle="Stay focused and watch your goals become reality."
+      />
 
-          {goals.length === 0 && (
-            <div style={{ color: "var(--subtext)" }}>
-              No goals added yet.
-            </div>
-          )}
+      <Grid>
 
-          {goals.map((goal, index) => {
-            const progress = Math.min(
-              Math.round((goal.current / goal.target) * 100),
-              100
-            )
+        <StatCard
+          title="Goals"
+          icon="🎯"
+          value={goals.length}
+          colour="#3B82F6"
+          subtitle="Active goals"
+        />
 
-            return (
-              <div
-                key={index}
-                style={{
-                  padding: "var(--space-2)",
-                  background: "var(--bg)",
-                  borderRadius: "var(--radius)",
-                  border: "1px solid var(--border)"
-                }}
-              >
-                <div style={{ fontSize: "16px", fontWeight: "700" }}>
-                  {goal.name}
-                </div>
+        <StatCard
+          title="Target"
+          icon="🏁"
+          value={`£${totalTarget.toLocaleString()}`}
+          colour="#F59E0B"
+          subtitle="Total target"
+        />
 
-                <div style={{ color: "var(--subtext)", marginBottom: "10px" }}>
-                  £{goal.current} / £{goal.target}
-                </div>
+        <StatCard
+          title="Saved"
+          icon="💰"
+          value={`£${totalCurrent.toLocaleString()}`}
+          colour="#22C55E"
+          subtitle="Current progress"
+        />
 
-                {/* Progress Bar */}
+        <StatCard
+          title="Complete"
+          icon="📈"
+          value={`${overallProgress}%`}
+          colour="#8B5CF6"
+          subtitle="Overall progress"
+        />
+
+      </Grid>
+
+      <Card title="🎯 Your Goals">
+
+        {goals.length === 0 ? (
+
+          <div
+            style={{
+              color: "var(--subtext)"
+            }}
+          >
+            No goals added yet.
+          </div>
+
+        ) : (
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 18
+            }}
+          >
+
+            {goals.map((goal, index) => {
+
+              const progress =
+                Number(goal.target) > 0
+                  ? Math.min(
+                      (Number(goal.current) /
+                        Number(goal.target)) *
+                        100,
+                      100
+                    )
+                  : 0
+
+              return (
+
                 <div
+                  key={index}
                   style={{
-                    width: "100%",
-                    height: "10px",
-                    background: "var(--border)",
-                    borderRadius: "6px",
-                    overflow: "hidden",
-                    marginBottom: "10px"
+                    background: "#162032",
+                    border: "1px solid var(--border)",
+                    borderRadius: 18,
+                    padding: 20
                   }}
                 >
+
                   <div
                     style={{
-                      width: `${progress}%`,
-                      height: "100%",
-                      background: "var(--accent)"
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 20
                     }}
-                  />
+                  >
+
+                    <div>
+
+                      <div
+                        style={{
+                          fontSize: 20,
+                          fontWeight: 700
+                        }}
+                      >
+                        {goal.name}
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: 8,
+                          color: "var(--subtext)"
+                        }}
+                      >
+                        £{Number(
+                          goal.current
+                        ).toLocaleString()}
+                        {" / "}
+                        £{Number(
+                          goal.target
+                        ).toLocaleString()}
+                      </div>
+
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        remove("goals", index)
+                      }
+                      style={{
+                        border: "none",
+                        borderRadius: 10,
+                        padding: "10px 18px",
+                        cursor: "pointer",
+                        background: "#DC2626",
+                        color: "#fff",
+                        fontWeight: 700
+                      }}
+                    >
+                      Remove
+                    </button>
+
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 18,
+                      height: 10,
+                      background: "#243244",
+                      borderRadius: 999,
+                      overflow: "hidden"
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${progress}%`,
+                        height: "100%",
+                        background:
+                          "linear-gradient(135deg,#4ADE80,#22C55E)"
+                      }}
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 10
+                    }}
+                  >
+                    <input
+                      type="number"
+                      value={goal.current}
+                      onChange={(e) => {
+                        const updated = [...goals]
+
+                        updated[index].current =
+                          Number(e.target.value) || 0
+
+                        update("goals", updated)
+                      }}
+                      placeholder="Current Amount"
+                      style={{
+                        width: "100%",
+                        padding: 14,
+                        borderRadius: 12,
+                        border:
+                          "1px solid var(--border)",
+                        background: "var(--bg)",
+                        color: "var(--text)"
+                      }}
+                    />
+                  </div>
+
                 </div>
 
-                {/* Update Current Amount */}
-                <label style={{ display: "block", marginBottom: "10px" }}>
-                  Update Progress:
-                  <input
-                    type="number"
-                    value={goal.current}
-                    onChange={(e) => {
-                      const newValue = Number(e.target.value)
-                      if (isNaN(newValue)) return
+              )
+            })}
 
-                      // ⭐ Correct update pattern (your store does NOT support nested paths)
-                      const updatedGoals = [...goals]
-                      updatedGoals[index].current = newValue
-                      update("goals", updatedGoals)
-                    }}
-                    style={{
-                      marginLeft: "10px",
-                      padding: "6px",
-                      width: "150px",
-                      borderRadius: "6px",
-                      border: "1px solid var(--border)",
-                      background: "var(--bg)",
-                      color: "var(--text)"
-                    }}
-                  />
-                </label>
+          </div>
 
-                <button
-                  onClick={() => remove("goals", index)}
-                  style={{
-                    padding: "8px 14px",
-                    background: "var(--primary)",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    fontWeight: "600"
-                  }}
-                >
-                  Remove Goal
-                </button>
-              </div>
-            )
-          })}
-        </div>
+        )}
+
       </Card>
+      <Card title="➕ Add Goal">
 
-      <Card title="Add New Goal" icon="➕">
         <form
-          onSubmit={(e) => {
-            e.preventDefault()
-
-            const name = e.target.name.value
-            const target = Number(e.target.target.value)
-
-            if (!name || isNaN(target)) return
-
-            add("goals", { name, target, current: 0 })
-            e.target.reset()
-          }}
+          onSubmit={submit}
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-2)"
+            display: "grid",
+            gap: 16
           }}
         >
+
           <input
-            name="name"
-            placeholder="Goal name"
+            placeholder="Goal Name"
+            value={form.name}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                name: e.target.value
+              })
+            }
             style={{
-              padding: "var(--space-2)",
-              borderRadius: "var(--radius)",
+              padding: 14,
+              borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg)",
               color: "var(--text)"
@@ -144,12 +295,18 @@ export default function Goals({ store, add, remove, update }) {
           />
 
           <input
-            name="target"
             type="number"
-            placeholder="Target amount"
+            placeholder="Target Amount"
+            value={form.target}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                target: e.target.value
+              })
+            }
             style={{
-              padding: "var(--space-2)",
-              borderRadius: "var(--radius)",
+              padding: 14,
+              borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg)",
               color: "var(--text)"
@@ -159,18 +316,21 @@ export default function Goals({ store, add, remove, update }) {
           <button
             type="submit"
             style={{
-              background: "var(--accent)",
               border: "none",
-              padding: "10px",
-              borderRadius: "var(--radius)",
-              color: "black",
-              fontWeight: "700",
-              cursor: "pointer"
+              borderRadius: 12,
+              padding: 15,
+              cursor: "pointer",
+              fontWeight: 700,
+              color: "#fff",
+              background:
+                "linear-gradient(135deg,#4ADE80,#22C55E)"
             }}
           >
             Add Goal
           </button>
+
         </form>
+
       </Card>
 
     </Page>

@@ -1,8 +1,14 @@
-export default function Sidebar({ screen, setScreen, isSidebarOpen, toggleSidebar }) {
+export default function Sidebar({
+  screen,
+  setScreen,
+  isSidebarOpen,
+  toggleSidebar
+}) {
   const items = [
     "Dashboard",
     "Income",
     "Commitments",
+    "Expenses",
     "Debt",
     "Deposit",
     "Leftover",
@@ -52,7 +58,7 @@ export default function Sidebar({ screen, setScreen, isSidebarOpen, toggleSideba
           key={item}
           onClick={() => {
             setScreen(item)
-            toggleSidebar()   // closes sidebar on mobile
+            toggleSidebar()
           }}
           style={{
             padding: "var(--space-2)",
@@ -60,10 +66,19 @@ export default function Sidebar({ screen, setScreen, isSidebarOpen, toggleSideba
             cursor: "pointer",
             fontSize: "16px",
             fontWeight: "500",
-            color: screen === item ? "var(--accent)" : "var(--text)",
-            background: screen === item ? "rgba(124, 58, 237, 0.15)" : "transparent",
+            color:
+              screen === item
+                ? "var(--accent)"
+                : "var(--text)",
+            background:
+              screen === item
+                ? "rgba(124, 58, 237, 0.15)"
+                : "transparent",
             transition: "0.2s",
-            border: screen === item ? "1px solid var(--primary)" : "1px solid transparent"
+            border:
+              screen === item
+                ? "1px solid var(--primary)"
+                : "1px solid transparent"
           }}
         >
           {item}
