@@ -9,6 +9,10 @@ import {
   Section
 } from "../components/ui/index.js"
 
+const isWideScreen = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(min-width: 960px)").matches
+
 export default function Dashboard({ store, setScreen }) {
   if (!store) return null
 
@@ -96,25 +100,22 @@ export default function Dashboard({ store, setScreen }) {
       )
       .slice(0, 5)
 
+  const wide = isWideScreen()
+
   return (
     <Page>
-      {/* Responsive top layout: stacks on mobile, 2 cols on larger screens */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns:
-            "minmax(0,1.6fr) minmax(0,1.2fr)",
-          gap: 24,
+          gridTemplateColumns: wide
+            ? "minmax(0,1.6fr) minmax(0,1.2fr)"
+            : "minmax(0,1fr)",
+          gap: wide ? 24 : 16,
           alignItems: "flex-start",
-          marginBottom: 24
+          marginBottom: wide ? 24 : 16
         }}
       >
-        {/* Left column: hero + net worth + quick monthly overview */}
-        <div
-          style={{
-            minWidth: 0
-          }}
-        >
+        <div style={{ minWidth: 0 }}>
           <HeroBanner
             title="Welcome back, Shirzad 👋"
             subtitle="Your money at a glance – clear, calm and under control."
@@ -122,10 +123,11 @@ export default function Dashboard({ store, setScreen }) {
 
           <div
             style={{
-              marginTop: 16,
+              marginTop: wide ? 16 : 12,
               display: "grid",
-              gridTemplateColumns:
-                "minmax(0,1.4fr) minmax(0,1fr)",
+              gridTemplateColumns: wide
+                ? "minmax(0,1.4fr) minmax(0,1fr)"
+                : "minmax(0,1fr)",
               gap: 16
             }}
           >
@@ -134,18 +136,19 @@ export default function Dashboard({ store, setScreen }) {
             <Card
               title="📅 This Month"
               subtitle="Key signals for your plan"
+              compact={!wide}
             >
               <div
                 style={{
                   display: "grid",
                   gridTemplateColumns:
                     "repeat(auto-fit,minmax(120px,1fr))",
-                  gap: 12
+                  gap: 10
                 }}
               >
                 <div
                   style={{
-                    padding: 14,
+                    padding: wide ? 14 : 12,
                     borderRadius: 14,
                     background:
                       "linear-gradient(135deg,#064E3B,#022C22)",
@@ -166,7 +169,7 @@ export default function Dashboard({ store, setScreen }) {
                   <div
                     style={{
                       marginTop: 4,
-                      fontSize: 22,
+                      fontSize: wide ? 22 : 20,
                       fontWeight: 700,
                       color: "#BBF7D0"
                     }}
@@ -186,7 +189,7 @@ export default function Dashboard({ store, setScreen }) {
 
                 <div
                   style={{
-                    padding: 14,
+                    padding: wide ? 14 : 12,
                     borderRadius: 14,
                     background: "#020617",
                     border:
@@ -206,7 +209,7 @@ export default function Dashboard({ store, setScreen }) {
                   <div
                     style={{
                       marginTop: 4,
-                      fontSize: 22,
+                      fontSize: wide ? 22 : 20,
                       fontWeight: 700,
                       color:
                         safeRate >= 20
@@ -233,7 +236,7 @@ export default function Dashboard({ store, setScreen }) {
 
                 <div
                   style={{
-                    padding: 14,
+                    padding: wide ? 14 : 12,
                     borderRadius: 14,
                     background: "#020617",
                     border:
@@ -253,7 +256,7 @@ export default function Dashboard({ store, setScreen }) {
                   <div
                     style={{
                       marginTop: 4,
-                      fontSize: 22,
+                      fontSize: wide ? 22 : 20,
                       fontWeight: 700,
                       color: "#38BDF8"
                     }}
@@ -275,24 +278,24 @@ export default function Dashboard({ store, setScreen }) {
           </div>
         </div>
 
-        {/* Right column: activity & bills */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             gap: 16,
-            marginTop: 8,
+            marginTop: wide ? 8 : 16,
             minWidth: 0
           }}
         >
           <Card
             title="📰 Recent Activity"
             subtitle="Latest movements across your plan"
+            compact={!wide}
           >
             {recentActivity.length === 0 ? (
               <div
                 style={{
-                  padding: 16,
+                  padding: 14,
                   fontSize: 14,
                   color: "var(--subtext)"
                 }}
@@ -306,7 +309,7 @@ export default function Dashboard({ store, setScreen }) {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 10
+                  gap: 8
                 }}
               >
                 {recentActivity.map((item, idx) => {
@@ -320,11 +323,14 @@ export default function Dashboard({ store, setScreen }) {
                       key={idx}
                       style={{
                         display: "grid",
-                        gridTemplateColumns:
-                          "minmax(0,1.5fr) minmax(0,1fr) auto",
+                        gridTemplateColumns: wide
+                          ? "minmax(0,1.5fr) minmax(0,1fr) auto"
+                          : "minmax(0,1fr)",
                         gap: 8,
-                        alignItems: "baseline",
-                        padding: 10,
+                        alignItems: wide
+                          ? "baseline"
+                          : "flex-start",
+                        padding: wide ? 10 : 8,
                         borderRadius: 12,
                         background:
                           "rgba(15,23,42,0.9)",
@@ -353,40 +359,88 @@ export default function Dashboard({ store, setScreen }) {
                         </div>
                       </div>
 
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "var(--subtext)"
-                        }}
-                      >
-                        {item.date
-                          ? new Date(
-                              item.date
-                            ).toLocaleDateString(
-                              "en-GB",
-                              {
-                                day: "2-digit",
-                                month: "short"
-                              }
-                            )
-                          : "No date"}
-                      </div>
+                      {wide ? (
+                        <>
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: "var(--subtext)"
+                            }}
+                          >
+                            {item.date
+                              ? new Date(
+                                  item.date
+                                ).toLocaleDateString(
+                                  "en-GB",
+                                  {
+                                    day: "2-digit",
+                                    month: "short"
+                                  }
+                                )
+                              : "No date"}
+                          </div>
 
-                      <div
-                        style={{
-                          fontSize: 15,
-                          fontWeight: 600,
-                          color: positive
-                            ? "#22C55E"
-                            : "#F97316",
-                          textAlign: "right"
-                        }}
-                      >
-                        {positive ? "+" : "-"}£
-                        {Math.abs(
-                          amount
-                        ).toLocaleString()}
-                      </div>
+                          <div
+                            style={{
+                              fontSize: 15,
+                              fontWeight: 600,
+                              color: positive
+                                ? "#22C55E"
+                                : "#F97316",
+                              textAlign: "right"
+                            }}
+                          >
+                            {positive ? "+" : "-"}£
+                            {Math.abs(
+                              amount
+                            ).toLocaleString()}
+                          </div>
+                        </>
+                      ) : (
+                        <div
+                          style={{
+                            marginTop: 6,
+                            display: "flex",
+                            justifyContent:
+                              "space-between",
+                            alignItems: "baseline",
+                            width: "100%"
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: 12,
+                              color: "var(--subtext)"
+                            }}
+                          >
+                            {item.date
+                              ? new Date(
+                                  item.date
+                                ).toLocaleDateString(
+                                  "en-GB",
+                                  {
+                                    day: "2-digit",
+                                    month: "short"
+                                  }
+                                )
+                              : "No date"}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 15,
+                              fontWeight: 600,
+                              color: positive
+                                ? "#22C55E"
+                                : "#F97316"
+                            }}
+                          >
+                            {positive ? "+" : "-"}£
+                            {Math.abs(
+                              amount
+                            ).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -397,11 +451,12 @@ export default function Dashboard({ store, setScreen }) {
           <Card
             title="📆 Upcoming Bills"
             subtitle="What's leaving your account next"
+            compact={!wide}
           >
             {upcomingBills.length === 0 ? (
               <div
                 style={{
-                  padding: 16,
+                  padding: 14,
                   fontSize: 14,
                   color: "var(--subtext)"
                 }}
@@ -414,7 +469,7 @@ export default function Dashboard({ store, setScreen }) {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 10
+                  gap: 8
                 }}
               >
                 {upcomingBills.map((bill, idx) => (
@@ -422,11 +477,12 @@ export default function Dashboard({ store, setScreen }) {
                     key={idx}
                     style={{
                       display: "grid",
-                      gridTemplateColumns:
-                        "minmax(0,1.4fr) auto auto",
+                      gridTemplateColumns: wide
+                        ? "minmax(0,1.4fr) auto auto"
+                        : "minmax(0,1fr)",
                       gap: 8,
                       alignItems: "center",
-                      padding: 10,
+                      padding: wide ? 10 : 8,
                       borderRadius: 12,
                       background:
                         "rgba(15,23,42,0.9)",
@@ -457,39 +513,85 @@ export default function Dashboard({ store, setScreen }) {
                       </div>
                     </div>
 
-                    <div
-                      style={{
-                        fontSize: 13,
-                        color: "var(--subtext)",
-                        textAlign: "right"
-                      }}
-                    >
-                      {bill.nextDate
-                        ? new Date(
-                            bill.nextDate
-                          ).toLocaleDateString(
-                            "en-GB",
-                            {
-                              day: "2-digit",
-                              month: "short"
-                            }
-                          )
-                        : "Next date tbc"}
-                    </div>
+                    {wide ? (
+                      <>
+                        <div
+                          style={{
+                            fontSize: 13,
+                            color: "var(--subtext)",
+                            textAlign: "right"
+                          }}
+                        >
+                          {bill.nextDate
+                            ? new Date(
+                                bill.nextDate
+                              ).toLocaleDateString(
+                                "en-GB",
+                                {
+                                  day: "2-digit",
+                                  month: "short"
+                                }
+                              )
+                            : "Next date tbc"}
+                        </div>
 
-                    <div
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 600,
-                        color: "#F97316",
-                        textAlign: "right"
-                      }}
-                    >
-                      £
-                      {Number(
-                        bill.amount || 0
-                      ).toLocaleString()}
-                    </div>
+                        <div
+                          style={{
+                            fontSize: 15,
+                            fontWeight: 600,
+                            color: "#F97316",
+                            textAlign: "right"
+                          }}
+                        >
+                          £
+                          {Number(
+                            bill.amount || 0
+                          ).toLocaleString()}
+                        </div>
+                      </>
+                    ) : (
+                      <div
+                        style={{
+                          marginTop: 6,
+                          display: "flex",
+                          justifyContent:
+                            "space-between",
+                          alignItems: "baseline",
+                          width: "100%"
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 13,
+                            color: "var(--subtext)"
+                          }}
+                        >
+                          {bill.nextDate
+                            ? new Date(
+                                bill.nextDate
+                              ).toLocaleDateString(
+                                "en-GB",
+                                {
+                                  day: "2-digit",
+                                  month: "short"
+                                }
+                              )
+                            : "Next date tbc"}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 15,
+                            fontWeight: 600,
+                            color: "#F97316"
+                          }}
+                        >
+                          £
+                          {Number(
+                            bill.amount || 0
+                          ).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -498,7 +600,6 @@ export default function Dashboard({ store, setScreen }) {
         </div>
       </div>
 
-      {/* Core stats grid stays responsive via existing Grid component */}
       <Section>
         <Grid>
           <StatCard
@@ -563,13 +664,13 @@ export default function Dashboard({ store, setScreen }) {
         </Grid>
       </Section>
 
-      {/* Goals section: deposit + September plan */}
       <Section>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns:
-              "minmax(0,1.4fr) minmax(0,1fr)",
+            gridTemplateColumns: wide
+              ? "minmax(0,1.4fr) minmax(0,1fr)"
+              : "minmax(0,1fr)",
             gap: 18,
             alignItems: "stretch"
           }}
@@ -577,6 +678,7 @@ export default function Dashboard({ store, setScreen }) {
           <Card
             title="🏠 House Deposit Journey"
             subtitle="Track how close you are to getting the keys"
+            compact={!wide}
           >
             <div
               style={{
@@ -584,7 +686,7 @@ export default function Dashboard({ store, setScreen }) {
                 justifyContent:
                   "space-between",
                 alignItems: "baseline",
-                marginBottom: 14
+                marginBottom: wide ? 14 : 10
               }}
             >
               <div>
@@ -598,7 +700,7 @@ export default function Dashboard({ store, setScreen }) {
                 </div>
                 <div
                   style={{
-                    fontSize: 26,
+                    fontSize: wide ? 26 : 22,
                     fontWeight: 700
                   }}
                 >
@@ -634,7 +736,7 @@ export default function Dashboard({ store, setScreen }) {
 
             <div
               style={{
-                height: 16,
+                height: wide ? 16 : 14,
                 background:
                   "linear-gradient(90deg,#020617,#020617)",
                 borderRadius: 999,
@@ -689,7 +791,9 @@ export default function Dashboard({ store, setScreen }) {
               <span
                 style={{
                   padding:
-                    "4px 10px",
+                    wide
+                      ? "4px 10px"
+                      : "3px 8px",
                   borderRadius: 999,
                   fontSize: 11,
                   textTransform: "uppercase",
@@ -715,6 +819,7 @@ export default function Dashboard({ store, setScreen }) {
           <Card
             title="🔥 September Attack Plan"
             subtitle="Focused push to tidy and boost your finances"
+            compact={!wide}
           >
             <div
               style={{
@@ -745,7 +850,7 @@ export default function Dashboard({ store, setScreen }) {
 
             <div
               style={{
-                height: 12,
+                height: wide ? 12 : 10,
                 background: "#020617",
                 borderRadius: 999,
                 overflow: "hidden",
@@ -772,15 +877,16 @@ export default function Dashboard({ store, setScreen }) {
               style={{
                 marginTop: 12,
                 display: "grid",
-                gridTemplateColumns:
-                  "repeat(3,minmax(0,1fr))",
+                gridTemplateColumns: wide
+                  ? "repeat(3,minmax(0,1fr))"
+                  : "minmax(0,1fr)",
                 gap: 8,
                 fontSize: 12
               }}
             >
               <div
                 style={{
-                  padding: 10,
+                  padding: wide ? 10 : 8,
                   borderRadius: 10,
                   background:
                     "rgba(15,23,42,0.9)",
@@ -807,7 +913,7 @@ export default function Dashboard({ store, setScreen }) {
               </div>
               <div
                 style={{
-                  padding: 10,
+                  padding: wide ? 10 : 8,
                   borderRadius: 10,
                   background:
                     "rgba(15,23,42,0.9)",
@@ -834,7 +940,7 @@ export default function Dashboard({ store, setScreen }) {
               </div>
               <div
                 style={{
-                  padding: 10,
+                  padding: wide ? 10 : 8,
                   borderRadius: 10,
                   background:
                     "rgba(15,23,42,0.9)",
@@ -864,23 +970,23 @@ export default function Dashboard({ store, setScreen }) {
         </div>
       </Section>
 
-      {/* Monthly snapshot at the bottom */}
       <Section>
         <Card
           title="📊 Monthly Snapshot"
           subtitle="A clean overview of how this month stacks up"
+          compact={!wide}
         >
           <div
             style={{
               display: "grid",
               gridTemplateColumns:
                 "repeat(auto-fit,minmax(220px,1fr))",
-              gap: 18
+              gap: 14
             }}
           >
             <div
               style={{
-                padding: 20,
+                padding: wide ? 20 : 16,
                 background:
                   "radial-gradient(circle at 0 0,#172554,#020617)",
                 borderRadius: 18,
@@ -899,7 +1005,7 @@ export default function Dashboard({ store, setScreen }) {
 
               <div
                 style={{
-                  fontSize: 30,
+                  fontSize: wide ? 30 : 24,
                   fontWeight: 700,
                   marginTop: 6
                 }}
@@ -920,7 +1026,7 @@ export default function Dashboard({ store, setScreen }) {
 
             <div
               style={{
-                padding: 20,
+                padding: wide ? 20 : 16,
                 background:
                   "radial-gradient(circle at 0 0,#451A03,#020617)",
                 borderRadius: 18,
@@ -939,7 +1045,7 @@ export default function Dashboard({ store, setScreen }) {
 
               <div
                 style={{
-                  fontSize: 30,
+                  fontSize: wide ? 30 : 24,
                   fontWeight: 700,
                   color: "#F97316",
                   marginTop: 6
@@ -961,7 +1067,7 @@ export default function Dashboard({ store, setScreen }) {
 
             <div
               style={{
-                padding: 20,
+                padding: wide ? 20 : 16,
                 background:
                   "radial-gradient(circle at 0 0,#052E16,#020617)",
                 borderRadius: 18,
@@ -980,7 +1086,7 @@ export default function Dashboard({ store, setScreen }) {
 
               <div
                 style={{
-                  fontSize: 30,
+                  fontSize: wide ? 30 : 24,
                   fontWeight: 700,
                   color:
                     leftover >= 0
@@ -1006,7 +1112,7 @@ export default function Dashboard({ store, setScreen }) {
 
             <div
               style={{
-                padding: 20,
+                padding: wide ? 20 : 16,
                 background:
                   "radial-gradient(circle at 0 0,#022C22,#020617)",
                 borderRadius: 18,
@@ -1025,7 +1131,7 @@ export default function Dashboard({ store, setScreen }) {
 
               <div
                 style={{
-                  fontSize: 30,
+                  fontSize: wide ? 30 : 24,
                   fontWeight: 700,
                   color: "#4ADE80",
                   marginTop: 6
