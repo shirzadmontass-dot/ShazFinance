@@ -1,6 +1,6 @@
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
-import NetWorthCard from "../components/NetWorthCard.jsx"
+import NetWorthCard from "../components/NetworthCard.jsx"
 
 import {
   HeroBanner,
