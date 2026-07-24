@@ -9,3 +9,19 @@ export default function ChartCard({ title, children }) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: "#111827",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+  },
+
+  title: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+});

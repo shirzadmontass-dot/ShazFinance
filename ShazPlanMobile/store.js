@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { supabase } from "./supabase"
 
 // Your Supabase row ID
-const STORE_ID = "eb910809-1a92-434d-8059-c8d7563a5ea2"
+const STORE_ID = "fcb11876-dd5a-4735-8b15-9e08b0d6a0b4"
 
 export function useStore() {
   const [store, setStore] = useState(null)

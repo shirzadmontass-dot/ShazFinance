@@ -6,105 +6,171 @@ import {
   StyleSheet,
   Dimensions
 } from "react-native"
-import { PieChart, LineChart } from "react-native-chart-kit"
+
+import {
+  PieChart,
+  LineChart
+} from "react-native-chart-kit"
+
 import NumberCard from "../components/NumberCard"
 import ChartCard from "../components/ChartCard"
 
 const screenWidth = Dimensions.get("window").width
 
-export default function Dashboard({ store }) {
-  const incomeTotal = store.income.reduce(
-    (sum, i) => sum + i.amount,
+const chartConfig = {
+  backgroundColor: "#020617",
+  backgroundGradientFrom: "#020617",
+  backgroundGradientTo: "#020617",
+  decimalPlaces: 0,
+  color: (opacity = 1) =>
+    `rgba(255,255,255,${opacity})`,
+  labelColor: (opacity = 1) =>
+    `rgba(255,255,255,${opacity})`,
+  propsForBackgroundLines: {
+    stroke: "#1f2937"
+  }
+}
+
+function Dashboard({ store }) {
+  if (!store) {
+    return (
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={
+          styles.contentContainer
+        }
+      >
+        <Text style={styles.loadingText}>
+          Loading your ShazPlan...
+        </Text>
+      </ScrollView>
+    )
+  }
+
+  const incomeTotal = (store.income || []).reduce(
+    (sum, i) => sum + Number(i.amount || 0),
     0
   )
-  const commitmentsTotal =
-    store.commitments.reduce(
-      (sum, c) => sum + c.amount,
-      0
-    )
-  const leftover = incomeTotal - commitmentsTotal
 
-  const wasted = store.commitments
+  const commitmentsTotal = (
+    store.commitments || []
+  ).reduce(
+    (sum, c) => sum + Number(c.amount || 0),
+    0
+  )
+
+  const expensesTotal = (
+    store.expenses || []
+  ).reduce(
+    (sum, e) => sum + Number(e.amount || 0),
+    0
+  )
+
+  const savingsTotal = (store.savings || []).reduce(
+    (sum, s) => sum + Number(s.balance || 0),
+    0
+  )
+
+  const debtTotal = (store.debts || []).reduce(
+    (sum, d) => sum + Number(d.balance || 0),
+    0
+  )
+
+  const investmentsTotal = (
+    store.investments || []
+  ).reduce(
+    (sum, i) => sum + Number(i.balance || 0),
+    0
+  )
+
+  const depositTotal =
+    store.deposit?.current ?? 0
+
+  const leftover =
+    incomeTotal -
+    commitmentsTotal -
+    expensesTotal
+
+  const wasted = (store.commitments || [])
     .filter((c) =>
       ["Wants", "Shopping", "Misc"].includes(
         c.category
       )
     )
-    .reduce((sum, c) => sum + c.amount, 0)
-
-  const savingsTotal = store.savings.reduce(
-    (sum, s) => sum + s.balance,
-    0
-  )
-  const debtTotal = store.debts.reduce(
-    (sum, d) => sum + d.balance,
-    0
-  )
-  const depositTotal = store.deposit || 0
+    .reduce(
+      (sum, c) => sum + Number(c.amount || 0),
+      0
+    )
 
   const actualLeftover = leftover - wasted
 
   const lastMonthIncome =
-    store.incomeLastMonth || 0
+    Number(store.incomeLastMonth || 0)
   const lastMonthDebt =
-    store.debtLastMonth || debtTotal
+    Number(store.debtLastMonth || debtTotal)
+
+  const netWorth =
+    savingsTotal +
+    investmentsTotal +
+    depositTotal -
+    debtTotal
 
   const incomeColor = () =>
     incomeTotal < lastMonthIncome
-      ? "#f87171"
+      ? "#ef4444"
       : incomeTotal === lastMonthIncome
-      ? "#facc15"
-      : "#4ade80"
+      ? "#f97316"
+      : "#22c55e"
 
   const commitmentsColor = () => {
+    if (incomeTotal <= 0) return "#ef4444"
     const ratio =
-      incomeTotal > 0
-        ? commitmentsTotal / incomeTotal
-        : 1
-    return ratio > 0.6
-      ? "#f87171"
-      : ratio > 0.4
-      ? "#facc15"
-      : "#4ade80"
+      commitmentsTotal / incomeTotal
+    if (ratio > 0.6) return "#ef4444"
+    if (ratio > 0.4) return "#f97316"
+    return "#22c55e"
   }
 
   const leftoverColor = () =>
-    leftover < 1000
-      ? "#f87171"
-      : leftover < 2000
+    leftover < 0
+      ? "#ef4444"
+      : leftover < 1000
       ? "#f97316"
-      : "#4ade80"
+      : "#22c55e"
 
   const wastedColor = () =>
     wasted > 300
-      ? "#f87171"
+      ? "#ef4444"
       : wasted > 100
       ? "#f97316"
-      : "#4ade80"
+      : "#22c55e"
 
   const savingsColor = () =>
     savingsTotal < 10000
-      ? "#f87171"
-      : savingsTotal < 20000
-      ? "#facc15"
-      : "#4ade80"
+      ? "#f97316"
+      : "#22c55e"
 
   const debtColor = () =>
     debtTotal > lastMonthDebt
-      ? "#f87171"
+      ? "#ef4444"
       : debtTotal === lastMonthDebt
-      ? "#facc15"
-      : "#4ade80"
+      ? "#f97316"
+      : "#22c55e"
 
   const depositColor = () =>
     depositTotal < 6000
-      ? "#f87171"
+      ? "#ef4444"
       : depositTotal < 18000
       ? "#f97316"
-      : "#4ade80"
+      : "#22c55e"
 
   const cardWidth =
-    screenWidth - 2 * styles.container.padding
+    screenWidth -
+    styles.container.padding * 2
+  const pieWidth = Math.max(
+    cardWidth - 24,
+    160
+  )
 
   return (
     <ScrollView
@@ -113,33 +179,26 @@ export default function Dashboard({ store }) {
         styles.contentContainer
       }
     >
-      {/* HEADER / HERO */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>
+          <Text style={styles.appName}>
             ShazPlan
           </Text>
-          <Text style={styles.subTitle}>
+          <Text style={styles.appSubtitle}>
             Your month in one clean view
           </Text>
         </View>
 
         <View style={styles.netChip}>
           <Text style={styles.netChipLabel}>
-            Net position
+            Net Position
           </Text>
           <Text style={styles.netChipValue}>
-            £
-            {(
-              savingsTotal +
-              depositTotal -
-              debtTotal
-            ).toLocaleString()}
+            £{netWorth.toLocaleString()}
           </Text>
         </View>
       </View>
 
-      {/* KEY NUMBERS – SINGLE COLUMN, APP-LIKE */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
           Overview
@@ -170,21 +229,23 @@ export default function Dashboard({ store }) {
         </View>
       </View>
 
-      {/* CASH & GOALS */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
-          Cash & goals
+          Cash & Goals
+        </Text>
+        <Text style={styles.sectionSubtitle}>
+          Where your money is sitting
         </Text>
 
         <View style={styles.stack}>
           <NumberCard
-            title="Wasted money"
+            title="Wasted Money"
             value={wasted}
             color={wastedColor()}
             fullWidth
           />
           <NumberCard
-            title="Actual leftover"
+            title="Actual Leftover"
             value={actualLeftover}
             color={leftoverColor()}
             fullWidth
@@ -202,7 +263,7 @@ export default function Dashboard({ store }) {
             fullWidth
           />
           <NumberCard
-            title="House deposit"
+            title="House Deposit"
             value={depositTotal}
             color={depositColor()}
             fullWidth
@@ -210,15 +271,17 @@ export default function Dashboard({ store }) {
         </View>
       </View>
 
-      {/* CHARTS – ONE PER ROW ON MOBILE */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
           Charts
         </Text>
+        <Text style={styles.sectionSubtitle}>
+          See the shape of your money
+        </Text>
 
         <View style={styles.stack}>
           <ChartCard
-            title="Income vs commitments"
+            title="Income vs Commitments vs Leftover"
             fullWidth
           >
             <PieChart
@@ -227,35 +290,36 @@ export default function Dashboard({ store }) {
                   name: "Income",
                   amount: incomeTotal,
                   color: "#22c55e",
-                  legendFontColor: "#e5e7eb",
+                  legendFontColor: "#ffffff",
                   legendFontSize: 11
                 },
                 {
                   name: "Commitments",
                   amount: commitmentsTotal,
                   color: "#f97316",
-                  legendFontColor: "#e5e7eb",
+                  legendFontColor: "#ffffff",
                   legendFontSize: 11
                 },
                 {
                   name: "Leftover",
                   amount: leftover,
                   color: "#3b82f6",
-                  legendFontColor: "#e5e7eb",
+                  legendFontColor: "#ffffff",
                   legendFontSize: 11
                 }
               ]}
-              width={cardWidth - 16}
-              height={180}
+              width={pieWidth}
+              height={185}
               accessor="amount"
               backgroundColor="transparent"
-              paddingLeft="12"
-              hasLegend={true}
+              paddingLeft="14"
+              hasLegend
+              chartConfig={chartConfig}
             />
           </ChartCard>
 
           <ChartCard
-            title="Wasted vs actual leftover"
+            title="Wasted vs Actual Leftover"
             fullWidth
           >
             <PieChart
@@ -264,28 +328,29 @@ export default function Dashboard({ store }) {
                   name: "Wasted",
                   amount: wasted,
                   color: "#f97316",
-                  legendFontColor: "#e5e7eb",
+                  legendFontColor: "#ffffff",
                   legendFontSize: 11
                 },
                 {
-                  name: "Actual leftover",
+                  name: "Actual Leftover",
                   amount: actualLeftover,
                   color: "#22c55e",
-                  legendFontColor: "#e5e7eb",
+                  legendFontColor: "#ffffff",
                   legendFontSize: 11
                 }
               ]}
-              width={cardWidth - 16}
-              height={180}
+              width={pieWidth}
+              height={185}
               accessor="amount"
               backgroundColor="transparent"
-              paddingLeft="12"
-              hasLegend={true}
+              paddingLeft="14"
+              hasLegend
+              chartConfig={chartConfig}
             />
           </ChartCard>
 
           <ChartCard
-            title="Savings vs debt"
+            title="Savings vs Debt"
             fullWidth
           >
             <PieChart
@@ -293,72 +358,46 @@ export default function Dashboard({ store }) {
                 {
                   name: "Savings",
                   amount: savingsTotal,
-                  color: "#06b6d4",
-                  legendFontColor: "#e5e7eb",
+                  color: "#3b82f6",
+                  legendFontColor: "#ffffff",
                   legendFontSize: 11
                 },
                 {
                   name: "Debt",
                   amount: debtTotal,
-                  color: "#e11d48",
-                  legendFontColor: "#e5e7eb",
+                  color: "#ef4444",
+                  legendFontColor: "#ffffff",
                   legendFontSize: 11
                 }
               ]}
-              width={cardWidth - 16}
-              height={180}
+              width={pieWidth}
+              height={185}
               accessor="amount"
               backgroundColor="transparent"
-              paddingLeft="12"
-              hasLegend={true}
+              paddingLeft="14"
+              hasLegend
+              chartConfig={chartConfig}
             />
           </ChartCard>
 
           <ChartCard
-            title="Income trend"
+            title="Income Trend"
             fullWidth
           >
             <LineChart
               data={{
-                labels: [
-                  "Jan",
-                  "Feb",
-                  "Mar",
-                  "Apr"
-                ],
+                labels: ["Jan", "Feb", "Mar", "Apr"],
                 datasets: [
                   {
-                    data: [
-                      500, 600, 550, 700
-                    ]
+                    data: [500, 600, 550, 700]
                   }
                 ]
               }}
-              width={cardWidth - 16}
-              height={210}
-              chartConfig={{
-                backgroundColor: "#020617",
-                backgroundGradientFrom:
-                  "#020617",
-                backgroundGradientTo:
-                  "#020617",
-                decimalPlaces: 0,
-                color: () => "#22c55e",
-                labelColor: () => "#9ca3af",
-                propsForDots: {
-                  r: "3",
-                  strokeWidth: "2",
-                  stroke: "#22c55e"
-                },
-                propsForBackgroundLines: {
-                  stroke:
-                    "rgba(55,65,81,0.6)"
-                }
-              }}
+              width={cardWidth - 24}
+              height={220}
+              chartConfig={chartConfig}
               bezier
-              style={{
-                borderRadius: 12
-              }}
+              style={styles.lineChart}
             />
           </ChartCard>
         </View>
@@ -374,20 +413,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#020617"
   },
   contentContainer: {
-    paddingBottom: 24
+    paddingBottom: 32
+  },
+  loadingText: {
+    marginTop: 40,
+    textAlign: "center",
+    color: "#9ca3af",
+    fontSize: 14
   },
   header: {
-    marginBottom: 16,
+    marginBottom: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center"
   },
-  greeting: {
+  appName: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#e5e7eb"
+    color: "#ffffff"
   },
-  subTitle: {
+  appSubtitle: {
     marginTop: 4,
     fontSize: 13,
     color: "#9ca3af"
@@ -398,7 +443,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: "#111827",
     borderWidth: 1,
-    borderColor: "#1f2933",
+    borderColor: "#1f2937",
     alignItems: "flex-end"
   },
   netChipLabel: {
@@ -408,15 +453,15 @@ const styles = StyleSheet.create({
   netChipValue: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#4ade80"
+    color: "#22c55e"
   },
   section: {
-    marginBottom: 18
+    marginBottom: 20
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#e5e7eb",
+    color: "#ffffff",
     marginBottom: 2
   },
   sectionSubtitle: {
@@ -425,7 +470,12 @@ const styles = StyleSheet.create({
     marginBottom: 8
   },
   stack: {
-    marginTop: 6,
+    marginTop: 4,
     gap: 8
+  },
+  lineChart: {
+    borderRadius: 12
   }
 })
+
+export default Dashboard
