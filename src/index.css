@@ -1,0 +1,43 @@
+/* ----------------------------- */
+/*   SHAZPLAN V2 GLOBAL THEME    */
+/* ----------------------------- */
+
+body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at top, #1e1e1e, #0d0d0d);
+  font-family: 'Inter', sans-serif;
+  color: white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+::placeholder {
+  color: rgba(255,255,255,0.45);
+}
+
+button:focus,
+input:focus {
+  outline: none;
+}
