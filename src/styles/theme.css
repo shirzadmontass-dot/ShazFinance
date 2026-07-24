@@ -1,0 +1,280 @@
+/* ===========================
+   SHAZPLAN THEME
+=========================== */
+
+:root{
+
+--bg:#0B1220;
+--bg-light:#172033;
+--card:#1B263B;
+
+--text:#FFFFFF;
+--subtext:#9CA9BD;
+
+--accent:#FF8A00;
+--accent2:#FF3D7F;
+--success:#22C55E;
+--danger:#EF4444;
+
+--border:rgba(255,255,255,.08);
+
+--radius:22px;
+
+--shadow:
+0 15px 35px rgba(0,0,0,.35);
+
+--space-1:6px;
+--space-2:10px;
+--space-3:16px;
+--space-4:24px;
+--space-5:36px;
+
+}
+
+/* ===========================
+   GLOBAL
+=========================== */
+
+*{
+box-sizing:border-box;
+}
+
+html,
+body,
+#root{
+
+margin:0;
+padding:0;
+width:100%;
+height:100%;
+
+background:var(--bg);
+
+color:var(--text);
+
+font-family:
+Inter,
+Segoe UI,
+Arial,
+sans-serif;
+
+-webkit-font-smoothing:antialiased;
+
+}
+
+/* ===========================
+   SCROLLBAR
+=========================== */
+
+::-webkit-scrollbar{
+width:10px;
+}
+
+::-webkit-scrollbar-track{
+background:#111827;
+}
+
+::-webkit-scrollbar-thumb{
+background:#334155;
+border-radius:999px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+background:#475569;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+
+button{
+
+font-family:inherit;
+
+transition:.25s ease;
+
+}
+
+button:hover{
+
+transform:translateY(-2px);
+
+}
+
+/* ===========================
+   LINKS
+=========================== */
+
+a{
+
+color:inherit;
+
+text-decoration:none;
+
+}
+
+/* ===========================
+   SIDEBAR
+=========================== */
+
+.sidebar{
+
+background:#111827;
+
+border-right:1px solid var(--border);
+
+box-shadow:var(--shadow);
+
+}
+
+/* ===========================
+   MOBILE BUTTON
+=========================== */
+
+.mobile-menu-btn{
+
+display:none;
+
+}
+
+/* ===========================
+   MOBILE
+=========================== */
+
+@media(max-width:768px){
+
+.mobile-menu-btn{
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+position:fixed;
+
+top:14px;
+
+left:14px;
+
+width:48px;
+
+height:48px;
+
+border:none;
+
+border-radius:14px;
+
+background:#1B263B;
+
+color:white;
+
+font-size:28px;
+
+box-shadow:var(--shadow);
+
+z-index:9999;
+
+}
+
+.sidebar{
+
+position:fixed;
+
+left:0;
+
+top:0;
+
+width:260px;
+
+height:100vh;
+
+transform:translateX(-100%);
+
+transition:.3s;
+
+z-index:9998;
+
+}
+
+.sidebar.open{
+
+transform:translateX(0);
+
+}
+
+.main-content{
+
+padding:18px!important;
+
+}
+
+}
+
+/* ===========================
+   INPUTS
+=========================== */
+
+input,
+select,
+textarea{
+
+width:100%;
+
+padding:14px 16px;
+
+border-radius:14px;
+
+border:1px solid var(--border);
+
+background:#111827;
+
+color:white;
+
+font-size:15px;
+
+outline:none;
+
+transition:.25s;
+
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+
+border-color:var(--accent);
+
+box-shadow:0 0 0 3px rgba(255,138,0,.18);
+
+}
+
+/* ===========================
+   TABLES
+=========================== */
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+}
+
+th{
+
+text-align:left;
+
+padding:14px;
+
+color:#CBD5E1;
+
+}
+
+td{
+
+padding:14px;
+
+border-top:1px solid rgba(255,255,255,.06);
+
+}
