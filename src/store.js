@@ -1,56 +1,81 @@
 import { useState, useEffect } from "react"
 import { supabase } from "./supabase"
 
-// Your Supabase row ID
-const STORE_ID = "fcb11876-dd5a-4735-8b15-9e08b0d6a0b4"
+const defaultStore = {
+  income: [],
+  commitments: [],
+  expenses: [],
+  debts: [],
+  savings: [],
+  investments: [],
+  children: [],
 
-export function useStore() {
+  deposit: {
+    current: 0,
+    target: 25000,
+    monthly: 500
+  },
+
+  goals: {
+    houseDepositTarget: 0,
+    debtFreeTargetDate: ""
+  },
+
+  planner: [],
+  history: []
+}
+
+// Pass the logged-in user's id in. No user id yet = nothing loads.
+export function useStore(userId) {
   const [store, setStore] = useState(null)
+  const [rowId, setRowId] = useState(null)
 
   useEffect(() => {
+    if (!userId) {
+      setStore(null)
+      setRowId(null)
+      return
+    }
+
     async function load() {
       console.log("🔌 Connecting to Supabase...")
 
       const { data, error } = await supabase
         .from("store")
-        .select("data")
-        .eq("id", STORE_ID)
-        .single()
+        .select("id, data")
+        .eq("user_id", userId)
+        .maybeSingle()
 
       if (error) {
         console.error("❌ Error loading store:", JSON.stringify(error, null, 2))
         return
       }
 
-      console.log("📦 Store loaded:", data)
+      // First time this user has ever logged in — create their own row
+      if (!data) {
+        console.log("🆕 No store yet for this user, creating one...")
 
-      const defaultStore = {
-        income: [],
-        commitments: [],
-        expenses: [],
-        debts: [],
-        savings: [],
-        investments: [],
-        children: [],
+        const { data: created, error: insertError } = await supabase
+          .from("store")
+          .insert({ user_id: userId, data: defaultStore })
+          .select("id, data")
+          .single()
 
-        deposit: {
-          current: 0,
-          target: 25000,
-          monthly: 500
-        },
+        if (insertError) {
+          console.error("❌ Error creating store:", insertError)
+          return
+        }
 
-        goals: {
-          houseDepositTarget: 0,
-          debtFreeTargetDate: ""
-        },
-
-        planner: [],
-        history: []
+        setRowId(created.id)
+        setStore(defaultStore)
+        return
       }
+
+      console.log("📦 Store loaded:", data)
 
       const loadedStore = {
         ...defaultStore,
-        ...(data?.data || {})
+        ...(data.data || {})
       }
 
       // Upgrade older versions automatically
@@ -87,19 +112,25 @@ export function useStore() {
         }
       }
 
+      setRowId(data.id)
       setStore(loadedStore)
     }
 
     load()
-  }, [])
+  }, [userId])
 
   async function save(newStore) {
     setStore(newStore)
 
+    if (!rowId) {
+      console.error("❌ Can't save yet — no store row for this user.")
+      return
+    }
+
     const { error } = await supabase
       .from("store")
       .update({ data: newStore })
-      .eq("id", STORE_ID)
+      .eq("id", rowId)
 
     if (error) {
       console.error("❌ Error saving store:", error)

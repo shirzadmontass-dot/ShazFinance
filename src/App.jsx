@@ -37,7 +37,7 @@ export default function App() {
     update,
     add,
     remove
-  } = useStore()
+  } = useStore(user?.id)
 
   const [isSidebarOpen, setSidebarOpen] = useState(false)
 
