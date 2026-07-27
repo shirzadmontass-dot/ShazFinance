@@ -21,6 +21,12 @@ const defaultStore = {
     debtFreeTargetDate: ""
   },
 
+  attackPlan: {
+    debtTidyUp: false,
+    spendingReset: false,
+    depositBoost: false
+  },
+
   planner: [],
   history: []
 }
@@ -51,6 +57,7 @@ export function useStore(userId) {
         return
       }
 
+      // First time this user has ever logged in — create their own row
       if (!data) {
         console.log("🆕 No store yet for this user, creating one...")
 
@@ -77,6 +84,7 @@ export function useStore(userId) {
         ...(data.data || {})
       }
 
+      // Upgrade older versions automatically
       if (typeof loadedStore.deposit === "number") {
         loadedStore.deposit = {
           current: loadedStore.deposit,
@@ -107,6 +115,14 @@ export function useStore(userId) {
         loadedStore.goals = {
           houseDepositTarget: 0,
           debtFreeTargetDate: ""
+        }
+      }
+
+      if (!loadedStore.attackPlan) {
+        loadedStore.attackPlan = {
+          debtTidyUp: false,
+          spendingReset: false,
+          depositBoost: false
         }
       }
 

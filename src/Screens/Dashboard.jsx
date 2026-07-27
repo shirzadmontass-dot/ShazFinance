@@ -13,7 +13,7 @@ const isWideScreen = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(min-width: 960px)").matches
 
-export default function Dashboard({ store }) {
+export default function Dashboard({ store, update }) {
   if (!store) return null
 
   const incomeTotal =
@@ -68,7 +68,42 @@ export default function Dashboard({ store }) {
         )
       : 0
 
-  const plannerPercent = 62
+  const attackPlan = store.attackPlan || {
+    debtTidyUp: false,
+    spendingReset: false,
+    depositBoost: false
+  }
+
+  const attackSteps = [
+    {
+      key: "debtTidyUp",
+      title: "Debt tidy‑up",
+      description: "Hit highest‑interest first."
+    },
+    {
+      key: "spendingReset",
+      title: "Spending reset",
+      description: "Trim non‑essentials."
+    },
+    {
+      key: "depositBoost",
+      title: "Deposit boost",
+      description: "Funnel surplus into house."
+    }
+  ]
+
+  const doneCount = attackSteps.filter(
+    (step) => attackPlan[step.key]
+  ).length
+
+  const plannerPercent = Math.round(
+    (doneCount / attackSteps.length) * 100
+  )
+
+  const toggleAttackStep = (key) => {
+    if (!update) return
+    update(`attackPlan.${key}`, !attackPlan[key])
+  }
 
   const safeRate =
     incomeTotal > 0
@@ -759,7 +794,7 @@ export default function Dashboard({ store }) {
                   maxWidth: "100%",
                   height: "100%",
                   background:
-                    "linear-gradient(135deg,#4ADE80,#22C55E)"
+                    "linear-gradient(135deg,var(--accent),var(--accent2))"
                 }}
               />
             </div>
@@ -858,7 +893,7 @@ export default function Dashboard({ store }) {
                   maxWidth: "100%",
                   height: "100%",
                   background:
-                    "linear-gradient(135deg,#60A5FA,#2563EB)"
+                    "linear-gradient(135deg,var(--accent),var(--accent2))"
                 }}
               />
             </div>
@@ -874,237 +909,79 @@ export default function Dashboard({ store }) {
                 fontSize: 11
               }}
             >
-              <div
-                style={{
-                  padding: 8,
-                  borderRadius: 9,
-                  background:
-                    "rgba(15,23,42,0.9)",
-                  border:
-                    "1px solid rgba(30,41,59,0.9)"
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 600
-                  }}
-                >
-                  Debt tidy‑up
-                </div>
-                <div
-                  style={{
-                    marginTop: 2,
-                    color: "var(--subtext)"
-                  }}
-                >
-                  Hit highest‑interest first.
-                </div>
-              </div>
-              <div
-                style={{
-                  padding: 8,
-                  borderRadius: 9,
-                  background:
-                    "rgba(15,23,42,0.9)",
-                  border:
-                    "1px solid rgba(30,41,59,0.9)"
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 600
-                  }}
-                >
-                  Spending reset
-                </div>
-                <div
-                  style={{
-                    marginTop: 2,
-                    color: "var(--subtext)"
-                  }}
-                >
-                  Trim non‑essentials.
-                </div>
-              </div>
-              <div
-                style={{
-                  padding: 8,
-                  borderRadius: 9,
-                  background:
-                    "rgba(15,23,42,0.9)",
-                  border:
-                    "1px solid rgba(30,41,59,0.9)"
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 600
-                  }}
-                >
-                  Deposit boost
-                </div>
-                <div
-                  style={{
-                    marginTop: 2,
-                    color: "var(--subtext)"
-                  }}
-                >
-                  Funnel surplus into house.
-                </div>
-              </div>
+              {attackSteps.map((step) => {
+                const done = attackPlan[step.key]
+                return (
+                  <div
+                    key={step.key}
+                    onClick={() => toggleAttackStep(step.key)}
+                    style={{
+                      padding: 8,
+                      borderRadius: 9,
+                      cursor: "pointer",
+                      background: done
+                        ? "rgba(255,138,0,0.12)"
+                        : "rgba(15,23,42,0.9)",
+                      border: done
+                        ? "1px solid rgba(255,138,0,0.5)"
+                        : "1px solid rgba(30,41,59,0.9)",
+                      display: "flex",
+                      gap: 8,
+                      alignItems: "flex-start"
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: "50%",
+                        flexShrink: 0,
+                        marginTop: 1,
+                        border: done
+                          ? "none"
+                          : "2px solid rgba(255,255,255,.25)",
+                        background: done
+                          ? "var(--accent)"
+                          : "transparent",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 10,
+                        color: "#1a1005",
+                        fontWeight: 700
+                      }}
+                    >
+                      {done ? "✓" : ""}
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          textDecoration: done
+                            ? "line-through"
+                            : "none",
+                          opacity: done ? 0.75 : 1
+                        }}
+                      >
+                        {step.title}
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 2,
+                          color: "var(--subtext)"
+                        }}
+                      >
+                        {step.description}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </Card>
         </div>
       </Section>
 
-      {/* Bottom snapshot – calmer, more compact tiles */}
-      <Section>
-        <Card
-          title="Monthly snapshot"
-          subtitle="How this month stacks up"
-          compact
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit,minmax(200px,1fr))",
-              gap: 14
-            }}
-          >
-            <div
-              style={{
-                padding: 16,
-                background:
-                  "radial-gradient(circle at 0 0,#111827,#020617)",
-                borderRadius: 14,
-                border:
-                  "1px solid rgba(55,65,81,0.8)"
-              }}
-            >
-              <div
-                style={{
-                  color: "var(--subtext)",
-                  fontSize: 12
-                }}
-              >
-                Monthly income
-              </div>
-
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  marginTop: 4
-                }}
-              >
-                £{incomeTotal.toLocaleString()}
-              </div>
-            </div>
-
-            <div
-              style={{
-                padding: 16,
-                background:
-                  "radial-gradient(circle at 0 0,#111827,#020617)",
-                borderRadius: 14,
-                border:
-                  "1px solid rgba(55,65,81,0.8)"
-              }}
-            >
-              <div
-                style={{
-                  color: "var(--subtext)",
-                  fontSize: 12
-                }}
-              >
-                Monthly expenses
-              </div>
-
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color: "#F97316",
-                  marginTop: 4
-                }}
-              >
-                £{expensesTotal.toLocaleString()}
-              </div>
-            </div>
-
-            <div
-              style={{
-                padding: 16,
-                background:
-                  "radial-gradient(circle at 0 0,#111827,#020617)",
-                borderRadius: 14,
-                border:
-                  "1px solid rgba(55,65,81,0.8)"
-              }}
-            >
-              <div
-                style={{
-                  color: "var(--subtext)",
-                  fontSize: 12
-                }}
-              >
-                Money left
-              </div>
-
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color:
-                    leftover >= 0
-                      ? "#22C55E"
-                      : "#EF4444",
-                  marginTop: 4
-                }}
-              >
-                £{leftover.toLocaleString()}
-              </div>
-            </div>
-
-            <div
-              style={{
-                padding: 16,
-                background:
-                  "radial-gradient(circle at 0 0,#111827,#020617)",
-                borderRadius: 14,
-                border:
-                  "1px solid rgba(55,65,81,0.8)"
-              }}
-            >
-              <div
-                style={{
-                  color: "var(--subtext)",
-                  fontSize: 12
-                }}
-              >
-                Total assets
-              </div>
-
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color: "#4ADE80",
-                  marginTop: 4
-                }}
-              >
-                £
-                {(
-                  savingsTotal +
-                  investmentsTotal +
-                  depositSaved
-                ).toLocaleString()}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </Section>
     </Page>
   )
 }

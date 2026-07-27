@@ -28,12 +28,10 @@ export default function NetWorthCard({ store }) {
       ? Math.max(0, Math.min(100, Math.round((netWorth / assets) * 100)))
       : 0
 
-  const healthColor =
-    health >= 75
-      ? "#22C55E"
-      : health >= 50
-      ? "#FACC15"
-      : "#EF4444"
+  // Gauge geometry
+  const radius = 42
+  const circumference = 2 * Math.PI * radius
+  const dashOffset = circumference - (circumference * health) / 100
 
   return (
     <Card title="Net Worth" icon="💎">
@@ -44,25 +42,99 @@ export default function NetWorthCard({ store }) {
           gap: 24
         }}
       >
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              fontSize: 16,
-              color: "var(--subtext)"
-            }}
-          >
-            Current Net Worth
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            flexWrap: "wrap"
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 14,
+                color: "var(--subtext)"
+              }}
+            >
+              Current Net Worth
+            </div>
+
+            <div
+              style={{
+                fontSize: 40,
+                fontWeight: 800,
+                color: netWorth >= 0 ? "#fff" : "#EF4444",
+                marginTop: 6
+              }}
+            >
+              £{netWorth.toLocaleString()}
+            </div>
           </div>
 
+          {/* Orange circular health gauge */}
           <div
             style={{
-              fontSize: 42,
-              fontWeight: 800,
-              color: netWorth >= 0 ? "#4ADE80" : "#EF4444",
-              marginTop: 8
+              position: "relative",
+              width: 100,
+              height: 100,
+              flexShrink: 0
             }}
           >
-            £{netWorth.toLocaleString()}
+            <svg
+              viewBox="0 0 100 100"
+              style={{
+                width: "100%",
+                height: "100%",
+                transform: "rotate(-90deg)"
+              }}
+            >
+              <circle
+                cx="50"
+                cy="50"
+                r={radius}
+                fill="none"
+                stroke="rgba(255,255,255,.08)"
+                strokeWidth="9"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r={radius}
+                fill="none"
+                stroke="var(--accent)"
+                strokeWidth="9"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={dashOffset}
+                style={{ transition: "stroke-dashoffset 0.6s ease" }}
+              />
+            </svg>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>
+                {health}%
+              </div>
+              <div
+                style={{
+                  fontSize: 9,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.05,
+                  color: "var(--subtext)"
+                }}
+              >
+                Health
+              </div>
+            </div>
           </div>
         </div>
 
@@ -107,38 +179,6 @@ export default function NetWorthCard({ store }) {
             colour="#A78BFA"
             emoji="🏠"
           />
-        </div>
-
-        <div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 8,
-              fontWeight: 600
-            }}
-          >
-            <span>Financial Health</span>
-            <span>{health}%</span>
-          </div>
-
-          <div
-            style={{
-              height: 14,
-              background: "#243244",
-              borderRadius: 999,
-              overflow: "hidden"
-            }}
-          >
-            <div
-              style={{
-                width: `${health}%`,
-                height: "100%",
-                background: healthColor,
-                transition: "0.4s"
-              }}
-            />
-          </div>
         </div>
       </div>
     </Card>
