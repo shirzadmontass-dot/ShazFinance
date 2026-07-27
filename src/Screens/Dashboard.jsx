@@ -156,13 +156,11 @@ export default function Dashboard({ store, update }) {
 
   return (
     <Page>
-      {/* Top row: hero + net worth & compact monthly overview */}
+      {/* Top row: hero banner + net worth, full width. Activity/bills stack below. */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: wide
-            ? "minmax(0,1.5fr) minmax(0,1.1fr)"
-            : "minmax(0,1fr)",
+          gridTemplateColumns: "minmax(0,1fr)",
           gap: wide ? 24 : 16,
           alignItems: "flex-start",
           marginBottom: wide ? 20 : 12
@@ -313,11 +311,13 @@ export default function Dashboard({ store, update }) {
           </div>
         </div>
 
-        {/* Right: Activity + Bills in a cleaner, app-like card stack */}
+        {/* Activity + Bills — side by side now that they span full width */}
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
+            display: "grid",
+            gridTemplateColumns: wide
+              ? "minmax(0,1fr) minmax(0,1fr)"
+              : "minmax(0,1fr)",
             gap: 14,
             marginTop: wide ? 4 : 16,
             minWidth: 0
