@@ -12,7 +12,7 @@ import {
 
 // Reactive width check — updates live on resize/zoom instead of
 // only reading window size once at first render.
-function useIsWide(breakpoint = 880) {
+function useIsWide(breakpoint = 700) {
   const [wide, setWide] = useState(() =>
     typeof window !== "undefined"
       ? window.innerWidth >= breakpoint

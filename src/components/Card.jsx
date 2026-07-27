@@ -1,6 +1,8 @@
 export default function Card({
   title,
+  subtitle,
   icon,
+  compact = false,
   children,
   style = {}
 }) {
@@ -9,9 +11,9 @@ export default function Card({
       style={{
         position: "relative",
         width: "100%",
-        marginBottom: "22px",
-        padding: "24px",
-        borderRadius: "24px",
+        marginBottom: compact ? 0 : "22px",
+        padding: compact ? "18px 20px" : "24px",
+        borderRadius: "20px",
         background:
           "linear-gradient(180deg,#243B55 0%, #1B263B 100%)",
         border: "1px solid rgba(255,255,255,.08)",
@@ -40,7 +42,7 @@ export default function Card({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            marginBottom: "20px"
+            marginBottom: compact ? 14 : "20px"
           }}
         >
           <div
@@ -67,14 +69,28 @@ export default function Card({
               </div>
             )}
 
-            <div
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                color: "#fff"
-              }}
-            >
-              {title}
+            <div>
+              <div
+                style={{
+                  fontSize: compact ? 16 : "20px",
+                  fontWeight: 700,
+                  color: "#fff"
+                }}
+              >
+                {title}
+              </div>
+
+              {subtitle && (
+                <div
+                  style={{
+                    marginTop: 2,
+                    fontSize: 12.5,
+                    color: "var(--subtext)"
+                  }}
+                >
+                  {subtitle}
+                </div>
+              )}
             </div>
           </div>
 
