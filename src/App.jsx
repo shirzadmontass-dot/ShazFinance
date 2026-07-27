@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { useStore } from "./store.js"
+import { useAuth } from "./AuthContext.jsx"
 
+import Login from "./Screens/Login.jsx"
 import Dashboard from "./Screens/Dashboard.jsx"
 import Income from "./Screens/Income.jsx"
 import Commitments from "./Screens/Commitments.jsx"
@@ -28,6 +30,7 @@ import Header from "./Header.jsx"
 
 export default function App() {
   const [screen, setScreen] = useState("Dashboard")
+  const { user, loading, signOut } = useAuth()
 
   const {
     store,
@@ -66,6 +69,30 @@ export default function App() {
   }
 
   const ActiveScreen = screens[screen]
+
+  // Still checking whether a session exists
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          height: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--bg)",
+          color: "var(--text)",
+          fontSize: 20
+        }}
+      >
+        Loading...
+      </div>
+    )
+  }
+
+  // No logged-in user — show the login/signup screen
+  if (!user) {
+    return <Login />
+  }
 
   if (!store) {
     return (
@@ -126,7 +153,7 @@ export default function App() {
           flexDirection: "column"
         }}
       >
-        <Header screen={screen} />
+        <Header screen={screen} user={user} onSignOut={signOut} />
 
         <div
           style={{

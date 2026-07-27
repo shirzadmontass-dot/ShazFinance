@@ -1,5 +1,6 @@
-export default function Header({ screen }) {
+export default function Header({ screen, user, onSignOut }) {
   const today = new Date()
+  const initial = user?.email ? user.email[0].toUpperCase() : "S"
 
   const date = today.toLocaleDateString("en-GB", {
     weekday: "long",
@@ -83,11 +84,15 @@ export default function Header({ screen }) {
           ⚙️
         </button>
 
-        <div
+        <button
+          onClick={onSignOut}
+          title={user?.email ? `Signed in as ${user.email} — click to sign out` : "Sign out"}
           style={{
             width: "48px",
             height: "48px",
             borderRadius: "50%",
+            border: "none",
+            cursor: "pointer",
             background:
               "linear-gradient(135deg,#FF8A00,#FF3D7F)",
             display: "flex",
@@ -98,8 +103,8 @@ export default function Header({ screen }) {
             fontSize: "18px"
           }}
         >
-          S
-        </div>
+          {initial}
+        </button>
       </div>
     </header>
   )
