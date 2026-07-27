@@ -157,163 +157,142 @@ export default function Dashboard({ store, update }) {
             subtitle="Stay on top of your money with a clear, calm overview."
           />
 
+          <div style={{ marginTop: wide ? 16 : 12 }}>
+            <NetWorthCard store={store} split={wide} />
+          </div>
+
+          {/* Money Left / Savings Rate / Cash Cushion – standalone tiles, no outer card */}
           <div
             style={{
-              marginTop: wide ? 16 : 12,
+              marginTop: 16,
               display: "grid",
-              gridTemplateColumns: wide
-                ? "minmax(0,1.1fr) minmax(0,1fr)"
-                : "minmax(0,1fr)",
-              gap: 16
+              gridTemplateColumns:
+                "repeat(auto-fit,minmax(150px,1fr))",
+              gap: 12
             }}
           >
-            <NetWorthCard store={store} />
-
-            <Card
-              title="This Month"
-              subtitle="Quick signal check"
-              compact
+            <div
+              style={{
+                padding: wide ? 16 : 14,
+                borderRadius: 16,
+                background:
+                  "linear-gradient(135deg,#022C22,#011619)",
+                border: "1px solid rgba(34,197,94,0.35)"
+              }}
             >
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fit,minmax(120px,1fr))",
-                  gap: 10
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.06,
+                  color: "rgba(190,242,100,0.8)"
                 }}
               >
-                {/* Money Left – subtle green, smaller than before */}
-                <div
-                  style={{
-                    padding: wide ? 12 : 10,
-                    borderRadius: 12,
-                    background:
-                      "linear-gradient(135deg,#022C22,#011619)",
-                    border:
-                      "1px solid rgba(34,197,94,0.35)"
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 11,
-                      textTransform: "uppercase",
-                      letterSpacing: 0.06,
-                      color: "rgba(190,242,100,0.8)"
-                    }}
-                  >
-                    Money left
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 4,
-                      fontSize: wide ? 20 : 18,
-                      fontWeight: 700,
-                      color: "#BBF7D0"
-                    }}
-                  >
-                    £{leftover.toLocaleString()}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 3,
-                      fontSize: 11,
-                      color: "rgba(148,163,184,0.9)"
-                    }}
-                  >
-                    After income &amp; outgoings
-                  </div>
-                </div>
-
-                {/* Savings rate – smaller, pill feel */}
-                <div
-                  style={{
-                    padding: wide ? 12 : 10,
-                    borderRadius: 12,
-                    background: "#020617",
-                    border:
-                      "1px solid rgba(148,163,184,0.28)"
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 11,
-                      textTransform: "uppercase",
-                      letterSpacing: 0.06,
-                      color: "rgba(148,163,184,0.9)"
-                    }}
-                  >
-                    Savings rate
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 4,
-                      fontSize: wide ? 20 : 18,
-                      fontWeight: 700,
-                      color:
-                        safeRate >= 20
-                          ? "#4ADE80"
-                          : safeRate >= 10
-                          ? "#FACC15"
-                          : "#F97316"
-                    }}
-                  >
-                    {isNaN(safeRate)
-                      ? "–"
-                      : `${safeRate}%`}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 3,
-                      fontSize: 11,
-                      color: "rgba(148,163,184,0.9)"
-                    }}
-                  >
-                    Of this month&apos;s income
-                  </div>
-                </div>
-
-                {/* Cash cushion – calm blue */}
-                <div
-                  style={{
-                    padding: wide ? 12 : 10,
-                    borderRadius: 12,
-                    background: "#020617",
-                    border:
-                      "1px solid rgba(148,163,184,0.28)"
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 11,
-                      textTransform: "uppercase",
-                      letterSpacing: 0.06,
-                      color: "rgba(148,163,184,0.9)"
-                    }}
-                  >
-                    Cash cushion
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 4,
-                      fontSize: wide ? 20 : 18,
-                      fontWeight: 700,
-                      color: "#38BDF8"
-                    }}
-                  >
-                    £{savingsTotal.toLocaleString()}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 3,
-                      fontSize: 11,
-                      color: "rgba(148,163,184,0.9)"
-                    }}
-                  >
-                    Across savings accounts
-                  </div>
-                </div>
+                Money left
               </div>
-            </Card>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: wide ? 22 : 18,
+                  fontWeight: 700,
+                  color: "#BBF7D0"
+                }}
+              >
+                £{leftover.toLocaleString()}
+              </div>
+              <div
+                style={{
+                  marginTop: 3,
+                  fontSize: 11,
+                  color: "rgba(148,163,184,0.9)"
+                }}
+              >
+                After income &amp; outgoings
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: wide ? 16 : 14,
+                borderRadius: 16,
+                background: "#131A2B",
+                border: "1px solid var(--border)"
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.06,
+                  color: "rgba(148,163,184,0.9)"
+                }}
+              >
+                Savings rate
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: wide ? 22 : 18,
+                  fontWeight: 700,
+                  color:
+                    safeRate >= 20
+                      ? "#4ADE80"
+                      : safeRate >= 10
+                      ? "#FACC15"
+                      : "#F97316"
+                }}
+              >
+                {isNaN(safeRate) ? "–" : `${safeRate}%`}
+              </div>
+              <div
+                style={{
+                  marginTop: 3,
+                  fontSize: 11,
+                  color: "rgba(148,163,184,0.9)"
+                }}
+              >
+                Of this month&apos;s income
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: wide ? 16 : 14,
+                borderRadius: 16,
+                background: "#131A2B",
+                border: "1px solid var(--border)"
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.06,
+                  color: "rgba(148,163,184,0.9)"
+                }}
+              >
+                Cash cushion
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: wide ? 22 : 18,
+                  fontWeight: 700,
+                  color: "#38BDF8"
+                }}
+              >
+                £{savingsTotal.toLocaleString()}
+              </div>
+              <div
+                style={{
+                  marginTop: 3,
+                  fontSize: 11,
+                  color: "rgba(148,163,184,0.9)"
+                }}
+              >
+                Across savings accounts
+              </div>
+            </div>
           </div>
         </div>
 
@@ -647,7 +626,7 @@ export default function Dashboard({ store, update }) {
             title="Income"
             icon="💼"
             value={`£${incomeTotal.toLocaleString()}`}
-            colour="#22C55E"
+            colour="var(--accent)"
             subtitle="Monthly income"
           />
 
@@ -655,7 +634,7 @@ export default function Dashboard({ store, update }) {
             title="Commitments"
             icon="📄"
             value={`£${commitmentsTotal.toLocaleString()}`}
-            colour="#EC4899"
+            colour="var(--accent)"
             subtitle="Monthly bills"
           />
 
@@ -663,7 +642,7 @@ export default function Dashboard({ store, update }) {
             title="Expenses"
             icon="💸"
             value={`£${expensesTotal.toLocaleString()}`}
-            colour="#F97316"
+            colour="var(--accent)"
             subtitle="Monthly spending"
           />
 
@@ -683,7 +662,7 @@ export default function Dashboard({ store, update }) {
             title="Savings"
             icon="🏦"
             value={`£${savingsTotal.toLocaleString()}`}
-            colour="#3B82F6"
+            colour="var(--accent)"
             subtitle="Cash savings"
           />
 
@@ -691,7 +670,7 @@ export default function Dashboard({ store, update }) {
             title="Investments"
             icon="📈"
             value={`£${investmentsTotal.toLocaleString()}`}
-            colour="#F59E0B"
+            colour="var(--accent)"
             subtitle="Portfolio"
           />
 

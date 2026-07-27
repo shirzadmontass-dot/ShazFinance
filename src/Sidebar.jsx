@@ -1,89 +1,133 @@
+const NAV_GROUPS = [
+  {
+    label: "Cash Flow",
+    items: ["Income", "Commitments", "Expenses", "Leftover"]
+  },
+  {
+    label: "Money Goals",
+    items: ["Debt", "Deposit", "Savings", "Investments"]
+  },
+  {
+    label: "Account",
+    items: ["Profile", "Settings", "Reports", "Help"]
+  }
+]
+
 export default function Sidebar({
   screen,
   setScreen,
   isSidebarOpen,
   toggleSidebar
 }) {
-  const items = [
-    "Dashboard",
-    "Income",
-    "Commitments",
-    "Expenses",
-    "Debt",
-    "Deposit",
-    "Leftover",
-    "Savings",
-    "Goals",
-    "Profile",
-    "Settings",
-    "Reports",
-    "Notifications",
-    "Help",
-    "Children",
-    "Investments",
-    "Tools",
-    "Planner",
-    "History",
-    "Bank",
-    "NetWorth"
-  ]
+  const go = (item) => {
+    setScreen(item)
+    toggleSidebar()
+  }
 
   return (
     <div
       className={`sidebar ${isSidebarOpen ? "open" : ""}`}
       style={{
         width: "260px",
-        background: "#111",
+        background: "#111827",
         borderRight: "1px solid var(--border)",
-        padding: "var(--space-4) var(--space-2)",
+        padding: "24px 14px",
         display: "flex",
         flexDirection: "column",
-        gap: "var(--space-2)",
-        boxShadow: "var(--shadow)"
+        gap: 4,
+        boxShadow: "var(--shadow)",
+        overflowY: "auto"
       }}
     >
       <div
         style={{
-          fontSize: "22px",
-          fontWeight: "700",
-          color: "var(--primary)",
-          marginBottom: "var(--space-3)"
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "0 8px",
+          marginBottom: 22
         }}
       >
-        ShazPlan
-      </div>
-
-      {items.map((item) => (
         <div
-          key={item}
-          onClick={() => {
-            setScreen(item)
-            toggleSidebar()
-          }}
           style={{
-            padding: "var(--space-2)",
-            borderRadius: "var(--radius)",
-            cursor: "pointer",
-            fontSize: "16px",
-            fontWeight: "500",
-            color:
-              screen === item
-                ? "var(--accent)"
-                : "var(--text)",
+            width: 30,
+            height: 30,
+            borderRadius: 9,
             background:
-              screen === item
-                ? "rgba(124, 58, 237, 0.15)"
-                : "transparent",
-            transition: "0.2s",
-            border:
-              screen === item
-                ? "1px solid var(--primary)"
-                : "1px solid transparent"
+              "linear-gradient(135deg,var(--accent),var(--accent2))",
+            flexShrink: 0
+          }}
+        />
+        <div
+          style={{
+            fontSize: "19px",
+            fontWeight: 700,
+            color: "#fff",
+            letterSpacing: "-0.3px"
           }}
         >
-          {item}
+          ShazPlan
+        </div>
+      </div>
+
+      {/* Dashboard pinned above the grouped sections */}
+      <NavItem
+        label="Dashboard"
+        active={screen === "Dashboard"}
+        onClick={() => go("Dashboard")}
+      />
+
+      <div style={{ height: 14 }} />
+
+      {NAV_GROUPS.map((group) => (
+        <div key={group.label} style={{ marginBottom: 14 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              color: "var(--subtext)",
+              padding: "0 12px",
+              marginBottom: 6
+            }}
+          >
+            {group.label}
+          </div>
+
+          {group.items.map((item) => (
+            <NavItem
+              key={item}
+              label={item}
+              active={screen === item}
+              onClick={() => go(item)}
+            />
+          ))}
         </div>
       ))}
+    </div>
+  )
+}
+
+function NavItem({ label, active, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        padding: "10px 12px",
+        borderRadius: 12,
+        cursor: "pointer",
+        fontSize: "15px",
+        fontWeight: active ? 600 : 500,
+        color: active ? "#fff" : "var(--subtext)",
+        background: active
+          ? "linear-gradient(135deg,var(--accent),var(--accent2))"
+          : "transparent",
+        marginBottom: 2,
+        transition: "background 0.15s, color 0.15s"
+      }}
+    >
+      {label}
     </div>
   )
 }

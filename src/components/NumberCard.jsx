@@ -1,40 +1,178 @@
-export default function NumberCard({ title, value, color }) {
+import Card from "./Card.jsx"
+
+function computeFigures(store) {
+  const savings = (store.savings || []).reduce(
+    (sum, item) => sum + Number(item.balance || 0),
+    0
+  )
+  const investments = (store.investments || []).reduce(
+    (sum, item) => sum + Number(item.balance || 0),
+    0
+  )
+  const deposit = Number(store.deposit?.current || 0)
+  const debts = (store.debts || []).reduce(
+    (sum, item) => sum + Number(item.balance || 0),
+    0
+  )
+
+  const assets = savings + investments + deposit
+  const netWorth = assets - debts
+  const health =
+    assets > 0
+      ? Math.max(0, Math.min(100, Math.round((netWorth / assets) * 100)))
+      : 0
+
+  return { netWorth, health }
+}
+
+function Gauge({ health, size = 100 }) {
+  const radius = size * 0.42
+  const circumference = 2 * Math.PI * radius
+  const dashOffset = circumference - (circumference * health) / 100
+
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06))",
-        backdropFilter: "blur(12px)",
-        borderRadius: "18px",
-        padding: "22px",
-        boxShadow: "0 10px 28px rgba(0,0,0,0.35)",
-        transition: "0.25s ease",
-        borderLeft: `6px solid ${color}`,
-        cursor: "pointer"
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.transform = "scale(1.03)"
-        e.currentTarget.style.boxShadow = "0 14px 34px rgba(0,0,0,0.45)"
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.transform = "scale(1)"
-        e.currentTarget.style.boxShadow = "0 10px 28px rgba(0,0,0,0.35)"
+        position: "relative",
+        width: size,
+        height: size,
+        flexShrink: 0
       }}
     >
-      <h3
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
         style={{
-          margin: 0,
-          marginBottom: "12px",
-          color: "white",
-          fontSize: "20px",
-          fontWeight: "600"
+          width: "100%",
+          height: "100%",
+          transform: "rotate(-90deg)"
         }}
       >
-        {title}
-      </h3>
-
-      <div style={{ color: "white", fontSize: "22px" }}>
-        £{value.toLocaleString()}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(255,255,255,.08)"
+          strokeWidth={size * 0.09}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth={size * 0.09}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+          style={{ transition: "stroke-dashoffset 0.6s ease" }}
+        />
+      </svg>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center"
+        }}
+      >
+        <div style={{ fontSize: size * 0.2, fontWeight: 800, color: "#fff" }}>
+          {health}%
+        </div>
+        <div
+          style={{
+            fontSize: size * 0.09,
+            textTransform: "uppercase",
+            letterSpacing: 0.05,
+            color: "var(--subtext)"
+          }}
+        >
+          Health
+        </div>
       </div>
     </div>
+  )
+}
+
+// split = true -> two side-by-side cards (desktop mockup)
+// split = false -> one combined card (mobile mockup)
+export default function NetWorthCard({ store, split = false }) {
+  if (!store) return null
+
+  const { netWorth, health } = computeFigures(store)
+
+  if (split) {
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 16
+        }}
+      >
+        <Card title="Net Worth" compact>
+          <div
+            style={{
+              fontSize: 40,
+              fontWeight: 800,
+              color: netWorth >= 0 ? "#fff" : "#EF4444"
+            }}
+          >
+            £{netWorth.toLocaleString()}
+          </div>
+        </Card>
+
+        <Card title="Financial Health" compact>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center"
+            }}
+          >
+            <Gauge health={health} size={110} />
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <Card title="Net Worth" icon="💎">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap"
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: 14,
+              color: "var(--subtext)"
+            }}
+          >
+            Current Net Worth
+          </div>
+
+          <div
+            style={{
+              fontSize: 34,
+              fontWeight: 800,
+              color: netWorth >= 0 ? "#fff" : "#EF4444",
+              marginTop: 6
+            }}
+          >
+            £{netWorth.toLocaleString()}
+          </div>
+        </div>
+
+        <Gauge health={health} size={90} />
+      </div>
+    </Card>
   )
 }
