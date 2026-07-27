@@ -1,12 +1,8 @@
 import { useState } from "react"
 import { useStore } from "./store.js"
-<<<<<<< HEAD
 import { useAuth } from "./AuthContext.jsx"
 
 import Login from "./Screens/Login.jsx"
-=======
-
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
 import Dashboard from "./Screens/Dashboard.jsx"
 import Income from "./Screens/Income.jsx"
 import Commitments from "./Screens/Commitments.jsx"
@@ -34,21 +30,14 @@ import Header from "./Header.jsx"
 
 export default function App() {
   const [screen, setScreen] = useState("Dashboard")
-<<<<<<< HEAD
   const { user, loading, signOut } = useAuth()
-=======
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
 
   const {
     store,
     update,
     add,
     remove
-<<<<<<< HEAD
   } = useStore(user?.id)
-=======
-  } = useStore()
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
 
   const [isSidebarOpen, setSidebarOpen] = useState(false)
 
@@ -81,7 +70,6 @@ export default function App() {
 
   const ActiveScreen = screens[screen]
 
-<<<<<<< HEAD
   // Still checking whether a session exists
   if (loading) {
     return (
@@ -106,8 +94,6 @@ export default function App() {
     return <Login />
   }
 
-=======
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
   if (!store) {
     return (
       <div
@@ -167,11 +153,7 @@ export default function App() {
           flexDirection: "column"
         }}
       >
-<<<<<<< HEAD
         <Header screen={screen} user={user} onSignOut={signOut} />
-=======
-        <Header screen={screen} />
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
 
         <div
           style={{
