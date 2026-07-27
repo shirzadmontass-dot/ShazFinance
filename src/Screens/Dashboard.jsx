@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 import NetWorthCard from "../components/NetworthCard.jsx"
@@ -9,11 +10,28 @@ import {
   Section
 } from "../components/ui/index.js"
 
-const isWideScreen = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(min-width: 960px)").matches
+// Reactive width check — updates live on resize/zoom instead of
+// only reading window size once at first render.
+function useIsWide(breakpoint = 880) {
+  const [wide, setWide] = useState(() =>
+    typeof window !== "undefined"
+      ? window.innerWidth >= breakpoint
+      : false
+  )
+
+  useEffect(() => {
+    const check = () => setWide(window.innerWidth >= breakpoint)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [breakpoint])
+
+  return wide
+}
 
 export default function Dashboard({ store, update }) {
+  const wide = useIsWide()
+
   if (!store) return null
 
   const incomeTotal =
@@ -135,7 +153,6 @@ export default function Dashboard({ store, update }) {
       )
       .slice(0, 5)
 
-  const wide = isWideScreen()
 
   return (
     <Page>
