@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 export default function Header({ screen, user, onSignOut }) {
   const today = new Date()
   const initial = user?.email ? user.email[0].toUpperCase() : "S"
-=======
-export default function Header({ screen }) {
-  const today = new Date()
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
 
   const date = today.toLocaleDateString("en-GB", {
     weekday: "long",
@@ -89,22 +84,15 @@ export default function Header({ screen }) {
           ⚙️
         </button>
 
-<<<<<<< HEAD
         <button
           onClick={onSignOut}
           title={user?.email ? `Signed in as ${user.email} — click to sign out` : "Sign out"}
-=======
-        <div
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
           style={{
             width: "48px",
             height: "48px",
             borderRadius: "50%",
-<<<<<<< HEAD
             border: "none",
             cursor: "pointer",
-=======
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
             background:
               "linear-gradient(135deg,#FF8A00,#FF3D7F)",
             display: "flex",
@@ -115,13 +103,8 @@ export default function Header({ screen }) {
             fontSize: "18px"
           }}
         >
-<<<<<<< HEAD
           {initial}
         </button>
-=======
-          S
-        </div>
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
       </div>
     </header>
   )

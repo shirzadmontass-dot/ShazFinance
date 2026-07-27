@@ -21,13 +21,8 @@
   },
   "scripts": {
     "start": "expo start",
-<<<<<<< HEAD
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-=======
     "android": "expo start --android",
     "ios": "expo start --ios",
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
     "web": "expo start --web"
   },
   "private": true

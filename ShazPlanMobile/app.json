@@ -6,30 +6,20 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-<<<<<<< HEAD
     "ios": {
       "supportsTablet": true
     },
-=======
-    "ios": { "supportsTablet": true },
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-<<<<<<< HEAD
       },
       "package": "com.anonymous.ShazPlanMobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     }
-=======
-      }
-    },
-    "web": { "favicon": "./assets/favicon.png" }
->>>>>>> 44628e0018329fc74a4bbfae1f49649fc4f21183
   }
 }
