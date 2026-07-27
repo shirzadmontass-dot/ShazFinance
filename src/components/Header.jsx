@@ -101,6 +101,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
         }}
       >
         <button
+          className="header-icon-btn"
           style={{
             width: "40px",
             height: "40px",
@@ -116,6 +117,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
         </button>
 
         <button
+          className="header-icon-btn"
           style={{
             width: "40px",
             height: "40px",
