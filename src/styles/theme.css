@@ -204,6 +204,37 @@ transform:translateX(0);
 
 }
 
+.sidebar-wrapper{
+
+width:0!important;
+border-right:none!important;
+
+}
+
+.header-date{
+
+display:none;
+
+}
+
+.header-brand-name{
+
+display:none;
+
+}
+
+.header-title{
+
+font-size:18px!important;
+
+}
+
+.header-bar{
+
+padding:12px 16px 12px 66px!important;
+
+}
+
 .main-content{
 
 padding:18px!important;
