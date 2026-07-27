@@ -116,44 +116,50 @@ export default function App() {
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         height: "100vh",
         background: "var(--bg)",
         color: "var(--text)"
       }}
     >
-      <button
-        className="mobile-menu-btn"
-        onClick={toggleSidebar}
-      >
-        ⋮
-      </button>
-
-      <div
-        className={`sidebar-wrapper ${
-          isSidebarOpen ? "open" : ""
-        }`}
-        style={{
-          width: 240,
-          overflowY: "auto",
-          borderRight: "1px solid var(--border)"
-        }}
-      >
-        <Sidebar
-          screen={screen}
-          setScreen={setScreen}
-          isSidebarOpen={isSidebarOpen}
-          toggleSidebar={toggleSidebar}
-        />
-      </div>
+      <Header
+        screen={screen}
+        user={user}
+        onSignOut={signOut}
+        onMenuClick={toggleSidebar}
+      />
 
       <div
         style={{
-          flex: 1,
           display: "flex",
-          flexDirection: "column"
+          flex: 1,
+          minHeight: 0
         }}
       >
-        <Header screen={screen} user={user} onSignOut={signOut} />
+        <button
+          className="mobile-menu-btn"
+          onClick={toggleSidebar}
+        >
+          ⋮
+        </button>
+
+        <div
+          className={`sidebar-wrapper ${
+            isSidebarOpen ? "open" : ""
+          }`}
+          style={{
+            width: 240,
+            overflowY: "auto",
+            borderRight: "1px solid var(--border)"
+          }}
+        >
+          <Sidebar
+            screen={screen}
+            setScreen={setScreen}
+            isSidebarOpen={isSidebarOpen}
+            toggleSidebar={toggleSidebar}
+          />
+        </div>
 
         <div
           style={{

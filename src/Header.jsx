@@ -1,4 +1,4 @@
-export default function Header({ screen, user, onSignOut }) {
+export default function Header({ screen, user, onSignOut, onMenuClick }) {
   const today = new Date()
   const initial = user?.email ? user.email[0].toUpperCase() : "S"
 
@@ -12,10 +12,10 @@ export default function Header({ screen, user, onSignOut }) {
   return (
     <header
       style={{
-        display: "flex",
-        justifyContent: "space-between",
+        display: "grid",
+        gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
-        padding: "22px 30px",
+        padding: "16px 26px",
         background: "#111827",
         borderBottom: "1px solid rgba(255,255,255,.08)",
         position: "sticky",
@@ -24,45 +24,87 @@ export default function Header({ screen, user, onSignOut }) {
         boxShadow: "0 8px 25px rgba(0,0,0,.25)"
       }}
     >
-      <div>
-        <div
-          style={{
-            fontSize: "13px",
-            color: "var(--subtext)",
-            marginBottom: "6px"
-          }}
-        >
-          {date}
-        </div>
-
-        <div
-          style={{
-            fontSize: "30px",
-            fontWeight: 800,
-            color: "white",
-            letterSpacing: "-0.5px"
-          }}
-        >
-          {screen}
-        </div>
-      </div>
-
+      {/* Left: logo + name + date */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "14px"
+          gap: "14px",
+          minWidth: 0
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexShrink: 0
+          }}
+        >
+          <div
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 8,
+              background:
+                "linear-gradient(135deg,var(--accent),var(--accent2))"
+            }}
+          />
+          <span
+            style={{
+              fontSize: 17,
+              fontWeight: 700,
+              color: "#fff",
+              whiteSpace: "nowrap"
+            }}
+          >
+            ShazPlan
+          </span>
+        </div>
+
+        <span
+          style={{
+            fontSize: 13,
+            color: "var(--subtext)",
+            whiteSpace: "nowrap"
+          }}
+        >
+          {date}
+        </span>
+      </div>
+
+      {/* Center: page title */}
+      <div
+        style={{
+          fontSize: "22px",
+          fontWeight: 800,
+          color: "white",
+          letterSpacing: "-0.3px",
+          textAlign: "center",
+          whiteSpace: "nowrap"
+        }}
+      >
+        {screen}
+      </div>
+
+      {/* Right: bell, settings, avatar */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          gap: "12px"
         }}
       >
         <button
           style={{
-            width: "46px",
-            height: "46px",
-            borderRadius: "14px",
+            width: "40px",
+            height: "40px",
+            borderRadius: "12px",
             border: "none",
             background: "#1B263B",
             color: "white",
-            fontSize: "20px",
+            fontSize: "18px",
             cursor: "pointer"
           }}
         >
@@ -71,13 +113,13 @@ export default function Header({ screen, user, onSignOut }) {
 
         <button
           style={{
-            width: "46px",
-            height: "46px",
-            borderRadius: "14px",
+            width: "40px",
+            height: "40px",
+            borderRadius: "12px",
             border: "none",
             background: "#1B263B",
             color: "white",
-            fontSize: "20px",
+            fontSize: "18px",
             cursor: "pointer"
           }}
         >
@@ -86,10 +128,14 @@ export default function Header({ screen, user, onSignOut }) {
 
         <button
           onClick={onSignOut}
-          title={user?.email ? `Signed in as ${user.email} — click to sign out` : "Sign out"}
+          title={
+            user?.email
+              ? `Signed in as ${user.email} — click to sign out`
+              : "Sign out"
+          }
           style={{
-            width: "48px",
-            height: "48px",
+            width: "42px",
+            height: "42px",
             borderRadius: "50%",
             border: "none",
             cursor: "pointer",
@@ -100,7 +146,8 @@ export default function Header({ screen, user, onSignOut }) {
             justifyContent: "center",
             color: "white",
             fontWeight: 700,
-            fontSize: "18px"
+            fontSize: "16px",
+            flexShrink: 0
           }}
         >
           {initial}

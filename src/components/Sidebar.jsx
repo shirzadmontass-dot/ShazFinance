@@ -39,37 +39,6 @@ export default function Sidebar({
         overflowY: "auto"
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "0 8px",
-          marginBottom: 22
-        }}
-      >
-        <div
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: 9,
-            background:
-              "linear-gradient(135deg,var(--accent),var(--accent2))",
-            flexShrink: 0
-          }}
-        />
-        <div
-          style={{
-            fontSize: "19px",
-            fontWeight: 700,
-            color: "#fff",
-            letterSpacing: "-0.3px"
-          }}
-        >
-          ShazPlan
-        </div>
-      </div>
-
       {/* Dashboard pinned above the grouped sections */}
       <NavItem
         label="Dashboard"
