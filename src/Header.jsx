@@ -1,4 +1,7 @@
+import { useIsMobile } from "./hooks/useIsMobile.js"
+
 export default function Header({ screen, user, onSignOut, onMenuClick }) {
+  const isMobile = useIsMobile()
   const today = new Date()
   const initial = user?.email ? user.email[0].toUpperCase() : "S"
 
@@ -9,6 +12,82 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
     year: "numeric"
   })
 
+  // MOBILE: hamburger + centered title + avatar only. Nothing else.
+  if (isMobile) {
+    return (
+      <header
+        style={{
+          display: "grid",
+          gridTemplateColumns: "48px 1fr 44px",
+          alignItems: "center",
+          padding: "10px 12px",
+          background: "#111827",
+          borderBottom: "1px solid rgba(255,255,255,.08)",
+          position: "sticky",
+          top: 0,
+          zIndex: 50
+        }}
+      >
+        <button
+          onClick={onMenuClick}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            border: "none",
+            background: "#1B263B",
+            color: "white",
+            fontSize: 20,
+            cursor: "pointer"
+          }}
+        >
+          ⋮
+        </button>
+
+        <div
+          style={{
+            fontSize: 17,
+            fontWeight: 800,
+            color: "white",
+            textAlign: "center",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis"
+          }}
+        >
+          {screen}
+        </div>
+
+        <button
+          onClick={onSignOut}
+          title={
+            user?.email
+              ? `Signed in as ${user.email} — tap to sign out`
+              : "Sign out"
+          }
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: "50%",
+            border: "none",
+            cursor: "pointer",
+            background: "linear-gradient(135deg,#FF8A00,#FF3D7F)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontWeight: 700,
+            fontSize: 15,
+            justifySelf: "end"
+          }}
+        >
+          {initial}
+        </button>
+      </header>
+    )
+  }
+
+  // DESKTOP: full bar with logo, name, date, centered title, icons.
   return (
     <header
       style={{
@@ -24,7 +103,6 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
         boxShadow: "0 8px 25px rgba(0,0,0,.25)"
       }}
     >
-      {/* Left: logo + name + date */}
       <div
         style={{
           display: "flex",
@@ -73,7 +151,6 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
         </span>
       </div>
 
-      {/* Center: page title */}
       <div
         style={{
           fontSize: "22px",
@@ -87,7 +164,6 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
         {screen}
       </div>
 
-      {/* Right: bell, settings, avatar */}
       <div
         style={{
           display: "flex",
@@ -139,8 +215,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
             borderRadius: "50%",
             border: "none",
             cursor: "pointer",
-            background:
-              "linear-gradient(135deg,#FF8A00,#FF3D7F)",
+            background: "linear-gradient(135deg,#FF8A00,#FF3D7F)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

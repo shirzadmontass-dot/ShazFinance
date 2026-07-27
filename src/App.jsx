@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useStore } from "./store.js"
 import { useAuth } from "./AuthContext.jsx"
+import { useIsMobile } from "./hooks/useIsMobile.js"
 
 import Login from "./Screens/Login.jsx"
 import Dashboard from "./Screens/Dashboard.jsx"
@@ -31,6 +32,7 @@ import Header from "./Header.jsx"
 export default function App() {
   const [screen, setScreen] = useState("Dashboard")
   const { user, loading, signOut } = useAuth()
+  const isMobile = useIsMobile()
 
   const {
     store,
@@ -136,21 +138,16 @@ export default function App() {
           minHeight: 0
         }}
       >
-        <button
-          className="mobile-menu-btn"
-          onClick={toggleSidebar}
-        >
-          ⋮
-        </button>
-
         <div
           className={`sidebar-wrapper ${
             isSidebarOpen ? "open" : ""
           }`}
           style={{
-            width: 240,
+            width: isMobile ? 0 : 240,
             overflowY: "auto",
-            borderRight: "1px solid var(--border)"
+            borderRight: isMobile
+              ? "none"
+              : "1px solid var(--border)"
           }}
         >
           <Sidebar
