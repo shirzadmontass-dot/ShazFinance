@@ -15,7 +15,14 @@ function computeFigures(store) {
     0
   )
 
-  const assets = savings + investments + deposit
+  // Real money sitting in linked bank accounts (current + savings) counts
+  // as an asset too, on top of anything entered manually.
+  const linkedBankTotal = (store.bankAccounts || []).reduce(
+    (sum, item) => sum + Number(item.balance || 0),
+    0
+  )
+
+  const assets = savings + investments + deposit + linkedBankTotal
   const netWorth = assets - debts
   const health =
     assets > 0

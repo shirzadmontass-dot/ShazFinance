@@ -109,10 +109,15 @@ export default function Dashboard({ store, update }) {
   const depositSaved = Number(store.deposit?.current || 0)
   const depositTarget = Number(store.deposit?.target || 25000)
 
-  const leftover =
-    incomeTotal -
-    commitmentsTotal -
-    expensesTotal
+  // Money Left = real spendable balance right now — current/transaction
+  // accounts only, savings excluded (that's what Cash Cushion is for).
+  const transactionAccountsBalance = bankAccounts
+    .filter((a) => a.type !== "SAVINGS")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+
+  const leftover = hasBankData
+    ? transactionAccountsBalance
+    : incomeTotal - commitmentsTotal - expensesTotal
 
   const depositPercent =
     depositTarget > 0
@@ -265,7 +270,9 @@ export default function Dashboard({ store, update }) {
                     color: "rgba(148,163,184,0.9)"
                   }}
                 >
-                  After income &amp; outgoings
+                  {hasBankData
+                    ? "Current account balance"
+                    : "After income & outgoings"}
                 </div>
               )}
             </div>
