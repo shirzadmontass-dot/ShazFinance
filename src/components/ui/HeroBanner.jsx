@@ -1,7 +1,10 @@
+import { useIsMobile } from "../../hooks/useIsMobile.js"
+
 export default function HeroBanner({
   title,
   subtitle
 }) {
+  const isMobile = useIsMobile()
   const today = new Date()
 
   const date = today.toLocaleDateString("en-GB", {
@@ -10,6 +13,109 @@ export default function HeroBanner({
     month: "long"
   })
 
+  if (isMobile) {
+    // Compact mobile version — small enough to not dominate the screen
+    return (
+      <div
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          borderRadius: "16px",
+          padding: "14px 16px",
+          background:
+            "linear-gradient(135deg,#FF8A00 0%,#FF5E3A 55%,#FF3D7F 100%)",
+          color: "#fff",
+          boxShadow: "0 10px 22px rgba(0,0,0,.22)"
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 11, opacity: 0.85 }}>{date}</div>
+            <h1
+              style={{
+                margin: 0,
+                marginTop: 2,
+                fontSize: "18px",
+                fontWeight: 800,
+                lineHeight: 1.2,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}
+            >
+              {title}
+            </h1>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            marginTop: "10px"
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              background: "rgba(255,255,255,.16)",
+              border: "1px solid rgba(255,255,255,.18)",
+              padding: "7px 10px",
+              borderRadius: "10px"
+            }}
+          >
+            <div style={{ fontSize: 10, opacity: 0.8 }}>Focus</div>
+            <div
+              style={{
+                marginTop: 2,
+                fontWeight: 700,
+                fontSize: 12.5,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}
+            >
+              September Attack
+            </div>
+          </div>
+
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              background: "rgba(255,255,255,.16)",
+              border: "1px solid rgba(255,255,255,.18)",
+              padding: "7px 10px",
+              borderRadius: "10px"
+            }}
+          >
+            <div style={{ fontSize: 10, opacity: 0.8 }}>Goal</div>
+            <div
+              style={{
+                marginTop: 2,
+                fontWeight: 700,
+                fontSize: 12.5,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}
+            >
+              Buy My Home 🏡
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Desktop version — unchanged
   return (
     <div
       style={{
@@ -23,8 +129,6 @@ export default function HeroBanner({
         boxShadow: "0 16px 35px rgba(0,0,0,.25)"
       }}
     >
-      {/* Smaller Decorative Circle */}
-
       <div
         style={{
           position: "absolute",
@@ -43,8 +147,6 @@ export default function HeroBanner({
           zIndex: 2
         }}
       >
-        {/* Top Row */}
-
         <div
           style={{
             display: "flex",
