@@ -1,16 +1,18 @@
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
-export default function Leftover({ store }) {
+import {
+  HeroBanner,
+  Grid,
+  StatCard
+} from "../components/ui"
 
-  // ⭐ Prevent crash if store is null
+export default function Leftover({ store }) {
   if (!store) return null
 
-  // ⭐ Safe arrays
   const income = store.income || []
   const commitments = store.commitments || []
 
-  // ⭐ Safe totals
   const incomeTotal =
     income.length > 0
       ? income.reduce((sum, i) => sum + (i.amount || 0), 0)
@@ -23,11 +25,10 @@ export default function Leftover({ store }) {
 
   const leftover = incomeTotal - commitmentsTotal
 
-  // ⭐ Safe wasted calculation
   const wasted =
     commitments.length > 0
       ? commitments
-          .filter(c =>
+          .filter((c) =>
             ["Wants", "Shopping", "Misc"].includes(c.category)
           )
           .reduce((sum, c) => sum + (c.amount || 0), 0)
@@ -37,36 +38,36 @@ export default function Leftover({ store }) {
 
   return (
     <Page title="Leftover">
+      <HeroBanner
+        title="Leftover"
+        subtitle="What's actually left once the essentials are covered."
+      />
 
-      <Card title="Total Leftover" icon="💰">
-        <div style={{ fontSize: "22px", fontWeight: "700" }}>
-          £{leftover}
-        </div>
-      </Card>
+      <Grid>
+        <StatCard
+          title="Total Leftover"
+          icon="💰"
+          value={`£${leftover.toLocaleString()}`}
+          colour="var(--accent)"
+          subtitle="Income minus commitments"
+        />
 
-      <Card title="Wasted Money" icon="⚠️">
-        <div
-          style={{
-            fontSize: "22px",
-            fontWeight: "700",
-            color: "var(--accent)"
-          }}
-        >
-          £{wasted}
-        </div>
-        <div style={{ color: "var(--subtext)" }}>
-          (Wants, Shopping, Misc)
-        </div>
-      </Card>
+        <StatCard
+          title="Wasted Money"
+          icon="⚠️"
+          value={`£${wasted.toLocaleString()}`}
+          colour="#F59E0B"
+          subtitle="Wants, shopping, misc"
+        />
 
-      <Card title="Actual Leftover" icon="📊">
-        <div style={{ fontSize: "22px", fontWeight: "700" }}>
-          £{actualLeftover}
-        </div>
-        <div style={{ color: "var(--subtext)" }}>
-          After removing wasted money
-        </div>
-      </Card>
+        <StatCard
+          title="Actual Leftover"
+          icon="📊"
+          value={`£${actualLeftover.toLocaleString()}`}
+          colour="#22C55E"
+          subtitle="After removing wasted money"
+        />
+      </Grid>
 
       <Card title="Breakdown" icon="📄">
         <div
@@ -78,22 +79,22 @@ export default function Leftover({ store }) {
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Income</span>
-            <span>£{incomeTotal}</span>
+            <span>£{incomeTotal.toLocaleString()}</span>
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Commitments</span>
-            <span>£{commitmentsTotal}</span>
+            <span>£{commitmentsTotal.toLocaleString()}</span>
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Leftover</span>
-            <span>£{leftover}</span>
+            <span>£{leftover.toLocaleString()}</span>
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Wasted</span>
-            <span>£{wasted}</span>
+            <span>£{wasted.toLocaleString()}</span>
           </div>
 
           <div
@@ -104,11 +105,10 @@ export default function Leftover({ store }) {
             }}
           >
             <span>Actual Leftover</span>
-            <span>£{actualLeftover}</span>
+            <span>£{actualLeftover.toLocaleString()}</span>
           </div>
         </div>
       </Card>
-
     </Page>
   )
 }

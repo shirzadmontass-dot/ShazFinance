@@ -1,18 +1,20 @@
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
-export default function NetWorth({ store }) {
+import {
+  HeroBanner,
+  Grid,
+  StatCard
+} from "../components/ui"
 
-  // ⭐ Prevent crash if store is null
+export default function NetWorth({ store }) {
   if (!store) return null
 
-  // ⭐ Safe arrays
   const savings = store.savings || []
   const investments = store.investments || []
   const children = store.children || []
   const debts = store.debts || []
 
-  // ⭐ Safe totals
   const savingsTotal =
     savings.length > 0
       ? savings.reduce((sum, s) => sum + (s.balance || 0), 0)
@@ -29,31 +31,44 @@ export default function NetWorth({ store }) {
       : 0
 
   const depositTotal =
-    typeof store.deposit === "number" ? store.deposit : 0
+    typeof store.deposit === "number"
+      ? store.deposit
+      : Number(store.deposit?.current || 0)
 
   const debtTotal =
     debts.length > 0
       ? debts.reduce((sum, d) => sum + (d.balance || 0), 0)
       : 0
 
-  const netWorth =
-    savingsTotal +
-    investmentsTotal +
-    childrenTotal +
-    depositTotal -
-    debtTotal
+  const totalAssets =
+    savingsTotal + investmentsTotal + childrenTotal + depositTotal
+
+  const netWorth = totalAssets - debtTotal
 
   return (
     <Page title="Net Worth">
+      <HeroBanner
+        title="Net Worth"
+        subtitle="Everything you own, minus everything you owe."
+      />
 
-      <Card title="Total Net Worth" icon="💷">
-        <div style={{ fontSize: "28px", fontWeight: "700" }}>
-          £{netWorth}
-        </div>
-        <div style={{ color: "var(--subtext)" }}>
-          Combined value of all assets minus debts
-        </div>
-      </Card>
+      <Grid>
+        <StatCard
+          title="Total Net Worth"
+          icon="💷"
+          value={`£${netWorth.toLocaleString()}`}
+          colour={netWorth >= 0 ? "var(--accent)" : "#EF4444"}
+          subtitle="Assets minus debts"
+        />
+
+        <StatCard
+          title="Total Debt"
+          icon="💳"
+          value={`£${debtTotal.toLocaleString()}`}
+          colour="#EF4444"
+          subtitle="Outstanding"
+        />
+      </Grid>
 
       <Card title="Assets Breakdown" icon="📈">
         <div
@@ -65,22 +80,22 @@ export default function NetWorth({ store }) {
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Savings</span>
-            <span>£{savingsTotal}</span>
+            <span>£{savingsTotal.toLocaleString()}</span>
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Investments</span>
-            <span>£{investmentsTotal}</span>
+            <span>£{investmentsTotal.toLocaleString()}</span>
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Children ISA</span>
-            <span>£{childrenTotal}</span>
+            <span>£{childrenTotal.toLocaleString()}</span>
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Deposit</span>
-            <span>£{depositTotal}</span>
+            <span>£{depositTotal.toLocaleString()}</span>
           </div>
 
           <div
@@ -91,36 +106,17 @@ export default function NetWorth({ store }) {
             }}
           >
             <span>Total Assets</span>
-            <span>
-              £{savingsTotal +
-                investmentsTotal +
-                childrenTotal +
-                depositTotal}
-            </span>
+            <span>£{totalAssets.toLocaleString()}</span>
           </div>
-        </div>
-      </Card>
-
-      <Card title="Debt Overview" icon="💳">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: "18px"
-          }}
-        >
-          <span>Total Debt</span>
-          <span>£{debtTotal}</span>
         </div>
       </Card>
 
       <Card title="Summary" icon="📘">
         <div style={{ color: "var(--text)" }}>
-          Your net worth represents your financial position by subtracting all
-          debts from your total assets.
+          Your net worth represents your financial position by subtracting
+          all debts from your total assets.
         </div>
       </Card>
-
     </Page>
   )
 }

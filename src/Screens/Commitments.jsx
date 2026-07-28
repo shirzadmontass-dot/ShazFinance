@@ -1,6 +1,12 @@
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
+import {
+  HeroBanner,
+  Grid,
+  StatCard
+} from "../components/ui"
+
 export default function Commitments({ store, add, remove }) {
   if (!store) return null
 
@@ -23,59 +29,44 @@ export default function Commitments({ store, add, remove }) {
 
   return (
     <Page title="Monthly Commitments">
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
-          gap: 20,
-          marginBottom: 24
-        }}
-      >
-        <Card title="Monthly Total" icon="💸">
-          <div
-            style={{
-              fontSize: 34,
-              fontWeight: 800,
-              color: "#FF8A00"
-            }}
-          >
-            £{totalCommitments.toLocaleString()}
-          </div>
-        </Card>
+      <HeroBanner
+        title="Commitments"
+        subtitle="Every recurring bill you're on the hook for each month."
+      />
 
-        <Card title="Commitments" icon="📋">
-          <div
-            style={{
-              fontSize: 34,
-              fontWeight: 800
-            }}
-          >
-            {commitments.length}
-          </div>
-        </Card>
+      <Grid>
+        <StatCard
+          title="Monthly Total"
+          icon="💸"
+          value={`£${totalCommitments.toLocaleString()}`}
+          colour="var(--accent)"
+          subtitle="All commitments"
+        />
 
-        <Card title="Average" icon="📊">
-          <div
-            style={{
-              fontSize: 34,
-              fontWeight: 800
-            }}
-          >
-            £{averageCommitment.toLocaleString()}
-          </div>
-        </Card>
+        <StatCard
+          title="Commitments"
+          icon="📋"
+          value={commitments.length}
+          colour="var(--accent)"
+          subtitle="Active bills"
+        />
 
-        <Card title="Largest Bill" icon="🏆">
-          <div
-            style={{
-              fontSize: 34,
-              fontWeight: 800
-            }}
-          >
-            £{highestCommitment.toLocaleString()}
-          </div>
-        </Card>
-      </div>
+        <StatCard
+          title="Average"
+          icon="📊"
+          value={`£${averageCommitment.toLocaleString()}`}
+          colour="var(--accent)"
+          subtitle="Per bill"
+        />
+
+        <StatCard
+          title="Largest Bill"
+          icon="🏆"
+          value={`£${highestCommitment.toLocaleString()}`}
+          colour="#EF4444"
+          subtitle="Biggest commitment"
+        />
+      </Grid>
 
       <Card title="Your Commitments" icon="🧾">
         {commitments.length === 0 ? (

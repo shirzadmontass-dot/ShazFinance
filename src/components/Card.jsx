@@ -109,17 +109,6 @@ export default function Card({
               )}
             </div>
           </div>
-
-          <div
-            style={{
-              color: "rgba(255,255,255,.35)",
-              fontSize: isMobile ? "18px" : "22px",
-              fontWeight: "bold",
-              flexShrink: 0
-            }}
-          >
-            ›
-          </div>
         </div>
       )}
 
