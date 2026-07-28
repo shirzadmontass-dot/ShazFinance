@@ -176,78 +176,90 @@ export default function Dashboard({ store, update }) {
             <NetWorthCard store={store} split={wide} />
           </div>
 
-          {/* Money Left / Savings Rate / Cash Cushion – standalone tiles, no outer card */}
+          {/* Money Left / Savings Rate / Cash Cushion – always 3-across, tight on mobile */}
           <div
             style={{
-              marginTop: 16,
+              marginTop: wide ? 16 : 10,
               display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit,minmax(150px,1fr))",
-              gap: 12
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: wide ? 12 : 7
             }}
           >
             <div
               style={{
-                padding: wide ? 16 : 14,
-                borderRadius: 16,
+                padding: wide ? "16px" : "9px 6px",
+                borderRadius: wide ? 16 : 12,
                 background:
                   "linear-gradient(135deg,#022C22,#011619)",
-                border: "1px solid rgba(34,197,94,0.35)"
+                border: "1px solid rgba(34,197,94,0.35)",
+                minWidth: 0
               }}
             >
               <div
                 style={{
-                  fontSize: 11,
+                  fontSize: wide ? 11 : 9,
                   textTransform: "uppercase",
                   letterSpacing: 0.06,
-                  color: "rgba(190,242,100,0.8)"
+                  color: "rgba(190,242,100,0.8)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}
               >
                 Money left
               </div>
               <div
                 style={{
-                  marginTop: 6,
-                  fontSize: wide ? 22 : 18,
+                  marginTop: wide ? 6 : 3,
+                  fontSize: wide ? 22 : 15,
                   fontWeight: 700,
-                  color: "#BBF7D0"
+                  color: "#BBF7D0",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}
               >
                 £{leftover.toLocaleString()}
               </div>
-              <div
-                style={{
-                  marginTop: 3,
-                  fontSize: 11,
-                  color: "rgba(148,163,184,0.9)"
-                }}
-              >
-                After income &amp; outgoings
-              </div>
+              {wide && (
+                <div
+                  style={{
+                    marginTop: 3,
+                    fontSize: 11,
+                    color: "rgba(148,163,184,0.9)"
+                  }}
+                >
+                  After income &amp; outgoings
+                </div>
+              )}
             </div>
 
             <div
               style={{
-                padding: wide ? 16 : 14,
-                borderRadius: 16,
+                padding: wide ? "16px" : "9px 6px",
+                borderRadius: wide ? 16 : 12,
                 background: "#131A2B",
-                border: "1px solid var(--border)"
+                border: "1px solid var(--border)",
+                minWidth: 0
               }}
             >
               <div
                 style={{
-                  fontSize: 11,
+                  fontSize: wide ? 11 : 9,
                   textTransform: "uppercase",
                   letterSpacing: 0.06,
-                  color: "rgba(148,163,184,0.9)"
+                  color: "rgba(148,163,184,0.9)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}
               >
                 Savings rate
               </div>
               <div
                 style={{
-                  marginTop: 6,
-                  fontSize: wide ? 22 : 18,
+                  marginTop: wide ? 6 : 3,
+                  fontSize: wide ? 22 : 15,
                   fontWeight: 700,
                   color:
                     safeRate >= 20
@@ -259,54 +271,65 @@ export default function Dashboard({ store, update }) {
               >
                 {isNaN(safeRate) ? "–" : `${safeRate}%`}
               </div>
-              <div
-                style={{
-                  marginTop: 3,
-                  fontSize: 11,
-                  color: "rgba(148,163,184,0.9)"
-                }}
-              >
-                Of this month&apos;s income
-              </div>
+              {wide && (
+                <div
+                  style={{
+                    marginTop: 3,
+                    fontSize: 11,
+                    color: "rgba(148,163,184,0.9)"
+                  }}
+                >
+                  Of this month&apos;s income
+                </div>
+              )}
             </div>
 
             <div
               style={{
-                padding: wide ? 16 : 14,
-                borderRadius: 16,
+                padding: wide ? "16px" : "9px 6px",
+                borderRadius: wide ? 16 : 12,
                 background: "#131A2B",
-                border: "1px solid var(--border)"
+                border: "1px solid var(--border)",
+                minWidth: 0
               }}
             >
               <div
                 style={{
-                  fontSize: 11,
+                  fontSize: wide ? 11 : 9,
                   textTransform: "uppercase",
                   letterSpacing: 0.06,
-                  color: "rgba(148,163,184,0.9)"
+                  color: "rgba(148,163,184,0.9)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}
               >
                 Cash cushion
               </div>
               <div
                 style={{
-                  marginTop: 6,
-                  fontSize: wide ? 22 : 18,
+                  marginTop: wide ? 6 : 3,
+                  fontSize: wide ? 22 : 15,
                   fontWeight: 700,
-                  color: "#38BDF8"
+                  color: "#38BDF8",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}
               >
                 £{savingsTotal.toLocaleString()}
               </div>
-              <div
-                style={{
-                  marginTop: 3,
-                  fontSize: 11,
-                  color: "rgba(148,163,184,0.9)"
-                }}
-              >
-                Across savings accounts
-              </div>
+              {wide && (
+                <div
+                  style={{
+                    marginTop: 3,
+                    fontSize: 11,
+                    color: "rgba(148,163,184,0.9)"
+                  }}
+                >
+                  Across savings accounts
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -691,13 +714,15 @@ export default function Dashboard({ store, update }) {
             subtitle="Portfolio"
           />
 
-          <StatCard
-            title="Debt"
-            icon="💳"
-            value={`£${debtTotal.toLocaleString()}`}
-            colour="#EF4444"
-            subtitle="Outstanding"
-          />
+          <div style={{ gridColumn: wide ? "auto" : "1 / -1" }}>
+            <StatCard
+              title="Debt"
+              icon="💳"
+              value={`£${debtTotal.toLocaleString()}`}
+              colour="#EF4444"
+              subtitle="Outstanding"
+            />
+          </div>
         </Grid>
       </Section>
 

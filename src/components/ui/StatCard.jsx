@@ -50,12 +50,10 @@ export default function StatCard({
         <div style={{ minWidth: 0 }}>
           <div
             style={{
-              fontSize: isMobile ? "12.5px" : "15px",
+              fontSize: isMobile ? "12px" : "15px",
               color: "rgba(255,255,255,.65)",
               fontWeight: 600,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis"
+              lineHeight: 1.2
             }}
           >
             {title}
