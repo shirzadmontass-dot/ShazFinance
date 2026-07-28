@@ -160,28 +160,50 @@ export default function Bank({ store, add, remove, update }) {
                 </div>
               )}
 
-              <button
-                onClick={() => runSync(true)}
-                disabled={syncing}
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--border)",
-                  padding: "6px 12px",
-                  borderRadius: "var(--radius)",
-                  color: "var(--text)",
-                  cursor: syncing ? "default" : "pointer",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  opacity: syncing ? 0.6 : 1
-                }}
-              >
-                {syncing ? "Syncing…" : "Sync now"}
-              </button>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={() => runSync(true)}
+                  disabled={syncing}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--border)",
+                    padding: "6px 12px",
+                    borderRadius: "var(--radius)",
+                    color: "var(--text)",
+                    cursor: syncing ? "default" : "pointer",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    opacity: syncing ? 0.6 : 1
+                  }}
+                >
+                  {syncing ? "Syncing…" : "Sync now"}
+                </button>
+
+                <button
+                  onClick={handleConnect}
+                  disabled={connecting}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--border)",
+                    padding: "6px 12px",
+                    borderRadius: "var(--radius)",
+                    color: "var(--subtext)",
+                    cursor: connecting ? "default" : "pointer",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    opacity: connecting ? 0.6 : 1
+                  }}
+                >
+                  {connecting ? "Redirecting…" : "Reconnect"}
+                </button>
+              </div>
             </div>
 
             {syncError && (
               <div style={{ color: "#EF4444", fontSize: 12 }}>
-                {syncError}
+                {syncError === "No bank connected yet"
+                  ? "Sync can't run yet — click \"Reconnect\" above and log into your bank once more to enable it."
+                  : syncError}
               </div>
             )}
 
