@@ -13,7 +13,7 @@ export default function Bank({ store, add, remove }) {
     // TEMPORARY: Sandbox only has a limited set of test banks, mostly
     // European (not UK). Using FI here just to prove the connection
     // works end-to-end — switch back to GB once on Production access.
-    fetch("/api/bank/aspsps?country=FI")
+    fetch("/api/bank/aspsps?country=GB")
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data.aspsps)) {
