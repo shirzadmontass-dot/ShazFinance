@@ -14,6 +14,7 @@ export default function NetWorth({ store }) {
   const investments = store.investments || []
   const children = store.children || []
   const debts = store.debts || []
+  const bankAccounts = store.bankAccounts || []
 
   const savingsTotal =
     savings.length > 0
@@ -40,8 +41,19 @@ export default function NetWorth({ store }) {
       ? debts.reduce((sum, d) => sum + (d.balance || 0), 0)
       : 0
 
+  // Real money sitting in linked bank accounts — current + savings — counts
+  // as an asset too, on top of anything entered manually.
+  const linkedBankTotal = bankAccounts.reduce(
+    (sum, a) => sum + Number(a.balance || 0),
+    0
+  )
+
   const totalAssets =
-    savingsTotal + investmentsTotal + childrenTotal + depositTotal
+    savingsTotal +
+    investmentsTotal +
+    childrenTotal +
+    depositTotal +
+    linkedBankTotal
 
   const netWorth = totalAssets - debtTotal
 
@@ -78,6 +90,11 @@ export default function NetWorth({ store }) {
             gap: "var(--space-2)"
           }}
         >
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>Bank accounts</span>
+            <span>£{linkedBankTotal.toLocaleString()}</span>
+          </div>
+
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Savings</span>
             <span>£{savingsTotal.toLocaleString()}</span>

@@ -11,6 +11,7 @@ import {
 } from "../components/ui/index.js"
 
 import { resolveCategory } from "../utils/categorize.js"
+import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
 
 // Reactive width check — updates live on resize/zoom instead of
 // only reading window size once at first render.
@@ -36,19 +37,19 @@ export default function Dashboard({ store, update }) {
 
   if (!store) return null
 
-  const incomeTotal =
+  const manualIncomeTotal =
     (store.income || []).reduce(
       (t, i) => t + Number(i.amount || 0),
       0
     )
 
-  const commitmentsTotal =
+  const manualCommitmentsTotal =
     (store.commitments || []).reduce(
       (t, c) => t + Number(c.amount || 0),
       0
     )
 
-  const expensesTotal =
+  const manualExpensesTotal =
     (store.expenses || []).reduce(
       (t, e) => t + Number(e.amount || 0),
       0
@@ -64,6 +65,22 @@ export default function Dashboard({ store, update }) {
   const bankAccounts = store.bankAccounts || []
   const bankTransactions = store.bankTransactions || []
   const categoryOverrides = store.categoryOverrides || {}
+  const hasBankData = bankTransactions.length > 0
+
+  // Once a bank is linked, Income/Commitments/Expenses come from real
+  // transaction data (with recurring-payment detection) instead of manual
+  // entries. Manual entries still work as a fallback if no bank is linked.
+  const bankFigures = hasBankData
+    ? computeMonthlyFigures(bankTransactions)
+    : null
+
+  const incomeTotal = hasBankData ? bankFigures.income : manualIncomeTotal
+  const commitmentsTotal = hasBankData
+    ? bankFigures.commitments
+    : manualCommitmentsTotal
+  const expensesTotal = hasBankData
+    ? bankFigures.expenses
+    : manualExpensesTotal
 
   // Real linked savings-type accounts, added on top of manually entered savings
   const linkedSavingsBalance = bankAccounts
