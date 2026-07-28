@@ -10,7 +10,10 @@ export default function Bank({ store, add, remove }) {
   const [connectError, setConnectError] = useState("")
 
   useEffect(() => {
-    fetch("/api/bank/aspsps?country=GB")
+    // TEMPORARY: Sandbox only has a limited set of test banks, mostly
+    // European (not UK). Using FI here just to prove the connection
+    // works end-to-end — switch back to GB once on Production access.
+    fetch("/api/bank/aspsps?country=FI")
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data.aspsps)) {
