@@ -4,6 +4,7 @@ import { useAuth } from "./AuthContext.jsx"
 import { useIsMobile } from "./hooks/useIsMobile.js"
 
 import Login from "./Screens/Login.jsx"
+import BankCallback from "./Screens/BankCallback.jsx"
 import Dashboard from "./Screens/Dashboard.jsx"
 import Income from "./Screens/Income.jsx"
 import Commitments from "./Screens/Commitments.jsx"
@@ -71,6 +72,15 @@ export default function App() {
   }
 
   const ActiveScreen = screens[screen]
+
+  // The bank redirects the browser back here after approval —
+  // handle that path independently of the normal app shell.
+  if (
+    typeof window !== "undefined" &&
+    window.location.pathname === "/bank-callback"
+  ) {
+    return <BankCallback />
+  }
 
   // Still checking whether a session exists
   if (loading) {
