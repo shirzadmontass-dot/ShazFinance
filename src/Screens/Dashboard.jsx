@@ -10,6 +10,8 @@ import {
   Section
 } from "../components/ui/index.js"
 
+import { resolveCategory } from "../utils/categorize.js"
+
 // Reactive width check — updates live on resize/zoom instead of
 // only reading window size once at first render.
 function useIsWide(breakpoint = 700) {
@@ -57,6 +59,23 @@ export default function Dashboard({ store, update }) {
       (t, s) => t + Number(s.balance || 0),
       0
     )
+
+  // Live bank data — real linked accounts and transactions from TrueLayer
+  const bankAccounts = store.bankAccounts || []
+  const bankTransactions = store.bankTransactions || []
+  const categoryOverrides = store.categoryOverrides || {}
+
+  // Real linked savings-type accounts, added on top of manually entered savings
+  const linkedSavingsBalance = bankAccounts
+    .filter((a) => a.type === "SAVINGS")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+
+  const cashCushion = savingsTotal + linkedSavingsBalance
+
+  const wastedOnNonEssentials = bankTransactions
+    .filter((t) => t.amount < 0)
+    .filter((t) => resolveCategory(t, categoryOverrides) === "discretionary")
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
 
   const debtTotal =
     (store.debts || []).reduce(
@@ -317,7 +336,7 @@ export default function Dashboard({ store, update }) {
                   textOverflow: "ellipsis"
                 }}
               >
-                £{savingsTotal.toLocaleString()}
+                £{cashCushion.toLocaleString()}
               </div>
               {wide && (
                 <div
@@ -704,6 +723,14 @@ export default function Dashboard({ store, update }) {
             value={`£${savingsTotal.toLocaleString()}`}
             colour="var(--accent)"
             subtitle="Cash savings"
+          />
+
+          <StatCard
+            title="Wasted"
+            icon="🧾"
+            value={`£${wastedOnNonEssentials.toLocaleString()}`}
+            colour="#F97316"
+            subtitle="Non-essential spend"
           />
 
           <StatCard

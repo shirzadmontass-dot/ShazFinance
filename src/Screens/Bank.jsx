@@ -1,9 +1,65 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
+import { supabase } from "../supabase"
+import { resolveCategory, normalizeMerchant } from "../utils/categorize.js"
 
-export default function Bank({ store, add, remove }) {
+// How stale "last synced" has to be before we auto-refresh on page open.
+const AUTO_SYNC_AFTER_MS = 5 * 60 * 1000 // 5 minutes
+
+export default function Bank({ store, add, remove, update }) {
   const [connecting, setConnecting] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [syncError, setSyncError] = useState(null)
+  const [txExpanded, setTxExpanded] = useState(false)
+
+  const linkedAccounts = store?.bankAccounts || []
+  const bankTransactions = store?.bankTransactions || []
+  const categoryOverrides = store?.categoryOverrides || {}
+
+  async function runSync(showSpinner = true) {
+    if (showSpinner) setSyncing(true)
+    setSyncError(null)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) throw new Error("Not logged in")
+
+      const res = await fetch("/api/bank/sync", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        }
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Sync failed")
+
+      // The sync endpoint writes straight to Supabase; if your store
+      // context re-fetches from Supabase on an interval or via realtime,
+      // this is enough. If not, call your store-refresh function here.
+      if (typeof update === "function") {
+        update("bankLastSynced", new Date().toISOString())
+      }
+    } catch (err) {
+      console.error("sync failed:", err)
+      setSyncError(err.message || "Sync failed")
+    } finally {
+      if (showSpinner) setSyncing(false)
+    }
+  }
+
+  // Auto-sync on page open if data is stale and a bank is already linked.
+  useEffect(() => {
+    if (linkedAccounts.length === 0) return
+    const last = store?.bankLastSynced
+      ? new Date(store.bankLastSynced).getTime()
+      : 0
+    if (Date.now() - last > AUTO_SYNC_AFTER_MS) {
+      runSync(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function handleConnect() {
     setConnecting(true)
@@ -23,11 +79,15 @@ export default function Bank({ store, add, remove }) {
     window.location.href = authUrl
   }
 
+  function setTransactionCategory(transaction, category) {
+    if (typeof update !== "function") return
+    const key = normalizeMerchant(transaction.description)
+    update(`categoryOverrides.${key}`, category)
+  }
+
   if (!store) return null
 
   const manualAccounts = store.bank || []
-  const linkedAccounts = store.bankAccounts || []
-  const bankTransactions = store.bankTransactions || []
 
   const manualTotal = manualAccounts.reduce(
     (sum, acc) => sum + Number(acc.balance || 0),
@@ -38,6 +98,17 @@ export default function Bank({ store, add, remove }) {
     0
   )
   const total = manualTotal + linkedTotal
+
+  const discretionaryTotal = bankTransactions
+    .filter((t) => t.amount < 0)
+    .filter(
+      (t) => resolveCategory(t, categoryOverrides) === "discretionary"
+    )
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+
+  const visibleTransactions = txExpanded
+    ? bankTransactions
+    : bankTransactions.slice(0, 5)
 
   return (
     <Page title="Bank Accounts">
@@ -50,6 +121,21 @@ export default function Bank({ store, add, remove }) {
         </div>
       </Card>
 
+      {discretionaryTotal > 0 && (
+        <Card title="Wasted on non-essentials" icon="🧾">
+          <div
+            style={{ fontSize: "26px", fontWeight: "700", color: "#F97316" }}
+          >
+            £{discretionaryTotal.toLocaleString()}
+          </div>
+          <div style={{ color: "var(--subtext)" }}>
+            From recent transactions like takeaways, subscriptions and
+            shopping. Tap a transaction below to recategorise it if it's
+            wrong.
+          </div>
+        </Card>
+      )}
+
       {/* Real bank connection */}
       <Card title="Connect your bank" icon="🔗">
         {linkedAccounts.length > 0 ? (
@@ -60,10 +146,42 @@ export default function Bank({ store, add, remove }) {
               gap: "var(--space-2)"
             }}
           >
-            {store.bankLastSynced && (
-              <div style={{ color: "var(--subtext)", fontSize: 13 }}>
-                Last synced:{" "}
-                {new Date(store.bankLastSynced).toLocaleString()}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}
+            >
+              {store.bankLastSynced && (
+                <div style={{ color: "var(--subtext)", fontSize: 13 }}>
+                  Last synced:{" "}
+                  {new Date(store.bankLastSynced).toLocaleString()}
+                </div>
+              )}
+
+              <button
+                onClick={() => runSync(true)}
+                disabled={syncing}
+                style={{
+                  background: "transparent",
+                  border: "1px solid var(--border)",
+                  padding: "6px 12px",
+                  borderRadius: "var(--radius)",
+                  color: "var(--text)",
+                  cursor: syncing ? "default" : "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  opacity: syncing ? 0.6 : 1
+                }}
+              >
+                {syncing ? "Syncing…" : "Sync now"}
+              </button>
+            </div>
+
+            {syncError && (
+              <div style={{ color: "#EF4444", fontSize: 12 }}>
+                {syncError}
               </div>
             )}
 
@@ -130,33 +248,104 @@ export default function Bank({ store, add, remove }) {
               gap: "var(--space-2)"
             }}
           >
-            {bankTransactions.slice(0, 15).map((t) => (
-              <div
-                key={t.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "8px 0",
-                  borderBottom: "1px solid var(--border)"
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 600 }}>{t.description}</div>
-                  <div style={{ fontSize: 12, color: "var(--subtext)" }}>
-                    {t.date}
-                  </div>
-                </div>
+            {visibleTransactions.map((t) => {
+              const category = resolveCategory(t, categoryOverrides)
+              return (
                 <div
+                  key={t.id}
                   style={{
-                    fontWeight: 700,
-                    color: t.amount < 0 ? "#EF4444" : "#22C55E"
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "8px 0",
+                    borderBottom: "1px solid var(--border)",
+                    gap: 8
                   }}
                 >
-                  {t.amount < 0 ? "-" : "+"}£
-                  {Math.abs(t.amount).toLocaleString()}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 600 }}>{t.description}</div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "var(--subtext)",
+                        display: "flex",
+                        gap: 6,
+                        alignItems: "center"
+                      }}
+                    >
+                      <span>{t.date}</span>
+                      {t.amount < 0 && category !== "uncategorised" && (
+                        <span
+                          onClick={() =>
+                            setTransactionCategory(
+                              t,
+                              category === "discretionary"
+                                ? "essential"
+                                : "discretionary"
+                            )
+                          }
+                          title="Tap to change category"
+                          style={{
+                            cursor: "pointer",
+                            padding: "1px 7px",
+                            borderRadius: 999,
+                            fontSize: 10,
+                            textTransform: "uppercase",
+                            letterSpacing: 0.05,
+                            background:
+                              category === "discretionary"
+                                ? "rgba(249,115,22,0.12)"
+                                : "rgba(34,197,94,0.12)",
+                            color:
+                              category === "discretionary"
+                                ? "#F97316"
+                                : "#4ADE80",
+                            border:
+                              category === "discretionary"
+                                ? "1px solid rgba(249,115,22,0.4)"
+                                : "1px solid rgba(34,197,94,0.4)"
+                          }}
+                        >
+                          {category === "discretionary"
+                            ? "Non-essential"
+                            : "Essential"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                      color: t.amount < 0 ? "#EF4444" : "#22C55E"
+                    }}
+                  >
+                    {t.amount < 0 ? "-" : "+"}£
+                    {Math.abs(t.amount).toLocaleString()}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
+
+            {bankTransactions.length > 5 && (
+              <button
+                onClick={() => setTxExpanded((v) => !v)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--accent)",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  padding: "8px 0 0",
+                  textAlign: "left"
+                }}
+              >
+                {txExpanded
+                  ? "Show less ▲"
+                  : `Show all ${bankTransactions.length} transactions ▼`}
+              </button>
+            )}
           </div>
         </Card>
       )}
