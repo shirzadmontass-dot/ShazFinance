@@ -42,7 +42,10 @@ export default function BankCallback() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`
           },
-          body: JSON.stringify({ code })
+          body: JSON.stringify({
+            code,
+            redirectUri: `${window.location.origin}/bank-callback`
+          })
         })
 
         const data = await res.json()

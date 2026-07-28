@@ -1,59 +1,26 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
-import { supabase } from "../supabase.js"
 
 export default function Bank({ store, add, remove }) {
-  const [aspsps, setAspsps] = useState([])
-  const [selectedAspsp, setSelectedAspsp] = useState("")
   const [connecting, setConnecting] = useState(false)
-  const [connectError, setConnectError] = useState("")
 
-  useEffect(() => {
-    // TEMPORARY: Sandbox only has a limited set of test banks, mostly
-    // European (not UK). Using FI here just to prove the connection
-    // works end-to-end — switch back to GB once on Production access.
-    fetch("/api/bank/aspsps?country=GB")
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data.aspsps)) {
-          setAspsps(data.aspsps)
-        }
-      })
-      .catch(() => {
-        // Silently ignore — the manual entry form below still works
-      })
-  }, [])
-
-  async function handleConnect() {
-    if (!selectedAspsp) return
+  function handleConnect() {
     setConnecting(true)
-    setConnectError("")
 
-    try {
-      const chosen = aspsps.find(
-        (a) => `${a.name}|${a.country}` === selectedAspsp
-      )
-      if (!chosen) throw new Error("Pick a bank first")
+    const clientId = import.meta.env.VITE_TRUELAYER_CLIENT_ID
+    const redirectUri = `${window.location.origin}/bank-callback`
+    const scope = "info accounts balance transactions offline_access"
+    const providers = "uk-ob-all uk-oauth-all"
 
-      const res = await fetch("/api/bank/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          aspspName: chosen.name,
-          aspspCountry: chosen.country,
-          redirectUrl: `${window.location.origin}/bank-callback`
-        })
-      })
+    const authUrl =
+      `https://auth.truelayer.com/?response_type=code` +
+      `&client_id=${encodeURIComponent(clientId)}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&scope=${encodeURIComponent(scope)}` +
+      `&providers=${encodeURIComponent(providers)}`
 
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to connect")
-
-      window.location.href = data.url
-    } catch (err) {
-      setConnectError(err.message)
-      setConnecting(false)
-    }
+    window.location.href = authUrl
   }
 
   if (!store) return null
@@ -130,53 +97,25 @@ export default function Bank({ store, add, remove }) {
           >
             <div style={{ color: "var(--subtext)" }}>
               Link a real bank account to automatically pull in your
-              balances and transactions.
+              balances and transactions. You'll be taken to a secure page
+              to pick your bank and log in.
             </div>
-
-            <select
-              value={selectedAspsp}
-              onChange={(e) => setSelectedAspsp(e.target.value)}
-              style={{
-                padding: "var(--space-2)",
-                borderRadius: "var(--radius)",
-                border: "1px solid var(--border)",
-                background: "var(--bg)",
-                color: "var(--text)"
-              }}
-            >
-              <option value="">Select your bank…</option>
-              {aspsps.map((a) => (
-                <option
-                  key={`${a.name}|${a.country}`}
-                  value={`${a.name}|${a.country}`}
-                >
-                  {a.name}
-                </option>
-              ))}
-            </select>
-
-            {connectError && (
-              <div style={{ color: "var(--danger)", fontSize: 13 }}>
-                {connectError}
-              </div>
-            )}
 
             <button
               onClick={handleConnect}
-              disabled={!selectedAspsp || connecting}
+              disabled={connecting}
               style={{
                 background: "var(--accent)",
                 border: "none",
-                padding: "10px",
+                padding: "12px",
                 borderRadius: "var(--radius)",
                 color: "white",
                 fontWeight: "700",
-                cursor:
-                  !selectedAspsp || connecting ? "default" : "pointer",
-                opacity: !selectedAspsp || connecting ? 0.6 : 1
+                cursor: connecting ? "default" : "pointer",
+                opacity: connecting ? 0.6 : 1
               }}
             >
-              {connecting ? "Connecting…" : "Connect bank"}
+              {connecting ? "Redirecting…" : "Connect bank"}
             </button>
           </div>
         )}

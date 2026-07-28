@@ -1,12 +1,14 @@
 import { createClient } from "@supabase/supabase-js"
-import { enableBankingFetch } from "../_lib/enablebanking.js"
+
+const TRUELAYER_AUTH_BASE = "https://auth.truelayer.com"
+const TRUELAYER_API_BASE = "https://api.truelayer.com"
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" })
   }
 
-  const { code } = req.body || {}
+  const { code, redirectUri } = req.body || {}
   const authHeader = req.headers.authorization || ""
   const accessToken = authHeader.replace("Bearer ", "")
 
@@ -17,8 +19,6 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Missing user session" })
   }
 
-  // Client scoped to the logged-in user, so RLS only lets them
-  // read/write their own store row.
   const supabase = createClient(
     process.env.VITE_SUPABASE_URL,
     process.env.VITE_SUPABASE_ANON_KEY,
@@ -35,47 +35,78 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Exchange the bank's approval code for a live session + account list
-    const session = await enableBankingFetch("/sessions", {
+    const tokenRes = await fetch(`${TRUELAYER_AUTH_BASE}/connect/token`, {
       method: "POST",
-      body: JSON.stringify({ code })
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: process.env.TRUELAYER_CLIENT_ID,
+        client_secret: process.env.TRUELAYER_CLIENT_SECRET,
+        redirect_uri: redirectUri,
+        code
+      })
     })
 
-    const accounts = session.accounts || []
+    const tokenData = await tokenRes.json()
+
+    if (!tokenRes.ok) {
+      throw {
+        status: tokenRes.status,
+        data: tokenData,
+        message: "Token exchange failed"
+      }
+    }
+
+    const bankAccessToken = tokenData.access_token
+    const authHeaders = { Authorization: `Bearer ${bankAccessToken}` }
+
+    const accountsRes = await fetch(
+      `${TRUELAYER_API_BASE}/data/v1/accounts`,
+      { headers: authHeaders }
+    )
+    const accountsData = await accountsRes.json()
+
+    if (!accountsRes.ok) {
+      throw {
+        status: accountsRes.status,
+        data: accountsData,
+        message: "Failed to fetch accounts"
+      }
+    }
+
+    const accounts = accountsData.results || []
     const bankAccounts = []
     const bankTransactions = []
 
     for (const account of accounts) {
-      const accountId = account.uid
+      const accountId = account.account_id
 
       let balance = 0
       try {
-        const balData = await enableBankingFetch(
-          `/accounts/${accountId}/balances`
+        const balRes = await fetch(
+          `${TRUELAYER_API_BASE}/data/v1/accounts/${accountId}/balance`,
+          { headers: authHeaders }
         )
-        const first = (balData.balances || [])[0]
-        balance = first
-          ? parseFloat(first.balance_amount?.amount || 0)
-          : 0
+        const balData = await balRes.json()
+        const first = (balData.results || [])[0]
+        balance = first ? Number(first.available || first.current || 0) : 0
       } catch (e) {
         console.error("balance fetch failed for", accountId, e.message)
       }
 
       let transactions = []
       try {
-        const txData = await enableBankingFetch(
-          `/accounts/${accountId}/transactions`
+        const txRes = await fetch(
+          `${TRUELAYER_API_BASE}/data/v1/accounts/${accountId}/transactions`,
+          { headers: authHeaders }
         )
-        transactions = (txData.transactions || []).map((t) => ({
-          id: t.entry_reference || `${accountId}-${t.booking_date}-${t.transaction_amount?.amount}`,
-          date: t.booking_date,
-          description:
-            t.remittance_information?.[0] ||
-            t.creditor?.name ||
-            t.debtor?.name ||
-            "Transaction",
-          amount: parseFloat(t.transaction_amount?.amount || 0),
-          currency: t.transaction_amount?.currency || "GBP",
+        const txData = await txRes.json()
+        transactions = (txData.results || []).map((t) => ({
+          id: t.transaction_id || `${accountId}-${t.timestamp}-${t.amount}`,
+          date: (t.timestamp || "").split("T")[0],
+          description: t.description || t.merchant_name || "Transaction",
+          amount: Number(t.amount || 0),
+          currency: t.currency || "GBP",
           accountId
         }))
       } catch (e) {
@@ -85,8 +116,8 @@ export default async function handler(req, res) {
       bankAccounts.push({
         id: accountId,
         name:
-          account.name ||
-          account.account_id?.iban ||
+          account.display_name ||
+          account.account_number?.number ||
           "Bank account",
         balance,
         currency: account.currency || "GBP"
@@ -95,7 +126,6 @@ export default async function handler(req, res) {
       bankTransactions.push(...transactions)
     }
 
-    // Merge into the user's existing store data
     const { data: storeRow, error: fetchError } = await supabase
       .from("store")
       .select("id, data")
@@ -133,8 +163,8 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("callback error:", err)
     return res.status(err.status || 500).json({
-      error: "Failed to complete bank connection",
-      details: err.data || err.message
+      error: err.message || "Failed to complete bank connection",
+      details: err.data || null
     })
   }
 }
