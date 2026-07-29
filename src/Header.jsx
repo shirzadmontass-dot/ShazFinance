@@ -1,7 +1,76 @@
+import { useState } from "react"
 import { useIsMobile } from "./hooks/useIsMobile.js"
+import { computeMonthlyFigures } from "./utils/monthlyFigures.js"
+import { resolveCategory } from "./utils/categorize.js"
+import AICoach from "./components/AICoach.jsx"
 
-export default function Header({ screen, user, onSignOut, onMenuClick }) {
+function buildFinancialSummary(store) {
+  if (!store) return {}
+
+  const bankAccounts = store.bankAccounts || []
+  const bankTransactions = store.bankTransactions || []
+  const accountRoles = store.accountRoles || {}
+  const categoryOverrides = store.categoryOverrides || {}
+  const hasBankData = bankTransactions.length > 0
+
+  const monthly = hasBankData
+    ? computeMonthlyFigures(bankTransactions, accountRoles)
+    : { income: 0, commitments: 0, expenses: 0 }
+
+  const wastedOnNonEssentials = bankTransactions
+    .filter((t) => t.amount < 0)
+    .filter((t) => resolveCategory(t, categoryOverrides) === "discretionary")
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+
+  const savingsTotal = (store.savings || []).reduce(
+    (sum, s) => sum + Number(s.balance || 0),
+    0
+  )
+  const linkedSavingsBalance = bankAccounts
+    .filter((a) => a.type === "SAVINGS")
+    .filter((a) => {
+      const role = accountRoles[a.id]
+      return role !== "house" && role !== "kids"
+    })
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+  const cashCushion = savingsTotal + linkedSavingsBalance
+
+  const transactionAccountsBalance = bankAccounts
+    .filter((a) => a.type !== "SAVINGS")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+  const moneyLeft = hasBankData
+    ? transactionAccountsBalance
+    : monthly.income - monthly.commitments - monthly.expenses
+
+  const debtTotal = (store.debts || []).reduce(
+    (sum, d) => sum + Number(d.balance || 0),
+    0
+  )
+  const investmentsTotal = (store.investments || []).reduce(
+    (sum, i) => sum + Number(i.balance || 0),
+    0
+  )
+  const linkedHouseBalance = bankAccounts
+    .filter((a) => accountRoles[a.id] === "house")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+
+  return {
+    monthlyIncome: monthly.income,
+    monthlyCommitments: monthly.commitments,
+    monthlyExpenses: monthly.expenses,
+    moneyLeft,
+    cashCushion,
+    wastedOnNonEssentials,
+    debtTotal,
+    investmentsTotal,
+    houseDepositSaved: Number(store.deposit?.current || 0) + linkedHouseBalance,
+    houseDepositTarget: Number(store.deposit?.target || 25000)
+  }
+}
+
+export default function Header({ screen, user, onSignOut, onMenuClick, store }) {
   const isMobile = useIsMobile()
+  const [aiOpen, setAiOpen] = useState(false)
   const today = new Date()
   const initial = user?.email ? user.email[0].toUpperCase() : "S"
 
@@ -12,14 +81,59 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
     year: "numeric"
   })
 
-  // MOBILE: hamburger + centered title + avatar only. Nothing else.
+  const aiButton = (small) => (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setAiOpen((v) => !v)}
+        title="AI Savings Coach"
+        style={{
+          width: small ? 38 : 40,
+          height: small ? 38 : 40,
+          borderRadius: 12,
+          border: aiOpen ? "1px solid var(--accent)" : "1px solid transparent",
+          background: aiOpen ? "rgba(255,138,0,0.15)" : "#1B263B",
+          color: "white",
+          fontSize: small ? 16 : 18,
+          cursor: "pointer"
+        }}
+      >
+        🤖
+      </button>
+
+      {aiOpen && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 10px)",
+            right: 0,
+            width: 340,
+            maxWidth: "calc(100vw - 24px)",
+            background: "#131A2B",
+            border: "1px solid var(--border)",
+            borderRadius: 14,
+            padding: 16,
+            boxShadow: "0 12px 30px rgba(0,0,0,0.4)",
+            zIndex: 60
+          }}
+        >
+          <AICoach
+            summary={buildFinancialSummary(store)}
+            onClose={() => setAiOpen(false)}
+          />
+        </div>
+      )}
+    </div>
+  )
+
+  // MOBILE: hamburger + centered title + AI coach + avatar.
   if (isMobile) {
     return (
       <header
         style={{
           display: "grid",
-          gridTemplateColumns: "48px 1fr 44px",
+          gridTemplateColumns: "48px 1fr auto 44px",
           alignItems: "center",
+          gap: 8,
           padding: "10px 12px",
           background: "#111827",
           borderBottom: "1px solid rgba(255,255,255,.08)",
@@ -57,6 +171,8 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
         >
           {screen}
         </div>
+
+        {aiButton(true)}
 
         <button
           onClick={onSignOut}
@@ -172,6 +288,8 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
           gap: "12px"
         }}
       >
+        {aiButton(false)}
+
         <button
           style={{
             width: "40px",
