@@ -154,6 +154,30 @@ export default function Dashboard({ store, update }) {
 
   useEffect(() => {
     if (needsNewBaseline && typeof update === "function") {
+      // If there was a previous month's baseline, archive how it ended
+      // before overwriting it with the new month's starting point.
+      if (storedAttackPlan.monthKey) {
+        const priorHistory = store.attackPlanHistory || []
+        const alreadyLogged = priorHistory.some(
+          (entry) => entry.monthKey === storedAttackPlan.monthKey
+        )
+        if (!alreadyLogged) {
+          const priorDone = attackSteps.filter((s) => s.done).length
+          update("attackPlanHistory", [
+            ...priorHistory,
+            {
+              monthKey: storedAttackPlan.monthKey,
+              percent: Math.round((priorDone / attackSteps.length) * 100),
+              steps: attackSteps.map((s) => ({
+                key: s.key,
+                title: s.title,
+                done: s.done
+              }))
+            }
+          ])
+        }
+      }
+
       update("attackPlan", {
         monthKey: currentMonthKey,
         baselineDebt: debtTotal,
@@ -187,6 +211,11 @@ export default function Dashboard({ store, update }) {
     .filter((t) => (t.date || "").slice(0, 7) === prevMonthKey)
     .filter((t) => resolveCategory(t, categoryOverrides) === "discretionary")
     .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+
+  const currentMonthName = new Date().toLocaleDateString("en-GB", {
+    month: "long"
+  })
+  const attackPlanTitle = `${currentMonthName} Attack`
 
   const attackSteps = [
     {
@@ -271,7 +300,7 @@ export default function Dashboard({ store, update }) {
           <HeroBanner
             title="Welcome back, Shirzad 👋"
             subtitle="Stay on top of your money with a clear, calm overview."
-            currentFocusLabel="September Attack"
+            currentFocusLabel={attackPlanTitle}
             currentFocusPercent={plannerPercent}
             goalLabel="Buy My Home 🏡"
             goalPercent={depositPercent}
@@ -980,7 +1009,7 @@ export default function Dashboard({ store, update }) {
           </Card>
 
           <Card
-            title="September attack plan"
+            title={`${attackPlanTitle} plan`}
             subtitle="One focused month"
             compact
           >
