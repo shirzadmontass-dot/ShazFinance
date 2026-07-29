@@ -12,6 +12,7 @@ import {
 
 import { resolveCategory } from "../utils/categorize.js"
 import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
+import AICoach from "../components/AICoach.jsx"
 
 // Reactive width check — updates live on resize/zoom instead of
 // only reading window size once at first render.
@@ -1068,6 +1069,24 @@ export default function Dashboard({ store, update }) {
             </div>
           </Card>
         </div>
+      </Section>
+
+      <Section>
+        <AICoach
+          summary={{
+            monthlyIncome: incomeTotal,
+            monthlyCommitments: commitmentsTotal,
+            monthlyExpenses: expensesTotal,
+            moneyLeft: leftover,
+            savingsRatePercent: safeRate,
+            cashCushion,
+            wastedOnNonEssentials,
+            debtTotal,
+            investmentsTotal,
+            houseDepositSaved: depositSaved,
+            houseDepositTarget: depositTarget
+          }}
+        />
       </Section>
 
     </Page>
