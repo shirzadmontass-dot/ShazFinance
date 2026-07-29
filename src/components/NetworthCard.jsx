@@ -1,4 +1,6 @@
 import Card from "./Card.jsx"
+import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
+import { resolveCategory } from "../utils/categorize.js"
 
 function computeFigures(store) {
   const savings = (store.savings || []).reduce(
@@ -24,10 +26,62 @@ function computeFigures(store) {
 
   const assets = savings + investments + deposit + linkedBankTotal
   const netWorth = assets - debts
-  const health =
+
+  // Component 1: debt-to-assets — how much of what you own is actually
+  // yours, rather than owed to someone else.
+  const debtScore =
     assets > 0
       ? Math.max(0, Math.min(100, Math.round((netWorth / assets) * 100)))
       : 0
+
+  const bankTransactions = store.bankTransactions || []
+  const categoryOverrides = store.categoryOverrides || {}
+  const hasBankData = bankTransactions.length > 0
+
+  const monthly = hasBankData
+    ? computeMonthlyFigures(bankTransactions)
+    : { income: 0, commitments: 0, expenses: 0 }
+
+  const wasted = bankTransactions
+    .filter((t) => t.amount < 0)
+    .filter(
+      (t) => resolveCategory(t, categoryOverrides) === "discretionary"
+    )
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+
+  // Component 2: savings rate — this month's income left over after
+  // commitments and spending, as a percentage of income.
+  const savingsRateScore =
+    monthly.income > 0
+      ? Math.max(
+          0,
+          Math.min(
+            100,
+            Math.round(
+              ((monthly.income - monthly.commitments - monthly.expenses) /
+                monthly.income) *
+                100
+            )
+          )
+        )
+      : 0
+
+  // Component 3: spending discipline — what share of your outgoings this
+  // month went to non-essential "wasted" spending vs everything else.
+  const totalOutflow = monthly.commitments + monthly.expenses
+  const disciplineScore =
+    totalOutflow > 0
+      ? Math.max(
+          0,
+          Math.min(100, Math.round(100 - (wasted / totalOutflow) * 100))
+        )
+      : 100
+
+  // Overall health blends all three. Without any bank data yet, fall back
+  // to the debt ratio alone rather than averaging in zeros.
+  const health = hasBankData
+    ? Math.round((debtScore + savingsRateScore + disciplineScore) / 3)
+    : debtScore
 
   return { netWorth, health }
 }
