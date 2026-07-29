@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
-import { resolveCategory } from "../utils/categorize.js"
+import { computeMonthlyFigures } from "./utils/monthlyFigures.js"
+import { resolveCategory } from "./utils/categorize.js"
 import AICoach from "./AICoach.jsx"
 
 function buildFinancialSummary(store) {
