@@ -87,17 +87,25 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
         onClick={() => setAiOpen((v) => !v)}
         title="AI Savings Coach"
         style={{
-          width: small ? 38 : 40,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
           height: small ? 38 : 40,
-          borderRadius: 12,
+          padding: small ? "0 10px" : "0 14px",
+          borderRadius: 999,
           border: aiOpen ? "1px solid var(--accent)" : "1px solid transparent",
-          background: aiOpen ? "rgba(255,138,0,0.15)" : "#1B263B",
+          background: aiOpen
+            ? "rgba(255,138,0,0.18)"
+            : "linear-gradient(135deg, rgba(255,138,0,0.25), rgba(255,61,127,0.18))",
           color: "white",
-          fontSize: small ? 16 : 18,
-          cursor: "pointer"
+          fontSize: small ? 13 : 14,
+          fontWeight: 700,
+          cursor: "pointer",
+          whiteSpace: "nowrap"
         }}
       >
-        🤖
+        <span style={{ fontSize: small ? 15 : 16 }}>🤖</span>
+        {!small && <span>Ask AI</span>}
       </button>
 
       {aiOpen && (
