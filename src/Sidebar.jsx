@@ -5,7 +5,7 @@ const NAV_GROUPS = [
   },
   {
     label: "Money Goals",
-    items: ["Debt", "Deposit", "Savings", "Investments", "Bank"]
+    items: ["Debt", "Deposit", "Savings", "Children", "Investments", "Bank"]
   },
   {
     label: "Account",
