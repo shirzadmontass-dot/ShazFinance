@@ -7,32 +7,51 @@ import {
   StatCard
 } from "../components/ui"
 
+import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
+import { resolveCategory } from "../utils/categorize.js"
+
 export default function Leftover({ store }) {
   if (!store) return null
 
-  const income = store.income || []
-  const commitments = store.commitments || []
+  const manualIncome = store.income || []
+  const manualCommitments = store.commitments || []
 
-  const incomeTotal =
-    income.length > 0
-      ? income.reduce((sum, i) => sum + (i.amount || 0), 0)
-      : 0
+  const manualIncomeTotal = manualIncome.reduce(
+    (sum, i) => sum + (i.amount || 0),
+    0
+  )
+  const manualCommitmentsTotal = manualCommitments.reduce(
+    (sum, c) => sum + (c.amount || 0),
+    0
+  )
 
-  const commitmentsTotal =
-    commitments.length > 0
-      ? commitments.reduce((sum, c) => sum + (c.amount || 0), 0)
-      : 0
+  const bankTransactions = store.bankTransactions || []
+  const accountRoles = store.accountRoles || {}
+  const categoryOverrides = store.categoryOverrides || {}
+  const hasBankData = bankTransactions.length > 0
+
+  const monthly = hasBankData
+    ? computeMonthlyFigures(bankTransactions, accountRoles)
+    : null
+
+  const incomeTotal = hasBankData ? monthly.income : manualIncomeTotal
+  const commitmentsTotal = hasBankData
+    ? monthly.commitments
+    : manualCommitmentsTotal
 
   const leftover = incomeTotal - commitmentsTotal
 
-  const wasted =
-    commitments.length > 0
-      ? commitments
-          .filter((c) =>
-            ["Wants", "Shopping", "Misc"].includes(c.category)
-          )
-          .reduce((sum, c) => sum + (c.amount || 0), 0)
-      : 0
+  // Wasted: real discretionary spend from your bank transactions (takeaways,
+  // shopping, subscriptions etc.), same categorisation used across the app —
+  // rather than a manual commitment-category guess.
+  const wasted = hasBankData
+    ? bankTransactions
+        .filter((t) => t.amount < 0)
+        .filter(
+          (t) => resolveCategory(t, categoryOverrides) === "discretionary"
+        )
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+    : 0
 
   const actualLeftover = leftover - wasted
 
@@ -57,7 +76,7 @@ export default function Leftover({ store }) {
           icon="⚠️"
           value={`£${wasted.toLocaleString()}`}
           colour="#F59E0B"
-          subtitle="Wants, shopping, misc"
+          subtitle="Non-essential spending"
         />
 
         <StatCard

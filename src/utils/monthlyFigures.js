@@ -55,16 +55,54 @@ function findRecurringGroups(transactions) {
 }
 
 // Builds this month's Income / Commitments / Expenses from real bank
-// transactions. Gets smarter over time: once a payment repeats across 2+
-// months it's picked up as genuinely "recurring" (real salary / real bill).
-// Until then, sensible fallbacks keep the numbers populated rather than
-// sitting at zero while history builds up.
-export function computeMonthlyFigures(transactions) {
+// transactions.
+//
+// If the user has tagged accounts with a role (accountRoles: an object of
+// accountId -> "spending" | "bills"), that's used directly and is far more
+// accurate than guessing — e.g. "Monzo is what I spend, Lloyds is purely
+// for bills" means every Lloyds transaction is a commitment, full stop.
+//
+// Without any tagged accounts, falls back to recurring-payment detection
+// (same merchant/amount repeating across 2+ months = a real bill/salary)
+// plus keyword matching, so the numbers aren't empty before that's set up.
+export function computeMonthlyFigures(transactions, accountRoles = {}) {
   const now = new Date()
   const thisMonth = now.toISOString().slice(0, 7)
   const thisMonthTx = transactions.filter(
     (t) => monthKey(t.date) === thisMonth
   )
+
+  const billsAccountIds = new Set(
+    Object.entries(accountRoles)
+      .filter(([, role]) => role === "bills")
+      .map(([id]) => id)
+  )
+  const spendingAccountIds = new Set(
+    Object.entries(accountRoles)
+      .filter(([, role]) => role === "spending")
+      .map(([id]) => id)
+  )
+  const hasRoles = billsAccountIds.size > 0 || spendingAccountIds.size > 0
+
+  if (hasRoles) {
+    const income = thisMonthTx
+      .filter((t) => t.amount > 0)
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    const commitments = thisMonthTx
+      .filter((t) => t.amount < 0 && billsAccountIds.has(t.accountId))
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+
+    const expenseTx = thisMonthTx.filter(
+      (t) => t.amount < 0 && spendingAccountIds.has(t.accountId)
+    )
+    const expenses = expenseTx.reduce(
+      (sum, t) => sum + Math.abs(t.amount),
+      0
+    )
+
+    return { income, commitments, expenses, expenseTransactions: expenseTx }
+  }
 
   const recurring = findRecurringGroups(transactions)
   const recurringKeys = new Set(recurring.map((r) => r.key))
@@ -106,10 +144,11 @@ export function computeMonthlyFigures(transactions) {
       .map((t) => normalizeMerchant(t.description))
   ])
 
-  const expenses = thisMonthTx
+  const expenseTx = thisMonthTx
     .filter((t) => t.amount < 0)
     .filter((t) => !commitmentKeys.has(normalizeMerchant(t.description)))
-    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
 
-  return { income, commitments, expenses }
+  const expenses = expenseTx.reduce((sum, t) => sum + Math.abs(t.amount), 0)
+
+  return { income, commitments, expenses, expenseTransactions: expenseTx }
 }

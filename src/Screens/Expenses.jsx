@@ -9,6 +9,9 @@ import {
   StatCard
 } from "../components/ui"
 
+import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
+import { resolveCategory } from "../utils/categorize.js"
+
 export default function Expenses({
   store,
   add,
@@ -26,18 +29,41 @@ export default function Expenses({
     amount: ""
   })
 
-  const totalSpent = expenses.reduce(
+  const manualTotalSpent = expenses.reduce(
     (t, e) => t + Number(e.amount || 0),
     0
   )
-
-  const essentialSpent = expenses
+  const manualEssentialSpent = expenses
     .filter((e) => e.essential)
     .reduce((t, e) => t + Number(e.amount || 0), 0)
-
-  const nonEssentialSpent = expenses
+  const manualNonEssentialSpent = expenses
     .filter((e) => !e.essential)
     .reduce((t, e) => t + Number(e.amount || 0), 0)
+
+  const bankTransactions = store.bankTransactions || []
+  const accountRoles = store.accountRoles || {}
+  const categoryOverrides = store.categoryOverrides || {}
+  const hasBankData = bankTransactions.length > 0
+
+  const monthly = hasBankData
+    ? computeMonthlyFigures(bankTransactions, accountRoles)
+    : null
+
+  // Once a bank is linked, this reflects real spending this month rather
+  // than manually logged entries.
+  const totalSpent = hasBankData ? monthly.expenses : manualTotalSpent
+
+  const nonEssentialSpent = hasBankData
+    ? (monthly.expenseTransactions || [])
+        .filter(
+          (t) => resolveCategory(t, categoryOverrides) === "discretionary"
+        )
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+    : manualNonEssentialSpent
+
+  const essentialSpent = hasBankData
+    ? totalSpent - nonEssentialSpent
+    : manualEssentialSpent
 
   function addExpense() {
     if (!form.description.trim()) return
@@ -72,7 +98,9 @@ export default function Expenses({
           icon="💸"
           value={`£${totalSpent.toLocaleString()}`}
           colour="#EF4444"
-          subtitle="All expenses"
+          subtitle={
+            hasBankData ? "Live from your bank this month" : "All expenses"
+          }
         />
 
         <StatCard
@@ -94,6 +122,13 @@ export default function Expenses({
       </Grid>
 
       <Card title="➕ Add Expense">
+        <div
+          style={{ color: "var(--subtext)", fontSize: 13, marginBottom: 12 }}
+        >
+          {hasBankData
+            ? "Use this for spending that doesn't go through your linked bank (cash purchases etc.) — bank spending is already tracked automatically above."
+            : "Log your spending manually until a bank is linked."}
+        </div>
 
         <div
           style={{
@@ -205,7 +240,10 @@ export default function Expenses({
               padding: 30
             }}
           >
-            No expenses added yet.
+            No manual expenses added yet
+            {hasBankData
+              ? " — check the Bank page to see your real transaction history."
+              : "."}
           </div>
         ) : (
           expenses

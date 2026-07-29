@@ -7,19 +7,36 @@ import {
   StatCard
 } from "../components/ui"
 
+import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
+
 export default function Commitments({ store, add, remove }) {
   if (!store) return null
 
   const commitments = store.commitments || []
 
-  const totalCommitments = commitments.reduce(
+  const manualTotalCommitments = commitments.reduce(
     (sum, item) => sum + Number(item.amount || 0),
     0
   )
 
+  const bankTransactions = store.bankTransactions || []
+  const accountRoles = store.accountRoles || {}
+  const hasBankData = bankTransactions.length > 0
+
+  const monthly = hasBankData
+    ? computeMonthlyFigures(bankTransactions, accountRoles)
+    : null
+
+  // Once a bank is linked, this reflects real recurring bills detected
+  // from your transactions (or your tagged "Bills" account) rather than
+  // a manually typed figure.
+  const totalCommitments = hasBankData
+    ? monthly.commitments
+    : manualTotalCommitments
+
   const averageCommitment =
     commitments.length > 0
-      ? Math.round(totalCommitments / commitments.length)
+      ? Math.round(manualTotalCommitments / commitments.length)
       : 0
 
   const highestCommitment =
@@ -40,7 +57,9 @@ export default function Commitments({ store, add, remove }) {
           icon="💸"
           value={`£${totalCommitments.toLocaleString()}`}
           colour="var(--accent)"
-          subtitle="All commitments"
+          subtitle={
+            hasBankData ? "Live from your bank this month" : "All commitments"
+          }
         />
 
         <StatCard
@@ -48,7 +67,7 @@ export default function Commitments({ store, add, remove }) {
           icon="📋"
           value={commitments.length}
           colour="var(--accent)"
-          subtitle="Active bills"
+          subtitle="Manually added"
         />
 
         <StatCard
@@ -56,7 +75,7 @@ export default function Commitments({ store, add, remove }) {
           icon="📊"
           value={`£${averageCommitment.toLocaleString()}`}
           colour="var(--accent)"
-          subtitle="Per bill"
+          subtitle="Per manual bill"
         />
 
         <StatCard
@@ -64,14 +83,17 @@ export default function Commitments({ store, add, remove }) {
           icon="🏆"
           value={`£${highestCommitment.toLocaleString()}`}
           colour="#EF4444"
-          subtitle="Biggest commitment"
+          subtitle="Biggest manual commitment"
         />
       </Grid>
 
       <Card title="Your Commitments" icon="🧾">
         {commitments.length === 0 ? (
           <div style={{ color: "var(--subtext)" }}>
-            No commitments have been added.
+            No manual commitments have been added
+            {hasBankData
+              ? " — bills detected from your bank are already counted in the total above."
+              : "."}
           </div>
         ) : (
           <div
@@ -83,8 +105,8 @@ export default function Commitments({ store, add, remove }) {
           >
             {commitments.map((item, index) => {
               const percentage =
-                totalCommitments > 0
-                  ? (Number(item.amount) / totalCommitments) * 100
+                manualTotalCommitments > 0
+                  ? (Number(item.amount) / manualTotalCommitments) * 100
                   : 0
 
               return (
@@ -166,6 +188,13 @@ export default function Commitments({ store, add, remove }) {
       </Card>
 
       <Card title="Add Commitment" icon="➕">
+        <div
+          style={{ color: "var(--subtext)", fontSize: 13, marginBottom: 12 }}
+        >
+          {hasBankData
+            ? "Use this for bills that don't go through your linked bank (cash, another account, etc.) — bills from your bank are already tracked automatically above."
+            : "Add your bills manually until a bank is linked."}
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault()

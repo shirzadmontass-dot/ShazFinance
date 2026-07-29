@@ -1,19 +1,33 @@
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 
+import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
+
 export default function Income({ store, add, remove }) {
   if (!store) return null
 
   const income = store.income || []
 
-  const totalIncome = income.reduce(
+  const manualTotalIncome = income.reduce(
     (sum, item) => sum + Number(item.amount || 0),
     0
   )
 
+  const bankTransactions = store.bankTransactions || []
+  const accountRoles = store.accountRoles || {}
+  const hasBankData = bankTransactions.length > 0
+
+  const monthly = hasBankData
+    ? computeMonthlyFigures(bankTransactions, accountRoles)
+    : null
+
+  // Once a bank is linked, this reflects real money landing in your
+  // account this month rather than a manually typed figure.
+  const totalIncome = hasBankData ? monthly.income : manualTotalIncome
+
   const averageIncome =
     income.length > 0
-      ? Math.round(totalIncome / income.length)
+      ? Math.round(manualTotalIncome / income.length)
       : 0
 
   const highestIncome =
@@ -40,6 +54,9 @@ export default function Income({ store, add, remove }) {
             }}
           >
             £{totalIncome.toLocaleString()}
+          </div>
+          <div style={{ color: "var(--subtext)", fontSize: 13, marginTop: 4 }}>
+            {hasBankData ? "Live from your bank this month" : "Manual entries"}
           </div>
         </Card>
 
@@ -80,7 +97,10 @@ export default function Income({ store, add, remove }) {
       <Card title="Income Sources" icon="💼">
         {income.length === 0 ? (
           <div style={{ color: "var(--subtext)" }}>
-            No income sources have been added.
+            No manual income sources have been added
+            {hasBankData
+              ? " — your bank income above is tracked automatically."
+              : "."}
           </div>
         ) : (
           <div
@@ -92,8 +112,8 @@ export default function Income({ store, add, remove }) {
           >
             {income.map((item, index) => {
               const percentage =
-                totalIncome > 0
-                  ? (Number(item.amount) / totalIncome) * 100
+                manualTotalIncome > 0
+                  ? (Number(item.amount) / manualTotalIncome) * 100
                   : 0
 
               return (
@@ -175,6 +195,13 @@ export default function Income({ store, add, remove }) {
       </Card>
 
       <Card title="Add Income Source" icon="➕">
+        <div
+          style={{ color: "var(--subtext)", fontSize: 13, marginBottom: 12 }}
+        >
+          {hasBankData
+            ? "Use this for income that doesn't go through your linked bank (cash, side gigs, etc.) — your bank income is already tracked automatically above."
+            : "Add your income sources manually until a bank is linked."}
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault()
