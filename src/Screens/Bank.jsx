@@ -106,9 +106,7 @@ export default function Bank({ store, add, remove, update }) {
     )
     .reduce((sum, t) => sum + Math.abs(t.amount), 0)
 
-  const visibleTransactions = txExpanded
-    ? bankTransactions
-    : bankTransactions.slice(0, 5)
+  const visibleTransactions = txExpanded ? bankTransactions : []
 
   return (
     <Page title="Bank Accounts">
@@ -270,6 +268,25 @@ export default function Bank({ store, add, remove, update }) {
               gap: "var(--space-2)"
             }}
           >
+            <button
+              onClick={() => setTxExpanded((v) => !v)}
+              style={{
+                background: "transparent",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius)",
+                color: "var(--accent)",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+                padding: "8px 12px",
+                textAlign: "left"
+              }}
+            >
+              {txExpanded
+                ? "Hide transactions ▲"
+                : `Show ${bankTransactions.length} transactions ▼`}
+            </button>
+
             {visibleTransactions.map((t) => {
               const category = resolveCategory(t, categoryOverrides)
               return (
@@ -348,26 +365,6 @@ export default function Bank({ store, add, remove, update }) {
                 </div>
               )
             })}
-
-            {bankTransactions.length > 5 && (
-              <button
-                onClick={() => setTxExpanded((v) => !v)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "var(--accent)",
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: "pointer",
-                  padding: "8px 0 0",
-                  textAlign: "left"
-                }}
-              >
-                {txExpanded
-                  ? "Show less ▲"
-                  : `Show all ${bankTransactions.length} transactions ▼`}
-              </button>
-            )}
           </div>
         </Card>
       )}
