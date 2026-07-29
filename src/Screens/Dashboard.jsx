@@ -143,42 +143,86 @@ export default function Dashboard({ store, update }) {
         )
       : 0
 
-  const attackPlan = store.attackPlan || {
-    debtTidyUp: false,
-    spendingReset: false,
-    depositBoost: false
-  }
+  // September Attack (generically: "this month's attack") is now
+  // auto-tracked from real numbers instead of manual checkboxes.
+  // A baseline (debt + deposit balance) is captured the first time the
+  // app is opened in a new calendar month, then each step compares
+  // today's numbers against that baseline for the rest of the month.
+  const currentMonthKey = new Date().toISOString().slice(0, 7)
+  const storedAttackPlan = store.attackPlan || {}
+  const needsNewBaseline = storedAttackPlan.monthKey !== currentMonthKey
+
+  useEffect(() => {
+    if (needsNewBaseline && typeof update === "function") {
+      update("attackPlan", {
+        monthKey: currentMonthKey,
+        baselineDebt: debtTotal,
+        baselineDeposit: depositSaved
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMonthKey])
+
+  const baselineDebt = needsNewBaseline
+    ? debtTotal
+    : storedAttackPlan.baselineDebt
+  const baselineDeposit = needsNewBaseline
+    ? depositSaved
+    : storedAttackPlan.baselineDeposit
+
+  // "Spending reset" compares this month's non-essential spend against
+  // last month's, both computed from real bank transactions.
+  const prevMonthDate = new Date()
+  prevMonthDate.setMonth(prevMonthDate.getMonth() - 1)
+  const prevMonthKey = prevMonthDate.toISOString().slice(0, 7)
+
+  const wastedThisMonth = bankTransactions
+    .filter((t) => t.amount < 0)
+    .filter((t) => (t.date || "").slice(0, 7) === currentMonthKey)
+    .filter((t) => resolveCategory(t, categoryOverrides) === "discretionary")
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+
+  const wastedPrevMonth = bankTransactions
+    .filter((t) => t.amount < 0)
+    .filter((t) => (t.date || "").slice(0, 7) === prevMonthKey)
+    .filter((t) => resolveCategory(t, categoryOverrides) === "discretionary")
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
 
   const attackSteps = [
     {
       key: "debtTidyUp",
       title: "Debt tidy‑up",
-      description: "Hit highest‑interest first."
+      description:
+        hasBankData || debtTotal > 0
+          ? `£${debtTotal.toLocaleString()} now vs £${baselineDebt.toLocaleString()} on the 1st`
+          : "Hit highest‑interest first.",
+      done: hasBankData && debtTotal < baselineDebt
     },
     {
       key: "spendingReset",
       title: "Spending reset",
-      description: "Trim non‑essentials."
+      description:
+        wastedPrevMonth > 0
+          ? `£${wastedThisMonth.toLocaleString()} wasted this month vs £${wastedPrevMonth.toLocaleString()} last month`
+          : "Trim non‑essentials.",
+      done: wastedPrevMonth > 0 && wastedThisMonth < wastedPrevMonth
     },
     {
       key: "depositBoost",
       title: "Deposit boost",
-      description: "Funnel surplus into house."
+      description:
+        hasBankData || depositSaved > 0
+          ? `£${depositSaved.toLocaleString()} now vs £${baselineDeposit.toLocaleString()} on the 1st`
+          : "Funnel surplus into house.",
+      done: depositSaved > baselineDeposit
     }
   ]
 
-  const doneCount = attackSteps.filter(
-    (step) => attackPlan[step.key]
-  ).length
+  const doneCount = attackSteps.filter((step) => step.done).length
 
   const plannerPercent = Math.round(
     (doneCount / attackSteps.length) * 100
   )
-
-  const toggleAttackStep = (key) => {
-    if (!update) return
-    update(`attackPlan.${key}`, !attackPlan[key])
-  }
 
   const safeRate =
     incomeTotal > 0
@@ -1002,15 +1046,13 @@ export default function Dashboard({ store, update }) {
               }}
             >
               {attackSteps.map((step) => {
-                const done = attackPlan[step.key]
+                const done = step.done
                 return (
                   <div
                     key={step.key}
-                    onClick={() => toggleAttackStep(step.key)}
                     style={{
                       padding: 8,
                       borderRadius: 9,
-                      cursor: "pointer",
                       background: done
                         ? "rgba(255,138,0,0.12)"
                         : "rgba(15,23,42,0.9)",
