@@ -744,7 +744,7 @@ export default function Dashboard({ store, update }) {
           <StatCard
             title="Savings"
             icon="🏦"
-            value={`£${savingsTotal.toLocaleString()}`}
+            value={`£${cashCushion.toLocaleString()}`}
             colour="var(--accent)"
             subtitle="Cash savings"
           />
