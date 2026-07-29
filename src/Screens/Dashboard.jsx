@@ -227,6 +227,10 @@ export default function Dashboard({ store, update }) {
           <HeroBanner
             title="Welcome back, Shirzad 👋"
             subtitle="Stay on top of your money with a clear, calm overview."
+            currentFocusLabel="September Attack"
+            currentFocusPercent={plannerPercent}
+            goalLabel="Buy My Home 🏡"
+            goalPercent={depositPercent}
           />
 
           <div style={{ marginTop: wide ? 16 : 12 }}>
