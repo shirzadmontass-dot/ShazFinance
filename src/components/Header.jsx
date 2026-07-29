@@ -1,4 +1,75 @@
-export default function Header({ screen, user, onSignOut, onMenuClick }) {
+import { useState } from "react"
+import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
+import { resolveCategory } from "../utils/categorize.js"
+import AICoach from "./AICoach.jsx"
+
+function buildFinancialSummary(store) {
+  if (!store) return {}
+
+  const bankAccounts = store.bankAccounts || []
+  const bankTransactions = store.bankTransactions || []
+  const accountRoles = store.accountRoles || {}
+  const categoryOverrides = store.categoryOverrides || {}
+  const hasBankData = bankTransactions.length > 0
+
+  const monthly = hasBankData
+    ? computeMonthlyFigures(bankTransactions, accountRoles)
+    : { income: 0, commitments: 0, expenses: 0 }
+
+  const wastedOnNonEssentials = bankTransactions
+    .filter((t) => t.amount < 0)
+    .filter((t) => resolveCategory(t, categoryOverrides) === "discretionary")
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+
+  const savingsTotal = (store.savings || []).reduce(
+    (sum, s) => sum + Number(s.balance || 0),
+    0
+  )
+  const linkedSavingsBalance = bankAccounts
+    .filter((a) => a.type === "SAVINGS")
+    .filter((a) => {
+      const role = accountRoles[a.id]
+      return role !== "house" && role !== "kids"
+    })
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+  const cashCushion = savingsTotal + linkedSavingsBalance
+
+  const transactionAccountsBalance = bankAccounts
+    .filter((a) => a.type !== "SAVINGS")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+  const moneyLeft = hasBankData
+    ? transactionAccountsBalance
+    : monthly.income - monthly.commitments - monthly.expenses
+
+  const debtTotal = (store.debts || []).reduce(
+    (sum, d) => sum + Number(d.balance || 0),
+    0
+  )
+  const investmentsTotal = (store.investments || []).reduce(
+    (sum, i) => sum + Number(i.balance || 0),
+    0
+  )
+  const linkedHouseBalance = bankAccounts
+    .filter((a) => accountRoles[a.id] === "house")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+
+  return {
+    monthlyIncome: monthly.income,
+    monthlyCommitments: monthly.commitments,
+    monthlyExpenses: monthly.expenses,
+    moneyLeft,
+    cashCushion,
+    wastedOnNonEssentials,
+    debtTotal,
+    investmentsTotal,
+    houseDepositSaved: Number(store.deposit?.current || 0) + linkedHouseBalance,
+    houseDepositTarget: Number(store.deposit?.target || 25000)
+  }
+}
+
+export default function Header({ screen, user, onSignOut, onMenuClick, store }) {
+  const [aiOpen, setAiOpen] = useState(false)
+
   const today = new Date()
   const initial = user?.email ? user.email[0].toUpperCase() : "S"
 
@@ -91,15 +162,59 @@ export default function Header({ screen, user, onSignOut, onMenuClick }) {
         {screen}
       </div>
 
-      {/* Right: bell, settings, avatar */}
+      {/* Right: AI coach, bell, settings, avatar */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-end",
-          gap: "12px"
+          gap: "12px",
+          position: "relative"
         }}
       >
+        <button
+          className="header-icon-btn"
+          onClick={() => setAiOpen((v) => !v)}
+          title="AI Savings Coach"
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "12px",
+            border: aiOpen
+              ? "1px solid var(--accent)"
+              : "1px solid transparent",
+            background: aiOpen ? "rgba(255,138,0,0.15)" : "#1B263B",
+            color: "white",
+            fontSize: "18px",
+            cursor: "pointer"
+          }}
+        >
+          🤖
+        </button>
+
+        {aiOpen && (
+          <div
+            style={{
+              position: "absolute",
+              top: "calc(100% + 10px)",
+              right: 0,
+              width: 340,
+              maxWidth: "calc(100vw - 32px)",
+              background: "#131A2B",
+              border: "1px solid var(--border)",
+              borderRadius: 14,
+              padding: 16,
+              boxShadow: "0 12px 30px rgba(0,0,0,0.4)",
+              zIndex: 60
+            }}
+          >
+            <AICoach
+              summary={buildFinancialSummary(store)}
+              onClose={() => setAiOpen(false)}
+            />
+          </div>
+        )}
+
         <button
           className="header-icon-btn"
           style={{

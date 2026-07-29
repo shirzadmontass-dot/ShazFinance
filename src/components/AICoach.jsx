@@ -1,12 +1,13 @@
 import { useState } from "react"
 import { supabase } from "../supabase"
 
-export default function AICoach({ summary, wide = true }) {
+// Renders just the panel content (insights button / chat) — the
+// header decides when it's shown and where it's positioned.
+export default function AICoach({ summary, onClose }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [open, setOpen] = useState(false)
 
   async function callCoach(newMessages) {
     setLoading(true)
@@ -37,7 +38,6 @@ export default function AICoach({ summary, wide = true }) {
   }
 
   function getInsights() {
-    setOpen(true)
     callCoach([])
   }
 
@@ -49,77 +49,13 @@ export default function AICoach({ summary, wide = true }) {
     callCoach(newMessages)
   }
 
-  // Collapsed state: a slim bar, not a full card — reads more like a
-  // toolbar prompt than a big empty box.
-  if (!open) {
-    return (
-      <div
-        onClick={getInsights}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 10,
-          padding: wide ? "12px 16px" : "10px 12px",
-          borderRadius: 14,
-          background:
-            "linear-gradient(135deg, rgba(255,138,0,0.12), rgba(255,61,127,0.08))",
-          border: "1px solid rgba(255,138,0,0.3)",
-          cursor: "pointer",
-          flexWrap: "wrap"
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            minWidth: 0
-          }}
-        >
-          <span style={{ fontSize: wide ? 20 : 18 }}>🤖</span>
-          <span
-            style={{
-              fontSize: wide ? 14 : 13,
-              fontWeight: 600,
-              color: "var(--text)",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis"
-            }}
-          >
-            Ask your AI savings coach
-          </span>
-        </div>
-        <span
-          style={{
-            fontSize: wide ? 13 : 12,
-            fontWeight: 700,
-            color: "var(--accent)",
-            whiteSpace: "nowrap"
-          }}
-        >
-          {loading ? "Thinking…" : "Get insights →"}
-        </span>
-      </div>
-    )
-  }
-
   return (
-    <div
-      style={{
-        borderRadius: 14,
-        background: "#131A2B",
-        border: "1px solid var(--border)",
-        padding: wide ? 16 : 12
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 10
+          alignItems: "center"
         }}
       >
         <div
@@ -127,24 +63,50 @@ export default function AICoach({ summary, wide = true }) {
             display: "flex",
             alignItems: "center",
             gap: 8,
-            fontSize: wide ? 14 : 13,
+            fontSize: 14,
             fontWeight: 700
           }}
         >
           🤖 AI Savings Coach
         </div>
-        <span
-          onClick={() => setOpen(false)}
-          style={{
-            cursor: "pointer",
-            color: "var(--subtext)",
-            fontSize: 12,
-            fontWeight: 600
-          }}
-        >
-          Close ✕
-        </span>
+        {onClose && (
+          <span
+            onClick={onClose}
+            style={{
+              cursor: "pointer",
+              color: "var(--subtext)",
+              fontSize: 12,
+              fontWeight: 600
+            }}
+          >
+            Close ✕
+          </span>
+        )}
       </div>
+
+      {messages.length === 0 && !loading && (
+        <>
+          <div style={{ color: "var(--subtext)", fontSize: 13 }}>
+            Get a quick read on your spending, or ask a specific question.
+          </div>
+          <button
+            onClick={getInsights}
+            style={{
+              background: "var(--accent)",
+              border: "none",
+              padding: "9px 14px",
+              borderRadius: 10,
+              color: "white",
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: "pointer",
+              alignSelf: "flex-start"
+            }}
+          >
+            Get insights on my spending
+          </button>
+        </>
+      )}
 
       {messages.length > 0 && (
         <div
@@ -152,8 +114,7 @@ export default function AICoach({ summary, wide = true }) {
             display: "flex",
             flexDirection: "column",
             gap: 8,
-            marginBottom: 10,
-            maxHeight: wide ? 360 : 280,
+            maxHeight: 320,
             overflowY: "auto"
           }}
         >
@@ -168,7 +129,7 @@ export default function AICoach({ summary, wide = true }) {
                 background: m.role === "user" ? "var(--accent)" : "#0f172a",
                 color: m.role === "user" ? "white" : "var(--text)",
                 whiteSpace: "pre-wrap",
-                fontSize: wide ? 13 : 12.5,
+                fontSize: 13,
                 lineHeight: 1.4
               }}
             >
@@ -179,52 +140,50 @@ export default function AICoach({ summary, wide = true }) {
       )}
 
       {loading && (
-        <div style={{ color: "var(--subtext)", fontSize: 12, marginBottom: 8 }}>
-          Thinking…
-        </div>
+        <div style={{ color: "var(--subtext)", fontSize: 12 }}>Thinking…</div>
       )}
 
       {error && (
-        <div style={{ color: "#EF4444", fontSize: 12, marginBottom: 8 }}>
-          {error}
-        </div>
+        <div style={{ color: "#EF4444", fontSize: 12 }}>{error}</div>
       )}
 
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Ask a follow-up question…"
-          style={{
-            flex: "1 1 160px",
-            padding: "8px 10px",
-            borderRadius: 10,
-            border: "1px solid var(--border)",
-            background: "var(--bg)",
-            color: "var(--text)",
-            fontSize: 13,
-            minWidth: 0
-          }}
-        />
-        <button
-          onClick={sendMessage}
-          disabled={loading}
-          style={{
-            background: "var(--accent)",
-            border: "none",
-            padding: "8px 14px",
-            borderRadius: 10,
-            color: "white",
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: loading ? "default" : "pointer",
-            opacity: loading ? 0.6 : 1
-          }}
-        >
-          Send
-        </button>
-      </div>
+      {messages.length > 0 && (
+        <div style={{ display: "flex", gap: 6 }}>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            placeholder="Ask a follow-up…"
+            style={{
+              flex: 1,
+              padding: "8px 10px",
+              borderRadius: 10,
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+              color: "var(--text)",
+              fontSize: 13,
+              minWidth: 0
+            }}
+          />
+          <button
+            onClick={sendMessage}
+            disabled={loading}
+            style={{
+              background: "var(--accent)",
+              border: "none",
+              padding: "8px 14px",
+              borderRadius: 10,
+              color: "white",
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: loading ? "default" : "pointer",
+              opacity: loading ? 0.6 : 1
+            }}
+          >
+            Send
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -139,6 +139,7 @@ export default function App() {
         user={user}
         onSignOut={signOut}
         onMenuClick={toggleSidebar}
+        store={store}
       />
 
       <div
