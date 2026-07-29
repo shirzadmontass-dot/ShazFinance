@@ -71,7 +71,7 @@ export default function Dashboard({ store, update }) {
   // transaction data (with recurring-payment detection) instead of manual
   // entries. Manual entries still work as a fallback if no bank is linked.
   const bankFigures = hasBankData
-    ? computeMonthlyFigures(bankTransactions)
+    ? computeMonthlyFigures(bankTransactions, store.accountRoles || {})
     : null
 
   const incomeTotal = hasBankData ? bankFigures.income : manualIncomeTotal
@@ -82,12 +82,25 @@ export default function Dashboard({ store, update }) {
     ? bankFigures.expenses
     : manualExpensesTotal
 
-  // Real linked savings-type accounts, added on top of manually entered savings
+  const accountRoles = store.accountRoles || {}
+
+  // Cash Cushion = genuine free-and-clear savings only. Money already
+  // earmarked for the house deposit or kids' savings isn't part of your
+  // safety net — it's spoken for, so it's excluded here and counted
+  // against those specific goals instead.
   const linkedSavingsBalance = bankAccounts
     .filter((a) => a.type === "SAVINGS")
+    .filter((a) => {
+      const role = accountRoles[a.id]
+      return role !== "house" && role !== "kids"
+    })
     .reduce((sum, a) => sum + Number(a.balance || 0), 0)
 
   const cashCushion = savingsTotal + linkedSavingsBalance
+
+  const linkedHouseDepositBalance = bankAccounts
+    .filter((a) => accountRoles[a.id] === "house")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
 
   const wastedOnNonEssentials = bankTransactions
     .filter((t) => t.amount < 0)
@@ -106,7 +119,10 @@ export default function Dashboard({ store, update }) {
       0
     )
 
-  const depositSaved = Number(store.deposit?.current || 0)
+  // House deposit progress now includes any bank pot you've tagged
+  // "House Deposit" (e.g. a LISA), on top of whatever's entered manually.
+  const depositSaved =
+    Number(store.deposit?.current || 0) + linkedHouseDepositBalance
   const depositTarget = Number(store.deposit?.target || 25000)
 
   // Money Left = real spendable balance right now — current/transaction

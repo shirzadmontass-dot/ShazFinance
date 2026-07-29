@@ -16,6 +16,7 @@ export default function Bank({ store, add, remove, update }) {
   const linkedAccounts = store?.bankAccounts || []
   const bankTransactions = store?.bankTransactions || []
   const categoryOverrides = store?.categoryOverrides || {}
+  const accountRoles = store?.accountRoles || {}
 
   async function runSync(showSpinner = true) {
     if (showSpinner) setSyncing(true)
@@ -85,6 +86,13 @@ export default function Bank({ store, add, remove, update }) {
     update(`categoryOverrides.${key}`, category)
   }
 
+  function setAccountRole(accountId, role) {
+    if (typeof update !== "function") return
+    // Tap the same role again to clear it back to untagged.
+    const current = accountRoles[accountId]
+    update(`accountRoles.${accountId}`, current === role ? null : role)
+  }
+
   if (!store) return null
 
   const manualAccounts = store.bank || []
@@ -99,6 +107,13 @@ export default function Bank({ store, add, remove, update }) {
   )
   const total = manualTotal + linkedTotal
 
+  const groupedAccounts = linkedAccounts.reduce((groups, acc) => {
+    const bankName = acc.bankName || "Bank account"
+    if (!groups[bankName]) groups[bankName] = []
+    groups[bankName].push(acc)
+    return groups
+  }, {})
+
   const discretionaryTotal = bankTransactions
     .filter((t) => t.amount < 0)
     .filter(
@@ -106,7 +121,22 @@ export default function Bank({ store, add, remove, update }) {
     )
     .reduce((sum, t) => sum + Math.abs(t.amount), 0)
 
-  const visibleTransactions = txExpanded ? bankTransactions : []
+  // Round-up/pot transfers (e.g. Monzo's "Transfer to Pot" round-ups) are
+  // real but tiny and numerous — folding them into one summary line keeps
+  // the list readable and focused on actual spending.
+  const isRoundUpTransfer = (t) =>
+    /transfer (to|from) pot|round[\s-]?up/i.test(t.description || "")
+
+  const regularTransactions = bankTransactions.filter(
+    (t) => !isRoundUpTransfer(t)
+  )
+  const roundUpTransactions = bankTransactions.filter(isRoundUpTransfer)
+  const roundUpTotal = roundUpTransactions.reduce(
+    (sum, t) => sum + Math.abs(t.amount),
+    0
+  )
+
+  const visibleTransactions = txExpanded ? regularTransactions : []
 
   return (
     <Page title="Bank Accounts">
@@ -148,7 +178,9 @@ export default function Bank({ store, add, remove, update }) {
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "center"
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 8
               }}
             >
               {store.bankLastSynced && (
@@ -185,14 +217,14 @@ export default function Bank({ store, add, remove, update }) {
                     border: "1px solid var(--border)",
                     padding: "6px 12px",
                     borderRadius: "var(--radius)",
-                    color: "var(--subtext)",
+                    color: "var(--accent)",
                     cursor: connecting ? "default" : "pointer",
                     fontSize: 13,
                     fontWeight: 600,
                     opacity: connecting ? 0.6 : 1
                   }}
                 >
-                  {connecting ? "Redirecting…" : "Reconnect"}
+                  {connecting ? "Redirecting…" : "+ Connect another bank"}
                 </button>
               </div>
             </div>
@@ -200,28 +232,104 @@ export default function Bank({ store, add, remove, update }) {
             {syncError && (
               <div style={{ color: "#EF4444", fontSize: 12 }}>
                 {syncError === "No bank connected yet"
-                  ? "Sync can't run yet — click \"Reconnect\" above and log into your bank once more to enable it."
+                  ? "Sync can't run yet — click \"+ Connect another bank\" above and log into your bank once more to enable it."
                   : syncError}
               </div>
             )}
 
-            {linkedAccounts.map((acc) => (
+            {Object.entries(groupedAccounts).map(([bankName, accounts]) => (
               <div
-                key={acc.id}
+                key={bankName}
                 style={{
-                  padding: "var(--space-2)",
-                  background: "var(--bg)",
-                  borderRadius: "var(--radius)",
-                  border: "1px solid var(--border)",
                   display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center"
+                  flexDirection: "column",
+                  gap: 6
                 }}
               >
-                <div style={{ fontWeight: 600 }}>{acc.name}</div>
-                <div style={{ color: "var(--accent)", fontWeight: 700 }}>
-                  £{Number(acc.balance).toLocaleString()}
+                <div
+                  style={{
+                    fontSize: 12,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.05,
+                    color: "var(--subtext)",
+                    marginTop: 6
+                  }}
+                >
+                  {bankName}
                 </div>
+
+                {accounts.map((acc) => {
+                  const role = accountRoles[acc.id]
+                  return (
+                    <div
+                      key={acc.id}
+                      style={{
+                        padding: "var(--space-2)",
+                        background: "var(--bg)",
+                        borderRadius: "var(--radius)",
+                        border: "1px solid var(--border)",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: 8
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{acc.name}</div>
+                        <div
+                          style={{
+                            marginTop: 4,
+                            display: "flex",
+                            gap: 6,
+                            flexWrap: "wrap"
+                          }}
+                        >
+                          {(acc.type === "SAVINGS"
+                            ? [
+                                ["house", "House Deposit"],
+                                ["kids", "Kids"],
+                                ["general", "General"]
+                              ]
+                            : [
+                                ["spending", "Spending"],
+                                ["bills", "Bills"]
+                              ]
+                          ).map(([value, label]) => (
+                            <button
+                              key={value}
+                              onClick={() => setAccountRole(acc.id, value)}
+                              style={{
+                                cursor: "pointer",
+                                padding: "2px 10px",
+                                borderRadius: 999,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                background:
+                                  role === value
+                                    ? "rgba(255,138,0,0.15)"
+                                    : "transparent",
+                                color:
+                                  role === value
+                                    ? "var(--accent)"
+                                    : "var(--subtext)",
+                                border:
+                                  role === value
+                                    ? "1px solid var(--accent)"
+                                    : "1px solid var(--border)"
+                              }}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ color: "var(--accent)", fontWeight: 700 }}>
+                        £{Number(acc.balance).toLocaleString()}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             ))}
           </div>

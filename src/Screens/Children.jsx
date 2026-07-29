@@ -5,21 +5,37 @@ export default function Children({ store, update }) {
   if (!store) return null
 
   const children = store.children || []
+  const bankAccounts = store.bankAccounts || []
+  const accountRoles = store.accountRoles || {}
 
-  const totalSavings = children.reduce(
+  // Any bank pot you've tagged "Kids" (e.g. a Junior ISA pot) counts
+  // towards the total alongside manually tracked children.
+  const linkedKidsAccounts = bankAccounts.filter(
+    (a) => accountRoles[a.id] === "kids"
+  )
+  const linkedKidsTotal = linkedKidsAccounts.reduce(
+    (sum, a) => sum + Number(a.balance || 0),
+    0
+  )
+
+  const manualTotal = children.reduce(
     (sum, child) => sum + Number(child.balance || 0),
     0
   )
 
-  const averageSavings =
-    children.length > 0
-      ? Math.round(totalSavings / children.length)
-      : 0
+  const totalSavings = manualTotal + linkedKidsTotal
 
-  const largestSavings =
-    children.length > 0
-      ? Math.max(...children.map((c) => Number(c.balance || 0)))
-      : 0
+  const allEntryCount = children.length + linkedKidsAccounts.length
+
+  const averageSavings =
+    allEntryCount > 0 ? Math.round(totalSavings / allEntryCount) : 0
+
+  const allBalances = [
+    ...children.map((c) => Number(c.balance || 0)),
+    ...linkedKidsAccounts.map((a) => Number(a.balance || 0))
+  ]
+
+  const largestSavings = allBalances.length > 0 ? Math.max(...allBalances) : 0
 
   return (
     <Page title="Children's Savings">
@@ -38,7 +54,7 @@ export default function Children({ store, update }) {
               fontWeight: 800
             }}
           >
-            {children.length}
+            {allEntryCount}
           </div>
         </Card>
 
@@ -52,6 +68,14 @@ export default function Children({ store, update }) {
           >
             £{totalSavings.toLocaleString()}
           </div>
+          {linkedKidsTotal > 0 && (
+            <div
+              style={{ color: "var(--subtext)", fontSize: 13, marginTop: 4 }}
+            >
+              Includes £{linkedKidsTotal.toLocaleString()} from linked bank
+              pots
+            </div>
+          )}
         </Card>
 
         <Card title="Average Balance" icon="📊">
@@ -77,10 +101,56 @@ export default function Children({ store, update }) {
         </Card>
       </div>
 
-      <Card title="Junior ISA Accounts" icon="🧒">
+      {linkedKidsAccounts.length > 0 && (
+        <Card title="Linked Kids Savings (from your bank)" icon="🏦">
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 16
+            }}
+          >
+            {linkedKidsAccounts.map((acc) => (
+              <div
+                key={acc.id}
+                style={{
+                  background: "#162032",
+                  border: "1px solid var(--border)",
+                  borderRadius: 16,
+                  padding: 18,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 18 }}>
+                    {acc.name}
+                  </div>
+                  <div style={{ color: "var(--subtext)", marginTop: 4 }}>
+                    {acc.bankName || "Linked bank"}
+                  </div>
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 18 }}>
+                  £{Number(acc.balance).toLocaleString()}
+                </div>
+              </div>
+            ))}
+            <div style={{ color: "var(--subtext)", fontSize: 13 }}>
+              Tag a savings account "Kids" on the Bank page to have it show
+              up here automatically.
+            </div>
+          </div>
+        </Card>
+      )}
+
+      <Card title="Junior ISA Accounts (manually tracked)" icon="🧒">
         {children.length === 0 ? (
           <div style={{ color: "var(--subtext)" }}>
-            No children have been added.
+            No manually tracked children have been added
+            {linkedKidsAccounts.length > 0
+              ? " — your linked bank pots above are already counted."
+              : "."}
           </div>
         ) : (
           <div
@@ -92,8 +162,8 @@ export default function Children({ store, update }) {
           >
             {children.map((child, index) => {
               const percentage =
-                totalSavings > 0
-                  ? (Number(child.balance) / totalSavings) * 100
+                manualTotal > 0
+                  ? (Number(child.balance) / manualTotal) * 100
                   : 0
 
               return (
@@ -179,6 +249,11 @@ export default function Children({ store, update }) {
       </Card>
 
       <Card title="Add Child" icon="➕">
+        <div
+          style={{ color: "var(--subtext)", fontSize: 13, marginBottom: 12 }}
+        >
+          Use this for savings not tracked through a linked bank pot.
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault()
