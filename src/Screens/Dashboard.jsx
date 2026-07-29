@@ -230,6 +230,25 @@ export default function Dashboard({ store, update }) {
             subtitle="Stay on top of your money with a clear, calm overview."
           />
 
+          <div style={{ marginTop: wide ? 14 : 10 }}>
+            <AICoach
+              wide={wide}
+              summary={{
+                monthlyIncome: incomeTotal,
+                monthlyCommitments: commitmentsTotal,
+                monthlyExpenses: expensesTotal,
+                moneyLeft: leftover,
+                savingsRatePercent: safeRate,
+                cashCushion,
+                wastedOnNonEssentials,
+                debtTotal,
+                investmentsTotal,
+                houseDepositSaved: depositSaved,
+                houseDepositTarget: depositTarget
+              }}
+            />
+          </div>
+
           <div style={{ marginTop: wide ? 16 : 12 }}>
             <NetWorthCard store={store} split={wide} />
           </div>
@@ -1069,24 +1088,6 @@ export default function Dashboard({ store, update }) {
             </div>
           </Card>
         </div>
-      </Section>
-
-      <Section>
-        <AICoach
-          summary={{
-            monthlyIncome: incomeTotal,
-            monthlyCommitments: commitmentsTotal,
-            monthlyExpenses: expensesTotal,
-            moneyLeft: leftover,
-            savingsRatePercent: safeRate,
-            cashCushion,
-            wastedOnNonEssentials,
-            debtTotal,
-            investmentsTotal,
-            houseDepositSaved: depositSaved,
-            houseDepositTarget: depositTarget
-          }}
-        />
       </Section>
 
     </Page>
