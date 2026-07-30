@@ -107,17 +107,25 @@ export default function Dashboard({ store, update }) {
     .filter((t) => resolveCategory(t, categoryOverrides) === "discretionary")
     .reduce((sum, t) => sum + Math.abs(t.amount), 0)
 
+  const linkedCreditOwed = bankAccounts
+    .filter((a) => a.type === "CREDIT_CARD")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+
   const debtTotal =
     (store.debts || []).reduce(
       (t, d) => t + Number(d.balance || 0),
       0
-    )
+    ) + linkedCreditOwed
+
+  const linkedInvestmentTotal = bankAccounts
+    .filter((a) => a.type === "INVESTMENT")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
 
   const investmentsTotal =
     (store.investments || []).reduce(
       (t, i) => t + Number(i.balance || 0),
       0
-    )
+    ) + linkedInvestmentTotal
 
   // House deposit progress now includes any bank pot you've tagged
   // "House Deposit" (e.g. a LISA), on top of whatever's entered manually.
@@ -125,10 +133,11 @@ export default function Dashboard({ store, update }) {
     Number(store.deposit?.current || 0) + linkedHouseDepositBalance
   const depositTarget = Number(store.deposit?.target || 25000)
 
-  // Money Left = real spendable balance right now — current/transaction
-  // accounts only, savings excluded (that's what Cash Cushion is for).
+  // Money Left = real spendable balance right now — plain current/
+  // transaction accounts only. Savings, credit cards, and investments
+  // are all excluded (each has its own place elsewhere on the dashboard).
   const transactionAccountsBalance = bankAccounts
-    .filter((a) => a.type !== "SAVINGS")
+    .filter((a) => a.type === "TRANSACTION")
     .reduce((sum, a) => sum + Number(a.balance || 0), 0)
 
   const leftover = hasBankData

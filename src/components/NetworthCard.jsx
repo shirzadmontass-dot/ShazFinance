@@ -12,19 +12,27 @@ function computeFigures(store) {
     0
   )
   const deposit = Number(store.deposit?.current || 0)
-  const debts = (store.debts || []).reduce(
+  const manualDebts = (store.debts || []).reduce(
     (sum, item) => sum + Number(item.balance || 0),
     0
   )
 
-  // Real money sitting in linked bank accounts (current + savings) counts
-  // as an asset too, on top of anything entered manually.
-  const linkedBankTotal = (store.bankAccounts || []).reduce(
-    (sum, item) => sum + Number(item.balance || 0),
-    0
-  )
+  const bankAccounts = store.bankAccounts || []
 
-  const assets = savings + investments + deposit + linkedBankTotal
+  // Real money sitting in linked bank/investment accounts counts as an
+  // asset too, on top of anything entered manually — except credit cards
+  // and Klarna/BNPL, which represent money owed, not money you have.
+  const linkedAssetTotal = bankAccounts
+    .filter((a) => a.type !== "CREDIT_CARD")
+    .reduce((sum, item) => sum + Number(item.balance || 0), 0)
+
+  const linkedCreditOwed = bankAccounts
+    .filter((a) => a.type === "CREDIT_CARD")
+    .reduce((sum, item) => sum + Number(item.balance || 0), 0)
+
+  const debts = manualDebts + linkedCreditOwed
+
+  const assets = savings + investments + deposit + linkedAssetTotal
   const netWorth = assets - debts
 
   // Component 1: debt-to-assets — how much of what you own is actually
@@ -39,7 +47,7 @@ function computeFigures(store) {
   const hasBankData = bankTransactions.length > 0
 
   const monthly = hasBankData
-    ? computeMonthlyFigures(bankTransactions)
+    ? computeMonthlyFigures(bankTransactions, store.accountRoles || {})
     : { income: 0, commitments: 0, expenses: 0 }
 
   const wasted = bankTransactions

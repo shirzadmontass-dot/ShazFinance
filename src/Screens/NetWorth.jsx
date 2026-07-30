@@ -36,17 +36,22 @@ export default function NetWorth({ store }) {
       ? store.deposit
       : Number(store.deposit?.current || 0)
 
-  const debtTotal =
+  const manualDebtTotal =
     debts.length > 0
       ? debts.reduce((sum, d) => sum + (d.balance || 0), 0)
       : 0
 
-  // Real money sitting in linked bank accounts — current + savings — counts
-  // as an asset too, on top of anything entered manually.
-  const linkedBankTotal = bankAccounts.reduce(
-    (sum, a) => sum + Number(a.balance || 0),
-    0
-  )
+  // Real money sitting in linked accounts counts as an asset too — except
+  // credit cards / Klarna, which are money owed, counted as debt instead.
+  const linkedBankTotal = bankAccounts
+    .filter((a) => a.type !== "CREDIT_CARD")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+
+  const linkedCreditOwed = bankAccounts
+    .filter((a) => a.type === "CREDIT_CARD")
+    .reduce((sum, a) => sum + Number(a.balance || 0), 0)
+
+  const debtTotal = manualDebtTotal + linkedCreditOwed
 
   const totalAssets =
     savingsTotal +

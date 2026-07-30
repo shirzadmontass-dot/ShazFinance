@@ -7,11 +7,35 @@ import { resolveCategory, normalizeMerchant } from "../utils/categorize.js"
 // How stale "last synced" has to be before we auto-refresh on page open.
 const AUTO_SYNC_AFTER_MS = 5 * 60 * 1000 // 5 minutes
 
+// Statement upload account types — for anything TrueLayer can't reach
+// (credit cards, BNPL, PayPal, a LISA, or an investment platform).
+const ACCOUNT_TYPE_META = {
+  "credit-card": { label: "Credit Card", type: "CREDIT_CARD" },
+  klarna: { label: "Klarna", type: "CREDIT_CARD" },
+  paypal: { label: "PayPal", type: "TRANSACTION" },
+  lisa: { label: "LISA", type: "SAVINGS" },
+  investment: { label: "Investment", type: "INVESTMENT" }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result.split(",")[1])
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function Bank({ store, add, remove, update }) {
   const [connecting, setConnecting] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState(null)
   const [txExpanded, setTxExpanded] = useState(false)
+
+  const [uploadType, setUploadType] = useState("credit-card")
+  const [uploadName, setUploadName] = useState("")
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState(null)
 
   const linkedAccounts = store?.bankAccounts || []
   const bankTransactions = store?.bankTransactions || []
@@ -36,9 +60,6 @@ export default function Bank({ store, add, remove, update }) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Sync failed")
 
-      // The sync endpoint writes straight to Supabase; if your store
-      // context re-fetches from Supabase on an interval or via realtime,
-      // this is enough. If not, call your store-refresh function here.
       if (typeof update === "function") {
         update("bankLastSynced", new Date().toISOString())
       }
@@ -88,9 +109,81 @@ export default function Bank({ store, add, remove, update }) {
 
   function setAccountRole(accountId, role) {
     if (typeof update !== "function") return
-    // Tap the same role again to clear it back to untagged.
     const current = accountRoles[accountId]
     update(`accountRoles.${accountId}`, current === role ? null : role)
+  }
+
+  function moveTransaction(transactionId, newAccountId) {
+    if (typeof update !== "function") return
+    const updated = bankTransactions.map((t) =>
+      t.id === transactionId ? { ...t, accountId: newAccountId } : t
+    )
+    update("bankTransactions", updated)
+  }
+
+  async function handleStatementUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+
+    setUploading(true)
+    setUploadError(null)
+
+    try {
+      const base64 = await fileToBase64(file)
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) throw new Error("Not logged in")
+
+      const res = await fetch("/api/statements/parse", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          fileBase64: base64,
+          accountType: uploadType,
+          accountName: uploadName
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to parse statement")
+
+      const meta = ACCOUNT_TYPE_META[uploadType]
+      const newAccountId = `upload-${uploadType}-${Date.now()}`
+
+      const newAccount = {
+        id: newAccountId,
+        name: uploadName.trim() || data.accountName,
+        type: meta.type,
+        balance: Number(data.closingBalance || 0),
+        currency: "GBP",
+        bankName: meta.label,
+        source: "upload"
+      }
+
+      const newTransactions = (data.transactions || []).map((t, i) => ({
+        id: `${newAccountId}-${i}-${t.date}-${t.amount}`,
+        date: t.date,
+        description: t.description,
+        amount: Number(t.amount || 0),
+        currency: "GBP",
+        accountId: newAccountId
+      }))
+
+      if (typeof update === "function") {
+        update("bankAccounts", [...linkedAccounts, newAccount])
+        update("bankTransactions", [...bankTransactions, ...newTransactions])
+      }
+
+      setUploadName("")
+    } catch (err) {
+      console.error("statement upload error:", err)
+      setUploadError(err.message || "Failed to upload statement")
+    } finally {
+      setUploading(false)
+      e.target.value = ""
+    }
   }
 
   if (!store) return null
@@ -101,11 +194,32 @@ export default function Bank({ store, add, remove, update }) {
     (sum, acc) => sum + Number(acc.balance || 0),
     0
   )
-  const linkedTotal = linkedAccounts.reduce(
+
+  // Split linked accounts by what they actually represent: real spendable
+  // cash, investments (not instantly liquid), and money owed (credit
+  // cards / Klarna) — so "Total Balance" isn't misleadingly inflated by
+  // debt, and investments aren't confused with cash on hand.
+  const cashAccounts = linkedAccounts.filter(
+    (a) => a.type !== "CREDIT_CARD" && a.type !== "INVESTMENT"
+  )
+  const investmentAccounts = linkedAccounts.filter(
+    (a) => a.type === "INVESTMENT"
+  )
+  const creditAccounts = linkedAccounts.filter(
+    (a) => a.type === "CREDIT_CARD"
+  )
+
+  const cashTotal =
+    manualTotal +
+    cashAccounts.reduce((sum, acc) => sum + Number(acc.balance || 0), 0)
+  const investmentTotal = investmentAccounts.reduce(
     (sum, acc) => sum + Number(acc.balance || 0),
     0
   )
-  const total = manualTotal + linkedTotal
+  const creditOwedTotal = creditAccounts.reduce(
+    (sum, acc) => sum + Number(acc.balance || 0),
+    0
+  )
 
   const groupedAccounts = linkedAccounts.reduce((groups, acc) => {
     const bankName = acc.bankName || "Bank account"
@@ -142,12 +256,36 @@ export default function Bank({ store, add, remove, update }) {
     <Page title="Bank Accounts">
       <Card title="Total Balance" icon="🏦">
         <div style={{ fontSize: "26px", fontWeight: "700" }}>
-          £{total.toLocaleString()}
+          £{cashTotal.toLocaleString()}
         </div>
         <div style={{ color: "var(--subtext)" }}>
-          Combined balance across all accounts
+          Cash across your current and savings accounts
         </div>
       </Card>
+
+      {investmentAccounts.length > 0 && (
+        <Card title="Investments" icon="📈">
+          <div style={{ fontSize: "26px", fontWeight: "700", color: "#38BDF8" }}>
+            £{investmentTotal.toLocaleString()}
+          </div>
+          <div style={{ color: "var(--subtext)" }}>
+            Across {investmentAccounts.length} linked investment account
+            {investmentAccounts.length > 1 ? "s" : ""} — not counted as
+            spendable cash
+          </div>
+        </Card>
+      )}
+
+      {creditAccounts.length > 0 && (
+        <Card title="Credit & BNPL owed" icon="💳">
+          <div style={{ fontSize: "26px", fontWeight: "700", color: "#EF4444" }}>
+            £{creditOwedTotal.toLocaleString()}
+          </div>
+          <div style={{ color: "var(--subtext)" }}>
+            Counted as debt, not as money you have
+          </div>
+        </Card>
+      )}
 
       {discretionaryTotal > 0 && (
         <Card title="Wasted on non-essentials" icon="🧾">
@@ -260,6 +398,20 @@ export default function Bank({ store, add, remove, update }) {
 
                 {accounts.map((acc) => {
                   const role = accountRoles[acc.id]
+                  const roleOptions =
+                    acc.type === "SAVINGS"
+                      ? [
+                          ["house", "House Deposit"],
+                          ["kids", "Kids"],
+                          ["general", "General"]
+                        ]
+                      : acc.type === "INVESTMENT"
+                      ? []
+                      : [
+                          ["spending", "Spending"],
+                          ["bills", "Bills"]
+                        ]
+
                   return (
                     <div
                       key={acc.id}
@@ -277,54 +429,54 @@ export default function Bank({ store, add, remove, update }) {
                     >
                       <div>
                         <div style={{ fontWeight: 600 }}>{acc.name}</div>
-                        <div
-                          style={{
-                            marginTop: 4,
-                            display: "flex",
-                            gap: 6,
-                            flexWrap: "wrap"
-                          }}
-                        >
-                          {(acc.type === "SAVINGS"
-                            ? [
-                                ["house", "House Deposit"],
-                                ["kids", "Kids"],
-                                ["general", "General"]
-                              ]
-                            : [
-                                ["spending", "Spending"],
-                                ["bills", "Bills"]
-                              ]
-                          ).map(([value, label]) => (
-                            <button
-                              key={value}
-                              onClick={() => setAccountRole(acc.id, value)}
-                              style={{
-                                cursor: "pointer",
-                                padding: "2px 10px",
-                                borderRadius: 999,
-                                fontSize: 11,
-                                fontWeight: 600,
-                                background:
-                                  role === value
-                                    ? "rgba(255,138,0,0.15)"
-                                    : "transparent",
-                                color:
-                                  role === value
-                                    ? "var(--accent)"
-                                    : "var(--subtext)",
-                                border:
-                                  role === value
-                                    ? "1px solid var(--accent)"
-                                    : "1px solid var(--border)"
-                              }}
-                            >
-                              {label}
-                            </button>
-                          ))}
-                        </div>
+                        {roleOptions.length > 0 && (
+                          <div
+                            style={{
+                              marginTop: 4,
+                              display: "flex",
+                              gap: 6,
+                              flexWrap: "wrap"
+                            }}
+                          >
+                            {roleOptions.map(([value, label]) => (
+                              <button
+                                key={value}
+                                onClick={() => setAccountRole(acc.id, value)}
+                                style={{
+                                  cursor: "pointer",
+                                  padding: "2px 10px",
+                                  borderRadius: 999,
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  background:
+                                    role === value
+                                      ? "rgba(255,138,0,0.15)"
+                                      : "transparent",
+                                  color:
+                                    role === value
+                                      ? "var(--accent)"
+                                      : "var(--subtext)",
+                                  border:
+                                    role === value
+                                      ? "1px solid var(--accent)"
+                                      : "1px solid var(--border)"
+                                }}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <div style={{ color: "var(--accent)", fontWeight: 700 }}>
+                      <div
+                        style={{
+                          color:
+                            acc.type === "CREDIT_CARD"
+                              ? "#EF4444"
+                              : "var(--accent)",
+                          fontWeight: 700
+                        }}
+                      >
                         £{Number(acc.balance).toLocaleString()}
                       </div>
                     </div>
@@ -365,6 +517,91 @@ export default function Bank({ store, add, remove, update }) {
             </button>
           </div>
         )}
+      </Card>
+
+      {/* Statement upload — for anything TrueLayer can't reach */}
+      <Card title="Upload a statement" icon="📎">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)"
+          }}
+        >
+          <div style={{ color: "var(--subtext)", fontSize: 13 }}>
+            For credit cards, Klarna, PayPal, a LISA, or investment accounts
+            (Trading 212, Monzo Investments, etc.) — upload a PDF statement
+            and it'll be read automatically and added alongside your linked
+            banks.
+          </div>
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <select
+              value={uploadType}
+              onChange={(e) => setUploadType(e.target.value)}
+              style={{
+                padding: "8px 10px",
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--border)",
+                background: "var(--bg)",
+                color: "var(--text)"
+              }}
+            >
+              <option value="credit-card">Credit Card</option>
+              <option value="klarna">Klarna</option>
+              <option value="paypal">PayPal</option>
+              <option value="lisa">LISA</option>
+              <option value="investment">
+                Investment (Trading 212, Monzo Investments, etc.)
+              </option>
+            </select>
+
+            <input
+              value={uploadName}
+              onChange={(e) => setUploadName(e.target.value)}
+              placeholder="Optional name, e.g. Trading 212"
+              style={{
+                flex: "1 1 160px",
+                padding: "8px 10px",
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--border)",
+                background: "var(--bg)",
+                color: "var(--text)"
+              }}
+            />
+          </div>
+
+          <label
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "10px 14px",
+              borderRadius: "var(--radius)",
+              border: "1px dashed var(--border)",
+              color: "var(--accent)",
+              fontWeight: 700,
+              cursor: uploading ? "default" : "pointer",
+              opacity: uploading ? 0.6 : 1
+            }}
+          >
+            {uploading ? "Reading statement…" : "Choose PDF statement"}
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={handleStatementUpload}
+              disabled={uploading}
+              style={{ display: "none" }}
+            />
+          </label>
+
+          {uploadError && (
+            <div style={{ color: "#EF4444", fontSize: 12 }}>
+              {uploadError}
+            </div>
+          )}
+        </div>
       </Card>
 
       {bankTransactions.length > 0 && (
@@ -413,11 +650,13 @@ export default function Bank({ store, add, remove, update }) {
                     <div style={{ fontWeight: 600 }}>{t.description}</div>
                     <div
                       style={{
+                        marginTop: 3,
                         fontSize: 12,
                         color: "var(--subtext)",
                         display: "flex",
                         gap: 6,
-                        alignItems: "center"
+                        alignItems: "center",
+                        flexWrap: "wrap"
                       }}
                     >
                       <span>{t.date}</span>
@@ -457,6 +696,29 @@ export default function Bank({ store, add, remove, update }) {
                             ? "Non-essential"
                             : "Essential"}
                         </span>
+                      )}
+                      {linkedAccounts.length > 1 && (
+                        <select
+                          value={t.accountId}
+                          onChange={(e) =>
+                            moveTransaction(t.id, e.target.value)
+                          }
+                          title="Move to a different account"
+                          style={{
+                            fontSize: 10,
+                            padding: "1px 4px",
+                            borderRadius: 6,
+                            border: "1px solid var(--border)",
+                            background: "var(--bg)",
+                            color: "var(--subtext)"
+                          }}
+                        >
+                          {linkedAccounts.map((acc) => (
+                            <option key={acc.id} value={acc.id}>
+                              {acc.name}
+                            </option>
+                          ))}
+                        </select>
                       )}
                     </div>
                   </div>
