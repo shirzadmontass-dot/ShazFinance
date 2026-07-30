@@ -443,39 +443,6 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
       >
         {privacyButton(false)}
         {aiButton(false)}
-
-        <button
-          style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "12px",
-            border: "none",
-            background: "#1B263B",
-            color: "white",
-            fontSize: "18px",
-            cursor: "pointer"
-          }}
-        >
-          🔔
-        </button>
-
-        <button
-          onClick={() => typeof setScreen === "function" && setScreen("Settings")}
-          title="Settings"
-          style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "12px",
-            border: "none",
-            background: "#1B263B",
-            color: "white",
-            fontSize: "18px",
-            cursor: "pointer"
-          }}
-        >
-          ⚙️
-        </button>
-
         {accountButton(false)}
       </div>
     </header>
