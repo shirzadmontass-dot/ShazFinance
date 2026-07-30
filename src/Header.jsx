@@ -160,7 +160,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
       <header
         style={{
           display: "grid",
-          gridTemplateColumns: "48px 1fr auto auto 44px",
+          gridTemplateColumns: "auto 1fr auto auto 44px",
           alignItems: "center",
           gap: 8,
           padding: "10px 12px",
@@ -171,21 +171,42 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
           zIndex: 50
         }}
       >
-        <button
-          onClick={onMenuClick}
+        <div
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 12,
-            border: "none",
-            background: "#1B263B",
-            color: "white",
-            fontSize: 20,
-            cursor: "pointer"
+            display: "flex",
+            alignItems: "center",
+            gap: 6
           }}
         >
-          ⋮
-        </button>
+          <button
+            onClick={onMenuClick}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              border: "none",
+              background: "#1B263B",
+              color: "white",
+              fontSize: 20,
+              cursor: "pointer",
+              flexShrink: 0
+            }}
+          >
+            ⋮
+          </button>
+
+          <img
+            src="/logo-icon.png"
+            alt="Mula"
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 7,
+              flexShrink: 0,
+              objectFit: "contain"
+            }}
+          />
+        </div>
 
         <div
           style={{
