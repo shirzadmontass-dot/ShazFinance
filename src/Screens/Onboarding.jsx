@@ -414,7 +414,7 @@ export default function Onboarding({ store, update, finish }) {
           <>
             <div>
               <h2 style={{ margin: 0, fontSize: 22 }}>
-                Welcome to ShazPlan 👋
+                Welcome to Mula 👋
               </h2>
               <p
                 style={{

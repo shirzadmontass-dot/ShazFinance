@@ -256,6 +256,51 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
           <button
             onClick={() => {
               setAccountOpen(false)
+              if (typeof setScreen === "function") setScreen("Reports")
+            }}
+            style={{
+              textAlign: "left",
+              background: "transparent",
+              border: "none",
+              padding: "10px 10px",
+              borderRadius: 8,
+              color: "var(--text)",
+              fontSize: 14,
+              cursor: "pointer"
+            }}
+          >
+            📊 Reports
+          </button>
+
+          <button
+            onClick={() => {
+              setAccountOpen(false)
+              if (typeof setScreen === "function") setScreen("Help")
+            }}
+            style={{
+              textAlign: "left",
+              background: "transparent",
+              border: "none",
+              padding: "10px 10px",
+              borderRadius: 8,
+              color: "var(--text)",
+              fontSize: 14,
+              cursor: "pointer"
+            }}
+          >
+            ❓ Help
+          </button>
+
+          <div
+            style={{
+              borderTop: "1px solid var(--border)",
+              margin: "4px 0"
+            }}
+          />
+
+          <button
+            onClick={() => {
+              setAccountOpen(false)
               if (typeof onSignOut === "function") onSignOut()
             }}
             style={{

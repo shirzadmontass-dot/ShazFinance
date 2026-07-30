@@ -6,10 +6,6 @@ const NAV_GROUPS = [
   {
     label: "Money Goals",
     items: ["Debt", "Deposit", "Savings", "Children", "Investments", "Bank"]
-  },
-  {
-    label: "Account",
-    items: ["Profile", "Settings", "Reports", "Help"]
   }
 ]
 
@@ -54,11 +50,15 @@ export default function Sidebar({
             style={{
               fontSize: 11,
               fontWeight: 700,
-              letterSpacing: "0.06em",
+              letterSpacing: "0.1em",
               textTransform: "uppercase",
               color: "var(--subtext)",
-              padding: "0 12px",
-              marginBottom: 6
+              opacity: 0.6,
+              padding: "0 12px 6px",
+              marginBottom: 4,
+              borderBottom: "1px solid var(--border)",
+              cursor: "default",
+              userSelect: "none"
             }}
           >
             {group.label}
