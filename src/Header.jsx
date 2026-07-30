@@ -69,9 +69,10 @@ function buildFinancialSummary(store) {
   }
 }
 
-export default function Header({ screen, user, onSignOut, onMenuClick, store }) {
+export default function Header({ screen, user, onSignOut, onMenuClick, store, setScreen }) {
   const isMobile = useIsMobile()
   const [aiOpen, setAiOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
   const { hideAll, toggleHideAll } = usePrivacy()
   const today = new Date()
   const initial = user?.email ? user.email[0].toUpperCase() : "S"
@@ -154,6 +155,127 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
     </div>
   )
 
+  const accountButton = (small) => (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setAccountOpen((v) => !v)}
+        title={user?.email ? `Signed in as ${user.email}` : "Account"}
+        style={{
+          width: small ? 38 : 42,
+          height: small ? 38 : 42,
+          borderRadius: "50%",
+          border: "none",
+          cursor: "pointer",
+          background: "linear-gradient(135deg,#FF8A00,#FF3D7F)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "white",
+          fontWeight: 700,
+          fontSize: small ? 15 : 16,
+          flexShrink: 0
+        }}
+      >
+        {user?.email ? user.email[0].toUpperCase() : "S"}
+      </button>
+
+      {accountOpen && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 10px)",
+            right: 0,
+            width: 240,
+            maxWidth: "calc(100vw - 24px)",
+            background: "#131A2B",
+            border: "1px solid var(--border)",
+            borderRadius: 14,
+            padding: 10,
+            boxShadow: "0 12px 30px rgba(0,0,0,0.4)",
+            zIndex: 60,
+            display: "flex",
+            flexDirection: "column",
+            gap: 4
+          }}
+        >
+          {user?.email && (
+            <div
+              style={{
+                padding: "8px 10px",
+                fontSize: 12,
+                color: "var(--subtext)",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                borderBottom: "1px solid var(--border)",
+                marginBottom: 4
+              }}
+            >
+              {user.email}
+            </div>
+          )}
+
+          <button
+            onClick={() => {
+              setAccountOpen(false)
+              if (typeof setScreen === "function") setScreen("Profile")
+            }}
+            style={{
+              textAlign: "left",
+              background: "transparent",
+              border: "none",
+              padding: "10px 10px",
+              borderRadius: 8,
+              color: "var(--text)",
+              fontSize: 14,
+              cursor: "pointer"
+            }}
+          >
+            👤 My Profile
+          </button>
+
+          <button
+            onClick={() => {
+              setAccountOpen(false)
+              if (typeof setScreen === "function") setScreen("Settings")
+            }}
+            style={{
+              textAlign: "left",
+              background: "transparent",
+              border: "none",
+              padding: "10px 10px",
+              borderRadius: 8,
+              color: "var(--text)",
+              fontSize: 14,
+              cursor: "pointer"
+            }}
+          >
+            ⚙️ Settings
+          </button>
+
+          <button
+            onClick={() => {
+              setAccountOpen(false)
+              if (typeof onSignOut === "function") onSignOut()
+            }}
+            style={{
+              textAlign: "left",
+              background: "transparent",
+              border: "none",
+              padding: "10px 10px",
+              borderRadius: 8,
+              color: "var(--text)",
+              fontSize: 14,
+              cursor: "pointer"
+            }}
+          >
+            🚪 Sign out
+          </button>
+        </div>
+      )}
+    </div>
+  )
+
   // MOBILE: hamburger + centered title + AI coach + avatar.
   if (isMobile) {
     return (
@@ -225,31 +347,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
         {privacyButton(true)}
         {aiButton(true)}
 
-        <button
-          onClick={onSignOut}
-          title={
-            user?.email
-              ? `Signed in as ${user.email} — tap to sign out`
-              : "Sign out"
-          }
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: "50%",
-            border: "none",
-            cursor: "pointer",
-            background: "linear-gradient(135deg,#FF8A00,#FF3D7F)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            fontWeight: 700,
-            fontSize: 15,
-            justifySelf: "end"
-          }}
-        >
-          {initial}
-        </button>
+        <div style={{ justifySelf: "end" }}>{accountButton(true)}</div>
       </header>
     )
   }
@@ -362,6 +460,8 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
         </button>
 
         <button
+          onClick={() => typeof setScreen === "function" && setScreen("Settings")}
+          title="Settings"
           style={{
             width: "40px",
             height: "40px",
@@ -376,31 +476,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
           ⚙️
         </button>
 
-        <button
-          onClick={onSignOut}
-          title={
-            user?.email
-              ? `Signed in as ${user.email} — click to sign out`
-              : "Sign out"
-          }
-          style={{
-            width: "42px",
-            height: "42px",
-            borderRadius: "50%",
-            border: "none",
-            cursor: "pointer",
-            background: "linear-gradient(135deg,#FF8A00,#FF3D7F)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            fontWeight: 700,
-            fontSize: "16px",
-            flexShrink: 0
-          }}
-        >
-          {initial}
-        </button>
+        {accountButton(false)}
       </div>
     </header>
   )

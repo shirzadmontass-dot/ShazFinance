@@ -208,6 +208,7 @@ export default function App() {
           onSignOut={signOut}
           onMenuClick={toggleSidebar}
           store={store}
+          setScreen={setScreen}
         />
 
         <div
