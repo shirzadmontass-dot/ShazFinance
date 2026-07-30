@@ -338,18 +338,24 @@ export default function Dashboard({ store, update, setScreen }) {
         }}
       >
         <div style={{ minWidth: 0 }}>
-          <HeroBanner
-            title={
-              store.profile?.name
-                ? `Here's your Mula, ${store.profile.name} 👋`
-                : "Here's your Mula 👋"
-            }
-            subtitle="Stay on top of your money with a clear, calm overview."
-            currentFocusLabel={attackPlanTitle}
-            currentFocusPercent={plannerPercent}
-            goalLabel={heroGoalLabel}
-            goalPercent={heroGoalPercent}
-          />
+          {(() => {
+            const displayName =
+              store.profile?.nickname || store.profile?.firstName || ""
+            return (
+              <HeroBanner
+                title={
+                  displayName
+                    ? `Here's your Mula, ${displayName} 👋`
+                    : "Here's your Mula 👋"
+                }
+                subtitle="Stay on top of your money with a clear, calm overview."
+                currentFocusLabel={attackPlanTitle}
+                currentFocusPercent={plannerPercent}
+                goalLabel={heroGoalLabel}
+                goalPercent={heroGoalPercent}
+              />
+            )
+          })()}
 
           <div style={{ marginTop: wide ? 16 : 12 }}>
             <NetWorthCard store={store} split={wide} />

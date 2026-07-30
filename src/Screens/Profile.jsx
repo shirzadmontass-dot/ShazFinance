@@ -33,9 +33,17 @@ export default function Profile({ store, update }) {
   // Prevent crash if store is null
   if (!store) return null
 
-  // Safe fallback for profile
+  // Safe fallback for profile — migrates an old single "name" field into
+  // firstName the first time someone opens this page, so existing data
+  // isn't lost.
+  const legacyNameParts = (store.profile?.name || "").trim().split(" ")
   const profile = {
-    name: store.profile?.name || "",
+    firstName:
+      store.profile?.firstName || (store.profile?.name ? legacyNameParts[0] : ""),
+    lastName:
+      store.profile?.lastName ||
+      (store.profile?.name ? legacyNameParts.slice(1).join(" ") : ""),
+    nickname: store.profile?.nickname || "",
     incomeType: store.profile?.incomeType || "",
     notes: store.profile?.notes || ""
   }
@@ -96,14 +104,23 @@ export default function Profile({ store, update }) {
           onSubmit={(e) => {
             e.preventDefault()
 
-            const name = e.target.name.value
+            const firstName = e.target.firstName.value.trim()
+            const lastName = e.target.lastName.value.trim()
+            const nickname = e.target.nickname.value.trim()
             const incomeType = e.target.incomeType.value
             const notes = e.target.notes.value
 
             // Merge, don't replace — store.profile also holds onboarding
             // status (onboardingComplete, goalTypes, etc.), which a plain
             // update("profile", {...}) here would otherwise wipe out.
-            update("profile", { ...store.profile, name, incomeType, notes })
+            update("profile", {
+              ...store.profile,
+              firstName,
+              lastName,
+              nickname,
+              incomeType,
+              notes
+            })
           }}
           style={{
             display: "flex",
@@ -112,13 +129,51 @@ export default function Profile({ store, update }) {
           }}
         >
 
-          {/* Name */}
+          {/* First / Last name */}
+          <div style={{ display: "flex", gap: "var(--space-2)" }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontWeight: "600" }}>First Name</label>
+              <input
+                name="firstName"
+                defaultValue={profile.firstName}
+                placeholder="First name"
+                style={{
+                  width: "100%",
+                  padding: "var(--space-2)",
+                  borderRadius: "var(--radius)",
+                  border: "1px solid var(--border)",
+                  background: "var(--bg)",
+                  color: "var(--text)",
+                  marginTop: "6px"
+                }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontWeight: "600" }}>Last Name</label>
+              <input
+                name="lastName"
+                defaultValue={profile.lastName}
+                placeholder="Last name"
+                style={{
+                  width: "100%",
+                  padding: "var(--space-2)",
+                  borderRadius: "var(--radius)",
+                  border: "1px solid var(--border)",
+                  background: "var(--bg)",
+                  color: "var(--text)",
+                  marginTop: "6px"
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Nickname */}
           <div>
-            <label style={{ fontWeight: "600" }}>Name</label>
+            <label style={{ fontWeight: "600" }}>Nickname (optional)</label>
             <input
-              name="name"
-              defaultValue={profile.name}
-              placeholder="Your name"
+              name="nickname"
+              defaultValue={profile.nickname}
+              placeholder="What you'd like to be called"
               style={{
                 width: "100%",
                 padding: "var(--space-2)",
@@ -129,6 +184,17 @@ export default function Profile({ store, update }) {
                 marginTop: "6px"
               }}
             />
+            <div
+              style={{
+                fontSize: 12,
+                color: "var(--subtext)",
+                marginTop: 6
+              }}
+            >
+              If you fill this in, we'll use your nickname instead of your
+              first name — on your homepage greeting and when the AI
+              Savings Coach talks to you.
+            </div>
           </div>
 
           {/* Income Type */}
@@ -191,33 +257,6 @@ export default function Profile({ store, update }) {
           </button>
 
         </form>
-      </Card>
-
-      <Card title="Profile Summary" icon="📘">
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-2)"
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>Name</span>
-            <span>{profile.name || "—"}</span>
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>Income Type</span>
-            <span>{profile.incomeType || "—"}</span>
-          </div>
-
-          <div>
-            <span style={{ fontWeight: "600" }}>Notes:</span>
-            <div style={{ color: "var(--subtext)", marginTop: "6px" }}>
-              {profile.notes || "No notes added."}
-            </div>
-          </div>
-        </div>
       </Card>
 
       {/* Your original onboarding answers, editable here instead of only

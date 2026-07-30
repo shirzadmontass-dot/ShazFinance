@@ -66,7 +66,8 @@ function buildFinancialSummary(store) {
     debtTotal,
     investmentsTotal,
     houseDepositSaved: Number(store.deposit?.current || 0) + linkedHouseBalance,
-    houseDepositTarget: Number(store.deposit?.target || 25000)
+    houseDepositTarget: Number(store.deposit?.target || 25000),
+    displayName: store.profile?.nickname || store.profile?.firstName || null
   }
 }
 
