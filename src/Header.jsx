@@ -265,24 +265,28 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
             flexShrink: 0
           }}
         >
-          <div
+          <img
+            src="/logo-icon.png"
+            alt="Mula"
             style={{
-              width: 26,
-              height: 26,
+              width: 28,
+              height: 28,
               borderRadius: 8,
-              background:
-                "linear-gradient(135deg,var(--accent),var(--accent2))"
+              flexShrink: 0,
+              objectFit: "contain"
             }}
           />
           <span
             style={{
-              fontSize: 17,
-              fontWeight: 700,
+              fontFamily: "'Pacifico', cursive",
+              fontSize: 22,
+              fontWeight: 400,
               color: "#fff",
-              whiteSpace: "nowrap"
+              whiteSpace: "nowrap",
+              lineHeight: 1
             }}
           >
-            ShazPlan
+            Mula
           </span>
         </div>
 
