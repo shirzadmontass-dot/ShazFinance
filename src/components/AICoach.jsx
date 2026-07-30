@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { supabase } from "../supabase"
 
 // Renders just the panel content (insights button / chat) — the
@@ -8,6 +8,15 @@ export default function AICoach({ summary, onClose }) {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const scrollRef = useRef(null)
+
+  // Always scroll to the newest content — otherwise a long reply can sit
+  // below the visible area with no obvious sign there's more to read.
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [messages, loading])
 
   async function callCoach(newMessages) {
     setLoading(true)
@@ -36,6 +45,8 @@ export default function AICoach({ summary, onClose }) {
       setLoading(false)
     }
   }
+
+  const [chatStarted, setChatStarted] = useState(false)
 
   function getInsights() {
     callCoach([])
@@ -84,38 +95,56 @@ export default function AICoach({ summary, onClose }) {
         )}
       </div>
 
-      {messages.length === 0 && !loading && (
+      {messages.length === 0 && !loading && !chatStarted && (
         <>
           <div style={{ color: "var(--subtext)", fontSize: 13 }}>
             Get a quick read on your spending, or ask a specific question.
           </div>
-          <button
-            onClick={getInsights}
-            style={{
-              background: "var(--accent)",
-              border: "none",
-              padding: "9px 14px",
-              borderRadius: 10,
-              color: "white",
-              fontWeight: 700,
-              fontSize: 13,
-              cursor: "pointer",
-              alignSelf: "flex-start"
-            }}
-          >
-            Get insights on my spending
-          </button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              onClick={getInsights}
+              style={{
+                background: "var(--accent)",
+                border: "none",
+                padding: "9px 14px",
+                borderRadius: 10,
+                color: "white",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: "pointer"
+              }}
+            >
+              Get insights on my spending
+            </button>
+            <button
+              onClick={() => setChatStarted(true)}
+              style={{
+                background: "transparent",
+                border: "1px solid var(--border)",
+                padding: "9px 14px",
+                borderRadius: 10,
+                color: "var(--text)",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: "pointer"
+              }}
+            >
+              Help with something else
+            </button>
+          </div>
         </>
       )}
 
       {messages.length > 0 && (
         <div
+          ref={scrollRef}
           style={{
             display: "flex",
             flexDirection: "column",
             gap: 8,
-            maxHeight: 320,
-            overflowY: "auto"
+            maxHeight: 420,
+            overflowY: "auto",
+            scrollBehavior: "smooth"
           }}
         >
           {messages.map((m, i) => (
@@ -147,13 +176,15 @@ export default function AICoach({ summary, onClose }) {
         <div style={{ color: "#EF4444", fontSize: 12 }}>{error}</div>
       )}
 
-      {messages.length > 0 && (
+      {(messages.length > 0 || chatStarted) && (
         <div style={{ display: "flex", gap: 6 }}>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Ask a follow-up…"
+            placeholder={
+              messages.length > 0 ? "Ask a follow-up…" : "What's on your mind?"
+            }
             style={{
               flex: 1,
               padding: "8px 10px",

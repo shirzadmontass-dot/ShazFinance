@@ -93,6 +93,11 @@ ${JSON.stringify(summary, null, 2)}`
     const data = await response.json()
 
     if (!response.ok) {
+      if (response.status === 429) {
+        throw new Error(
+          "The AI coach is getting a lot of use right now — give it about 15 seconds and try again."
+        )
+      }
       throw new Error(data.error?.message || "AI request failed")
     }
 
