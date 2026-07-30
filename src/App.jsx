@@ -30,6 +30,7 @@ import NetWorth from "./Screens/NetWorth.jsx"
 import Sidebar from "./Sidebar.jsx"
 import Header from "./Header.jsx"
 import { PrivacyProvider } from "./PrivacyContext.jsx"
+import { ThemeProvider } from "./ThemeContext.jsx"
 import Onboarding from "./Screens/Onboarding.jsx"
 
 export default function App() {
@@ -192,6 +193,7 @@ export default function App() {
   }
 
   return (
+    <ThemeProvider darkMode={store.settings?.darkMode ?? true}>
     <PrivacyProvider>
       <div
         style={{
@@ -257,5 +259,6 @@ export default function App() {
         </div>
       </div>
     </PrivacyProvider>
+    </ThemeProvider>
   )
 }

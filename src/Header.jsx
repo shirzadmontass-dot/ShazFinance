@@ -93,8 +93,8 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
         height: small ? 38 : 40,
         borderRadius: 12,
         border: hideAll ? "1px solid var(--accent)" : "1px solid transparent",
-        background: hideAll ? "rgba(255,138,0,0.18)" : "#1B263B",
-        color: "white",
+        background: hideAll ? "rgba(255,138,0,0.18)" : "var(--surface-alt)",
+        color: "var(--text)",
         fontSize: small ? 16 : 18,
         cursor: "pointer"
       }}
@@ -138,7 +138,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
             right: 0,
             width: 340,
             maxWidth: "calc(100vw - 24px)",
-            background: "#131A2B",
+            background: "var(--surface)",
             border: "1px solid var(--border)",
             borderRadius: 14,
             padding: 16,
@@ -187,7 +187,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
             right: 0,
             width: 240,
             maxWidth: "calc(100vw - 24px)",
-            background: "#131A2B",
+            background: "var(--surface)",
             border: "1px solid var(--border)",
             borderRadius: 14,
             padding: 10,
@@ -331,7 +331,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
           alignItems: "center",
           gap: 8,
           padding: "10px 12px",
-          background: "#111827",
+          background: "var(--header-bg)",
           borderBottom: "1px solid rgba(255,255,255,.08)",
           position: "sticky",
           top: 0,
@@ -352,8 +352,8 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
               height: 40,
               borderRadius: 12,
               border: "none",
-              background: "#1B263B",
-              color: "white",
+              background: "var(--surface-alt)",
+              color: "var(--text)",
               fontSize: 20,
               cursor: "pointer",
               flexShrink: 0
@@ -379,7 +379,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
           style={{
             fontSize: 17,
             fontWeight: 800,
-            color: "white",
+            color: "var(--text)",
             textAlign: "center",
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -405,7 +405,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
         gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
         padding: "16px 26px",
-        background: "#111827",
+        background: "var(--header-bg)",
         borderBottom: "1px solid rgba(255,255,255,.08)",
         position: "sticky",
         top: 0,
@@ -445,7 +445,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
               fontFamily: "'Pacifico', cursive",
               fontSize: 22,
               fontWeight: 400,
-              color: "#fff",
+              color: "var(--text)",
               whiteSpace: "nowrap",
               lineHeight: 1
             }}
@@ -469,7 +469,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
         style={{
           fontSize: "22px",
           fontWeight: 800,
-          color: "white",
+          color: "var(--text)",
           letterSpacing: "-0.3px",
           textAlign: "center",
           whiteSpace: "nowrap"

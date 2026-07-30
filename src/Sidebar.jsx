@@ -25,7 +25,7 @@ export default function Sidebar({
       className={`sidebar ${isSidebarOpen ? "open" : ""}`}
       style={{
         width: "260px",
-        background: "#111827",
+        background: "var(--header-bg)",
         borderRight: "1px solid var(--border)",
         padding: "24px 14px",
         display: "flex",
