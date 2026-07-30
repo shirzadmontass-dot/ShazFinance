@@ -898,6 +898,7 @@ export default function Dashboard({ store, update, setScreen }) {
             value={<MaskedValue value={`£${cashCushion.toLocaleString()}`} />}
             colour="var(--accent)"
             subtitle="Cash savings"
+            onClick={() => typeof setScreen === "function" && setScreen("Savings")}
           />
 
           <StatCard
@@ -921,6 +922,7 @@ export default function Dashboard({ store, update, setScreen }) {
             }
             colour="var(--accent)"
             subtitle="Portfolio"
+            onClick={() => typeof setScreen === "function" && setScreen("Investments")}
           />
 
           <div style={{ gridColumn: wide ? "auto" : "1 / -1" }}>
@@ -932,6 +934,7 @@ export default function Dashboard({ store, update, setScreen }) {
               }
               colour="#EF4444"
               subtitle="Outstanding"
+              onClick={() => typeof setScreen === "function" && setScreen("Debt")}
             />
           </div>
         </Grid>

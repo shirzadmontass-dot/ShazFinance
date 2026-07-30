@@ -78,7 +78,14 @@ ${JSON.stringify(summary, null, 2)}`
         body: JSON.stringify({
           contents,
           systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: { maxOutputTokens: 1200 }
+          generationConfig: {
+            maxOutputTokens: 2048,
+            // Flash models can spend part of the token budget on internal
+            // "thinking" before writing the visible reply — for a short,
+            // grounded answer like this we don't need that, and disabling
+            // it stops responses getting cut off before finishing.
+            thinkingConfig: { thinkingBudget: 0 }
+          }
         })
       }
     )
@@ -93,6 +100,11 @@ ${JSON.stringify(summary, null, 2)}`
       data.candidates?.[0]?.content?.parts
         ?.map((p) => p.text)
         .join("\n") || ""
+
+    const finishReason = data.candidates?.[0]?.finishReason
+    if (finishReason && finishReason !== "STOP") {
+      console.error("AI coach response ended early:", finishReason)
+    }
 
     return res.status(200).json({ reply: text })
   } catch (err) {
