@@ -34,9 +34,39 @@ import { ThemeProvider } from "./ThemeContext.jsx"
 import Onboarding from "./Screens/Onboarding.jsx"
 
 export default function App() {
-  const [screen, setScreen] = useState("Dashboard")
+  const [screen, setScreenState] = useState(() => {
+    // On first load, restore whichever screen the URL points to (so a
+    // refresh or a shared link lands on the right page).
+    const path = window.location.pathname.replace(/^\//, "")
+    return path || "Dashboard"
+  })
   const { user, loading, signOut } = useAuth()
   const isMobile = useIsMobile()
+
+  // Wraps plain state changes with real browser history entries, so the
+  // back/forward buttons actually work instead of having nothing to
+  // navigate through (previously every screen change was invisible to
+  // the browser — the URL never changed).
+  function setScreen(nextScreen) {
+    if (nextScreen === screen) return
+    const path = nextScreen === "Dashboard" ? "/" : `/${nextScreen}`
+    window.history.pushState({ screen: nextScreen }, "", path)
+    setScreenState(nextScreen)
+  }
+
+  // Handle the browser's actual back/forward buttons.
+  useEffect(() => {
+    function onPopState(e) {
+      if (e.state?.screen) {
+        setScreenState(e.state.screen)
+      } else {
+        const path = window.location.pathname.replace(/^\//, "")
+        setScreenState(path || "Dashboard")
+      }
+    }
+    window.addEventListener("popstate", onPopState)
+    return () => window.removeEventListener("popstate", onPopState)
+  }, [])
 
   const {
     store,
@@ -110,7 +140,7 @@ export default function App() {
     NetWorth
   }
 
-  const ActiveScreen = screens[screen]
+  const ActiveScreen = screens[screen] || screens.Dashboard
 
   // The bank redirects the browser back here after approval —
   // handle that path independently of the normal app shell.
