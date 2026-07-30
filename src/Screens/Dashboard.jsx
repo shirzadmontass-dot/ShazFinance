@@ -811,7 +811,7 @@ export default function Dashboard({ store, update }) {
           <StatCard
             title="Income"
             icon="💼"
-            value={`£${incomeTotal.toLocaleString()}`}
+            value={<MaskedValue value={`£${incomeTotal.toLocaleString()}`} />}
             colour="var(--accent)"
             subtitle="Monthly income"
           />
@@ -819,7 +819,9 @@ export default function Dashboard({ store, update }) {
           <StatCard
             title="Commitments"
             icon="📄"
-            value={`£${commitmentsTotal.toLocaleString()}`}
+            value={
+              <MaskedValue value={`£${commitmentsTotal.toLocaleString()}`} />
+            }
             colour="var(--accent)"
             subtitle="Monthly bills"
           />
@@ -827,7 +829,9 @@ export default function Dashboard({ store, update }) {
           <StatCard
             title="Expenses"
             icon="💸"
-            value={`£${expensesTotal.toLocaleString()}`}
+            value={
+              <MaskedValue value={`£${expensesTotal.toLocaleString()}`} />
+            }
             colour="var(--accent)"
             subtitle="Monthly spending"
           />
@@ -835,7 +839,7 @@ export default function Dashboard({ store, update }) {
           <StatCard
             title="Money Left"
             icon="💷"
-            value={`£${leftover.toLocaleString()}`}
+            value={<MaskedValue value={`£${leftover.toLocaleString()}`} />}
             colour={
               leftover >= 0
                 ? "#22C55E"
@@ -847,7 +851,7 @@ export default function Dashboard({ store, update }) {
           <StatCard
             title="Savings"
             icon="🏦"
-            value={`£${cashCushion.toLocaleString()}`}
+            value={<MaskedValue value={`£${cashCushion.toLocaleString()}`} />}
             colour="var(--accent)"
             subtitle="Cash savings"
           />
@@ -855,7 +859,11 @@ export default function Dashboard({ store, update }) {
           <StatCard
             title="Wasted"
             icon="🧾"
-            value={`£${wastedOnNonEssentials.toLocaleString()}`}
+            value={
+              <MaskedValue
+                value={`£${wastedOnNonEssentials.toLocaleString()}`}
+              />
+            }
             colour="#F97316"
             subtitle="Non-essential spend"
           />
@@ -863,7 +871,9 @@ export default function Dashboard({ store, update }) {
           <StatCard
             title="Investments"
             icon="📈"
-            value={`£${investmentsTotal.toLocaleString()}`}
+            value={
+              <MaskedValue value={`£${investmentsTotal.toLocaleString()}`} />
+            }
             colour="var(--accent)"
             subtitle="Portfolio"
           />
@@ -872,7 +882,9 @@ export default function Dashboard({ store, update }) {
             <StatCard
               title="Debt"
               icon="💳"
-              value={`£${debtTotal.toLocaleString()}`}
+              value={
+                <MaskedValue value={`£${debtTotal.toLocaleString()}`} />
+              }
               colour="#EF4444"
               subtitle="Outstanding"
             />
