@@ -155,6 +155,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
           <AICoach
             summary={buildFinancialSummary(store)}
             onClose={() => setAiOpen(false)}
+            setScreen={setScreen}
           />
         </div>
       )}

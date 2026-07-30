@@ -1,9 +1,20 @@
 import { useState, useRef, useEffect } from "react"
 import { supabase } from "../supabase"
 
+// Pulls a trailing "[GOTO:PageName]" tag off an assistant message, if
+// present, returning the cleaned text and the target page separately.
+function parseGoto(content) {
+  const match = content.match(/\n?\[GOTO:([A-Za-z]+)\]\s*$/)
+  if (!match) return { text: content, goto: null }
+  return {
+    text: content.slice(0, match.index).trim(),
+    goto: match[1]
+  }
+}
+
 // Renders just the panel content (insights button / chat) — the
 // header decides when it's shown and where it's positioned.
-export default function AICoach({ summary, onClose }) {
+export default function AICoach({ summary, onClose, setScreen }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
@@ -166,24 +177,59 @@ export default function AICoach({ summary, onClose }) {
             scrollBehavior: "smooth"
           }}
         >
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              style={{
-                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                maxWidth: "88%",
-                padding: "8px 12px",
-                borderRadius: 12,
-                background: m.role === "user" ? "var(--accent)" : "#0f172a",
-                color: m.role === "user" ? "white" : "var(--text)",
-                whiteSpace: "pre-wrap",
-                fontSize: 13,
-                lineHeight: 1.4
-              }}
-            >
-              {m.content}
-            </div>
-          ))}
+          {messages.map((m, i) => {
+            const { text, goto } =
+              m.role === "assistant" ? parseGoto(m.content) : { text: m.content, goto: null }
+
+            return (
+              <div
+                key={i}
+                style={{
+                  alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                  maxWidth: "88%",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6
+                }}
+              >
+                <div
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 12,
+                    background: m.role === "user" ? "var(--accent)" : "#0f172a",
+                    color: m.role === "user" ? "white" : "var(--text)",
+                    whiteSpace: "pre-wrap",
+                    fontSize: 13,
+                    lineHeight: 1.4
+                  }}
+                >
+                  {text}
+                </div>
+
+                {goto && (
+                  <button
+                    onClick={() => {
+                      if (typeof setScreen === "function") setScreen(goto)
+                      if (typeof onClose === "function") onClose()
+                    }}
+                    style={{
+                      alignSelf: "flex-start",
+                      background: "var(--accent)",
+                      border: "none",
+                      padding: "7px 12px",
+                      borderRadius: 8,
+                      color: "white",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      cursor: "pointer"
+                    }}
+                  >
+                    Take me to {goto} →
+                  </button>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
