@@ -12,6 +12,7 @@ import {
 
 import { resolveCategory } from "../utils/categorize.js"
 import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
+import MaskedValue from "../components/MaskedValue.jsx"
 
 // Reactive width check — updates live on resize/zoom instead of
 // only reading window size once at first render.
@@ -362,7 +363,7 @@ export default function Dashboard({ store, update }) {
                   textOverflow: "ellipsis"
                 }}
               >
-                £{leftover.toLocaleString()}
+                <MaskedValue value={`£${leftover.toLocaleString()}`} />
               </div>
               {wide && (
                 <div
@@ -462,7 +463,7 @@ export default function Dashboard({ store, update }) {
                   textOverflow: "ellipsis"
                 }}
               >
-                £{cashCushion.toLocaleString()}
+                <MaskedValue value={`£${cashCushion.toLocaleString()}`} />
               </div>
               {wide && (
                 <div
@@ -920,8 +921,7 @@ export default function Dashboard({ store, update }) {
                     fontWeight: 700
                   }}
                 >
-                  £
-                  {depositSaved.toLocaleString()}
+                  <MaskedValue value={`£${depositSaved.toLocaleString()}`} />
                 </div>
               </div>
 
@@ -944,8 +944,7 @@ export default function Dashboard({ store, update }) {
                     fontWeight: 600
                   }}
                 >
-                  £
-                  {depositTarget.toLocaleString()}
+                  <MaskedValue value={`£${depositTarget.toLocaleString()}`} />
                 </div>
               </div>
             </div>

@@ -29,6 +29,7 @@ import NetWorth from "./Screens/NetWorth.jsx"
 
 import Sidebar from "./Sidebar.jsx"
 import Header from "./Header.jsx"
+import { PrivacyProvider } from "./PrivacyContext.jsx"
 
 export default function App() {
   const [screen, setScreen] = useState("Dashboard")
@@ -125,22 +126,23 @@ export default function App() {
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        background: "var(--bg)",
-        color: "var(--text)"
-      }}
-    >
-      <Header
-        screen={screen}
-        user={user}
-        onSignOut={signOut}
-        onMenuClick={toggleSidebar}
-        store={store}
-      />
+    <PrivacyProvider>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          background: "var(--bg)",
+          color: "var(--text)"
+        }}
+      >
+        <Header
+          screen={screen}
+          user={user}
+          onSignOut={signOut}
+          onMenuClick={toggleSidebar}
+          store={store}
+        />
 
       <div
         style={{
@@ -187,5 +189,6 @@ export default function App() {
         </div>
       </div>
     </div>
+    </PrivacyProvider>
   )
 }

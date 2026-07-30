@@ -3,6 +3,7 @@ import { useIsMobile } from "./hooks/useIsMobile.js"
 import { computeMonthlyFigures } from "./utils/monthlyFigures.js"
 import { resolveCategory } from "./utils/categorize.js"
 import AICoach from "./components/AICoach.jsx"
+import { usePrivacy } from "./PrivacyContext.jsx"
 
 function buildFinancialSummary(store) {
   if (!store) return {}
@@ -71,6 +72,7 @@ function buildFinancialSummary(store) {
 export default function Header({ screen, user, onSignOut, onMenuClick, store }) {
   const isMobile = useIsMobile()
   const [aiOpen, setAiOpen] = useState(false)
+  const { hideAll, toggleHideAll } = usePrivacy()
   const today = new Date()
   const initial = user?.email ? user.email[0].toUpperCase() : "S"
 
@@ -80,6 +82,25 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
     month: "long",
     year: "numeric"
   })
+
+  const privacyButton = (small) => (
+    <button
+      onClick={toggleHideAll}
+      title={hideAll ? "Show figures" : "Hide figures"}
+      style={{
+        width: small ? 38 : 40,
+        height: small ? 38 : 40,
+        borderRadius: 12,
+        border: hideAll ? "1px solid var(--accent)" : "1px solid transparent",
+        background: hideAll ? "rgba(255,138,0,0.18)" : "#1B263B",
+        color: "white",
+        fontSize: small ? 16 : 18,
+        cursor: "pointer"
+      }}
+    >
+      {hideAll ? "🙈" : "👁️"}
+    </button>
+  )
 
   const aiButton = (small) => (
     <div style={{ position: "relative" }}>
@@ -139,7 +160,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
       <header
         style={{
           display: "grid",
-          gridTemplateColumns: "48px 1fr auto 44px",
+          gridTemplateColumns: "48px 1fr auto auto 44px",
           alignItems: "center",
           gap: 8,
           padding: "10px 12px",
@@ -180,6 +201,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
           {screen}
         </div>
 
+        {privacyButton(true)}
         {aiButton(true)}
 
         <button
@@ -296,6 +318,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store }) 
           gap: "12px"
         }}
       >
+        {privacyButton(false)}
         {aiButton(false)}
 
         <button

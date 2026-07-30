@@ -1,6 +1,7 @@
 import Card from "./Card.jsx"
 import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
 import { resolveCategory } from "../utils/categorize.js"
+import MaskedValue from "./MaskedValue.jsx"
 
 function computeFigures(store) {
   const savings = (store.savings || []).reduce(
@@ -189,7 +190,7 @@ export default function NetWorthCard({ store, split = false }) {
               color: netWorth >= 0 ? "#fff" : "#EF4444"
             }}
           >
-            £{netWorth.toLocaleString()}
+            <MaskedValue value={`£${netWorth.toLocaleString()}`} />
           </div>
         </Card>
 
@@ -236,7 +237,7 @@ export default function NetWorthCard({ store, split = false }) {
               marginTop: 6
             }}
           >
-            £{netWorth.toLocaleString()}
+            <MaskedValue value={`£${netWorth.toLocaleString()}`} />
           </div>
         </div>
 
