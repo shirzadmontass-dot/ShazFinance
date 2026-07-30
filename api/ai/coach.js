@@ -79,12 +79,7 @@ ${JSON.stringify(summary, null, 2)}`
           contents,
           systemInstruction: { parts: [{ text: systemPrompt }] },
           generationConfig: {
-            maxOutputTokens: 2048,
-            // Flash models can spend part of the token budget on internal
-            // "thinking" before writing the visible reply — for a short,
-            // grounded answer like this we don't need that, and disabling
-            // it stops responses getting cut off before finishing.
-            thinkingConfig: { thinkingBudget: 0 }
+            maxOutputTokens: 2048
           }
         })
       }
@@ -98,7 +93,8 @@ ${JSON.stringify(summary, null, 2)}`
           "The AI coach is getting a lot of use right now — give it about 15 seconds and try again."
         )
       }
-      throw new Error(data.error?.message || "AI request failed")
+      console.error("Gemini API error:", data.error)
+      throw new Error("The AI coach hit a snag — try again in a moment.")
     }
 
     const text =
