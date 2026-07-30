@@ -8,6 +8,7 @@ export default function AICoach({ summary, onClose }) {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [retryIn, setRetryIn] = useState(0)
   const scrollRef = useRef(null)
 
   // Always scroll to the newest content — otherwise a long reply can sit
@@ -18,9 +19,16 @@ export default function AICoach({ summary, onClose }) {
     }
   }, [messages, loading])
 
-  async function callCoach(newMessages) {
+  // Countdown display while waiting to auto-retry after a rate limit.
+  useEffect(() => {
+    if (retryIn <= 0) return
+    const t = setTimeout(() => setRetryIn((s) => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [retryIn])
+
+  async function callCoach(newMessages, isRetry = false) {
     setLoading(true)
-    setError(null)
+    if (!isRetry) setError(null)
     try {
       const { data: sessionData } = await supabase.auth.getSession()
       const token = sessionData?.session?.access_token
@@ -37,9 +45,20 @@ export default function AICoach({ summary, onClose }) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Failed to get advice")
 
+      setError(null)
       setMessages([...newMessages, { role: "assistant", content: data.reply }])
     } catch (err) {
       console.error("AI coach error:", err)
+      const isRateLimit = /getting a lot of use/i.test(err.message || "")
+
+      if (isRateLimit && !isRetry) {
+        // Auto-retry once after the wait, so this doesn't need a manual click.
+        setError("Busy right now — retrying automatically in 15s…")
+        setRetryIn(15)
+        setTimeout(() => callCoach(newMessages, true), 15000)
+        return
+      }
+
       setError(err.message || "Something went wrong")
     } finally {
       setLoading(false)
@@ -173,7 +192,11 @@ export default function AICoach({ summary, onClose }) {
       )}
 
       {error && (
-        <div style={{ color: "#EF4444", fontSize: 12 }}>{error}</div>
+        <div style={{ color: "#EF4444", fontSize: 12 }}>
+          {retryIn > 0
+            ? `Busy right now — retrying automatically in ${retryIn}s…`
+            : error}
+        </div>
       )}
 
       {(messages.length > 0 || chatStarted) && (
