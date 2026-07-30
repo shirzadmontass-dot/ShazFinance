@@ -17,6 +17,23 @@ const INVESTMENT_PLATFORMS = [
   "Other"
 ]
 
+const STATEMENT_TYPE_META = {
+  "credit-card": { label: "Credit Card", type: "CREDIT_CARD" },
+  klarna: { label: "Klarna", type: "CREDIT_CARD" },
+  paypal: { label: "PayPal", type: "TRANSACTION" },
+  lisa: { label: "LISA", type: "SAVINGS" },
+  investment: { label: "Investment", type: "INVESTMENT" }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result.split(",")[1])
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
 function ProgressDots({ step, total }) {
   return (
     <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
@@ -73,7 +90,7 @@ function YesNo({ value, onChange }) {
   )
 }
 
-export default function Onboarding({ update, finish }) {
+export default function Onboarding({ store, update, finish }) {
   const [step, setStep] = useState(0)
   const [selectedGoals, setSelectedGoals] = useState([])
   const [hasInvestments, setHasInvestments] = useState(null)
@@ -85,10 +102,28 @@ export default function Onboarding({ update, finish }) {
   const [freeText, setFreeText] = useState("")
   const [extracting, setExtracting] = useState(false)
   const [extractError, setExtractError] = useState(null)
-  const [extractedGoals, setExtractedGoals] = useState([]) // { name, icon, included }
+  const [extractedGoals, setExtractedGoals] = useState([])
   const [hasExtracted, setHasExtracted] = useState(false)
 
-  const totalSteps = 6
+  const [connecting, setConnecting] = useState(false)
+  const [uploadType, setUploadType] = useState("credit-card")
+  const [uploadName, setUploadName] = useState("")
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState(null)
+
+  const totalSteps = 7
+  const linkedAccounts = store?.bankAccounts || []
+  const bankTransactions = store?.bankTransactions || []
+
+  // Mark that onboarding is actively in progress the moment it mounts —
+  // this stops the app from treating a bank connected mid-wizard as
+  // "already set up" and kicking the user out before they finish.
+  useEffect(() => {
+    if (typeof update === "function") {
+      update("profile.onboardingStarted", true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function toggleGoal(key) {
     setSelectedGoals((prev) =>
@@ -106,6 +141,88 @@ export default function Onboarding({ update, finish }) {
     setExtractedGoals((prev) =>
       prev.map((g, i) => (i === index ? { ...g, included: !g.included } : g))
     )
+  }
+
+  function handleConnectBank() {
+    setConnecting(true)
+    const clientId = import.meta.env.VITE_TRUELAYER_CLIENT_ID
+    const redirectUri = `${window.location.origin}/bank-callback`
+    const scope = "info accounts balance transactions offline_access"
+    const providers = "uk-ob-all uk-oauth-all"
+
+    const authUrl =
+      `https://auth.truelayer.com/?response_type=code` +
+      `&client_id=${encodeURIComponent(clientId)}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&scope=${encodeURIComponent(scope)}` +
+      `&providers=${encodeURIComponent(providers)}`
+
+    window.location.href = authUrl
+  }
+
+  async function handleStatementUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+
+    setUploading(true)
+    setUploadError(null)
+
+    try {
+      const base64 = await fileToBase64(file)
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) throw new Error("Not logged in")
+
+      const res = await fetch("/api/statements/parse", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          fileBase64: base64,
+          accountType: uploadType,
+          accountName: uploadName
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to parse statement")
+
+      const meta = STATEMENT_TYPE_META[uploadType]
+      const newAccountId = `upload-${uploadType}-${Date.now()}`
+
+      const newAccount = {
+        id: newAccountId,
+        name: uploadName.trim() || data.accountName,
+        type: meta.type,
+        balance: Number(data.closingBalance || 0),
+        currency: "GBP",
+        bankName: meta.label,
+        source: "upload"
+      }
+
+      const newTransactions = (data.transactions || []).map((t, i) => ({
+        id: `${newAccountId}-${i}-${t.date}-${t.amount}`,
+        date: t.date,
+        description: t.description,
+        amount: Number(t.amount || 0),
+        currency: "GBP",
+        accountId: newAccountId
+      }))
+
+      if (typeof update === "function") {
+        update("bankAccounts", [...linkedAccounts, newAccount])
+        update("bankTransactions", [...bankTransactions, ...newTransactions])
+      }
+
+      setUploadName("")
+    } catch (err) {
+      console.error("statement upload error:", err)
+      setUploadError(err.message || "Failed to upload statement")
+    } finally {
+      setUploading(false)
+      e.target.value = ""
+    }
   }
 
   async function runExtraction() {
@@ -178,6 +295,7 @@ export default function Onboarding({ update, finish }) {
     if (typeof update === "function") {
       update("profile", {
         onboardingComplete: true,
+        onboardingStarted: true,
         skipped,
         goalTypes: selectedGoals,
         hasInvestments: hasInvestments === true,
@@ -481,6 +599,154 @@ export default function Onboarding({ update, finish }) {
         {step === 5 && (
           <>
             <div>
+              <h2 style={{ margin: 0, fontSize: 22 }}>
+                Let's get your figures in 💷
+              </h2>
+              <p
+                style={{
+                  color: "var(--subtext)",
+                  marginTop: 8,
+                  fontSize: 14
+                }}
+              >
+                Link your main spending account, and upload statements for
+                anything else — credit cards, PayPal, Klarna, a LISA,
+                investments. All optional, and you can always do this later
+                from the Bank page instead.
+              </p>
+            </div>
+
+            {linkedAccounts.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6
+                }}
+              >
+                {linkedAccounts.map((acc) => (
+                  <div
+                    key={acc.id}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 10,
+                      background: "var(--bg)",
+                      border: "1px solid var(--border)",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: 13
+                    }}
+                  >
+                    <span>{acc.name}</span>
+                    <span style={{ fontWeight: 700 }}>
+                      £{Number(acc.balance).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              onClick={handleConnectBank}
+              disabled={connecting}
+              style={{
+                background: "var(--accent)",
+                border: "none",
+                padding: "12px",
+                borderRadius: 12,
+                color: "white",
+                fontWeight: 700,
+                cursor: connecting ? "default" : "pointer",
+                opacity: connecting ? 0.6 : 1
+              }}
+            >
+              {connecting ? "Redirecting…" : "🔗 Connect your bank"}
+            </button>
+
+            <div
+              style={{
+                borderTop: "1px solid var(--border)",
+                paddingTop: 14,
+                display: "flex",
+                flexDirection: "column",
+                gap: 10
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 600 }}>
+                Or upload a statement
+              </div>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <select
+                  value={uploadType}
+                  onChange={(e) => setUploadType(e.target.value)}
+                  style={{
+                    padding: "8px 10px",
+                    borderRadius: 10,
+                    border: "1px solid var(--border)",
+                    background: "var(--bg)",
+                    color: "var(--text)"
+                  }}
+                >
+                  <option value="credit-card">Credit Card</option>
+                  <option value="klarna">Klarna</option>
+                  <option value="paypal">PayPal</option>
+                  <option value="lisa">LISA</option>
+                  <option value="investment">Investment</option>
+                </select>
+
+                <input
+                  value={uploadName}
+                  onChange={(e) => setUploadName(e.target.value)}
+                  placeholder="Optional name"
+                  style={{
+                    flex: "1 1 120px",
+                    padding: "8px 10px",
+                    borderRadius: 10,
+                    border: "1px solid var(--border)",
+                    background: "var(--bg)",
+                    color: "var(--text)"
+                  }}
+                />
+              </div>
+
+              <label
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  border: "1px dashed var(--border)",
+                  color: "var(--accent)",
+                  fontWeight: 700,
+                  cursor: uploading ? "default" : "pointer",
+                  opacity: uploading ? 0.6 : 1
+                }}
+              >
+                {uploading ? "Reading statement…" : "Choose PDF statement"}
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleStatementUpload}
+                  disabled={uploading}
+                  style={{ display: "none" }}
+                />
+              </label>
+
+              {uploadError && (
+                <div style={{ color: "#EF4444", fontSize: 12 }}>
+                  {uploadError}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {step === 6 && (
+          <>
+            <div>
               <h2 style={{ margin: 0, fontSize: 22 }}>All set 🎉</h2>
               <p
                 style={{
@@ -523,6 +789,12 @@ export default function Onboarding({ update, finish }) {
               <div>
                 <strong>Debt tracking:</strong>{" "}
                 {hasDebt ? "Yes" : "Not tracking"}
+              </div>
+              <div>
+                <strong>Linked accounts:</strong>{" "}
+                {linkedAccounts.length > 0
+                  ? `${linkedAccounts.length} account(s) connected`
+                  : "None yet — you can add these anytime from the Bank page"}
               </div>
             </div>
 

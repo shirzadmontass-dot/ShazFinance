@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useStore } from "./store.js"
 import { useAuth } from "./AuthContext.jsx"
 import { useIsMobile } from "./hooks/useIsMobile.js"
@@ -30,6 +30,7 @@ import NetWorth from "./Screens/NetWorth.jsx"
 import Sidebar from "./Sidebar.jsx"
 import Header from "./Header.jsx"
 import { PrivacyProvider } from "./PrivacyContext.jsx"
+import Onboarding from "./Screens/Onboarding.jsx"
 
 export default function App() {
   const [screen, setScreen] = useState("Dashboard")
@@ -47,6 +48,42 @@ export default function App() {
 
   const toggleSidebar = () =>
     setSidebarOpen((prev) => !prev)
+
+  // Only show onboarding for genuinely fresh accounts — anyone with
+  // existing data (an already-connected bank, income, a deposit goal,
+  // children, etc.) is grandfathered in automatically so nothing they've
+  // already set up gets disrupted. This hook must run unconditionally on
+  // every render, before any early returns below, so it's declared here.
+  const onboardingComplete = store?.profile?.onboardingComplete
+  const onboardingStarted = store?.profile?.onboardingStarted
+  const hasExistingData = Boolean(
+    store &&
+      ((store.bankAccounts && store.bankAccounts.length > 0) ||
+        (store.income && store.income.length > 0) ||
+        (store.goals && store.goals.length > 0) ||
+        (store.children && store.children.length > 0) ||
+        (store.debts && store.debts.length > 0) ||
+        (store.investments && store.investments.length > 0) ||
+        (store.savings && store.savings.length > 0) ||
+        Number(store.deposit?.current || 0) > 0)
+  )
+
+  useEffect(() => {
+    // Skip grandfathering if onboarding is already in progress — e.g. a
+    // brand-new user connected their bank mid-wizard, which would
+    // otherwise make hasExistingData true and wrongly mark them "done"
+    // before they've actually finished the questions.
+    if (
+      store &&
+      !onboardingComplete &&
+      !onboardingStarted &&
+      hasExistingData &&
+      typeof update === "function"
+    ) {
+      update("profile", { onboardingComplete: true, grandfathered: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store, onboardingComplete, onboardingStarted, hasExistingData])
 
   const screens = {
     Dashboard,
@@ -125,6 +162,35 @@ export default function App() {
     )
   }
 
+  if (!onboardingComplete && (onboardingStarted || !hasExistingData)) {
+    return (
+      <Onboarding
+        store={store}
+        update={update}
+        finish={() => setScreen("Dashboard")}
+      />
+    )
+  }
+
+  // Preview mode: visit yoursite.com/?preview=onboarding to see the
+  // wizard regardless of account state — nothing gets saved, so it's
+  // safe to click through even on an account with real data.
+  if (
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("preview") ===
+      "onboarding"
+  ) {
+    return (
+      <Onboarding
+        store={store}
+        update={() => {}}
+        finish={() => {
+          window.location.href = window.location.pathname
+        }}
+      />
+    )
+  }
+
   return (
     <PrivacyProvider>
       <div
@@ -144,51 +210,51 @@ export default function App() {
           store={store}
         />
 
-      <div
-        style={{
-          display: "flex",
-          flex: 1,
-          minHeight: 0
-        }}
-      >
-        <div
-          className={`sidebar-wrapper ${
-            isSidebarOpen ? "open" : ""
-          }`}
-          style={{
-            width: isMobile ? 0 : 240,
-            overflowY: "auto",
-            borderRight: isMobile
-              ? "none"
-              : "1px solid var(--border)"
-          }}
-        >
-          <Sidebar
-            screen={screen}
-            setScreen={setScreen}
-            isSidebarOpen={isSidebarOpen}
-            toggleSidebar={toggleSidebar}
-          />
-        </div>
-
         <div
           style={{
+            display: "flex",
             flex: 1,
-            overflowY: "auto",
-            padding: "var(--space-4)",
-            background: "var(--bg)"
+            minHeight: 0
           }}
         >
-          <ActiveScreen
-            store={store}
-            update={update}
-            add={add}
-            remove={remove}
-            setScreen={setScreen}
-          />
+          <div
+            className={`sidebar-wrapper ${
+              isSidebarOpen ? "open" : ""
+            }`}
+            style={{
+              width: isMobile ? 0 : 240,
+              overflowY: "auto",
+              borderRight: isMobile
+                ? "none"
+                : "1px solid var(--border)"
+            }}
+          >
+            <Sidebar
+              screen={screen}
+              setScreen={setScreen}
+              isSidebarOpen={isSidebarOpen}
+              toggleSidebar={toggleSidebar}
+            />
+          </div>
+
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: "var(--space-4)",
+              background: "var(--bg)"
+            }}
+          >
+            <ActiveScreen
+              store={store}
+              update={update}
+              add={add}
+              remove={remove}
+              setScreen={setScreen}
+            />
+          </div>
         </div>
       </div>
-    </div>
     </PrivacyProvider>
   )
 }
