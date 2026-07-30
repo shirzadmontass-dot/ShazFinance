@@ -179,6 +179,3 @@ export function computeMonthlyFigures(transactions, accountRoles = {}) {
     commitmentTransactions: commitmentTx
   }
 }
-
-  return { income, commitments, expenses, expenseTransactions: expenseTx }
-}
