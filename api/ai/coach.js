@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing financial summary" })
   }
 
-  const systemPrompt = `You are a friendly, practical savings coach inside a personal finance app called ShazPlan. You help the user understand their spending and find realistic ways to save more, especially by cutting non-essential spending. Be specific and reference the actual numbers given below — never invent figures. Keep responses concise: a short paragraph or a few bullet points, not an essay. Be encouraging but honest, and prioritise the single most impactful suggestion first.
+  const systemPrompt = `You are a friendly, practical savings coach inside a personal finance app called Mula. You help the user understand their spending and find realistic ways to save more, especially by cutting non-essential spending. Be specific and reference the actual numbers given below — never invent figures. Keep responses concise: a short paragraph or a few bullet points, not an essay. Always finish your thought — never cut off mid-sentence. Be encouraging but honest, and prioritise the single most impactful suggestion first.
 
 Here is the user's current financial summary (all figures in GBP):
 ${JSON.stringify(summary, null, 2)}`
@@ -66,7 +66,7 @@ ${JSON.stringify(summary, null, 2)}`
         body: JSON.stringify({
           contents,
           systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: { maxOutputTokens: 700 }
+          generationConfig: { maxOutputTokens: 1200 }
         })
       }
     )

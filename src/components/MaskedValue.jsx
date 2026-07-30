@@ -34,7 +34,8 @@ export default function MaskedValue({
     }
   }, [hideAll])
 
-  function reveal() {
+  function reveal(e) {
+    if (e) e.stopPropagation()
     clearTimeout(timeoutRef.current)
     clearInterval(intervalRef.current)
     setRevealed(true)
@@ -51,7 +52,8 @@ export default function MaskedValue({
     }, REVEAL_MS)
   }
 
-  function hideNow() {
+  function hideNow(e) {
+    if (e) e.stopPropagation()
     setRevealed(false)
     clearTimeout(timeoutRef.current)
     clearInterval(intervalRef.current)
@@ -64,7 +66,7 @@ export default function MaskedValue({
   if (!revealed) {
     return (
       <span
-        onClick={reveal}
+        onClick={(e) => reveal(e)}
         title="Click to reveal"
         style={{
           ...style,
@@ -85,7 +87,7 @@ export default function MaskedValue({
 
   return (
     <span
-      onClick={hideNow}
+      onClick={(e) => hideNow(e)}
       title="Click to hide again"
       style={{
         ...style,

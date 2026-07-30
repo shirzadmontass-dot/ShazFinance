@@ -2,7 +2,8 @@ import { useState, useEffect } from "react"
 import Page from "../components/Page.jsx"
 import Card from "../components/Card.jsx"
 import { supabase } from "../supabase"
-import { resolveCategory, normalizeMerchant } from "../utils/categorize.js"
+import { resolveCategory, normalizeMerchant, autoCategorize, isInternalTransfer } from "../utils/categorize.js"
+import { isSavingsType, isCreditType, isInvestmentType } from "../utils/accountTypes.js"
 
 // How stale "last synced" has to be before we auto-refresh on page open.
 const AUTO_SYNC_AFTER_MS = 5 * 60 * 1000 // 5 minutes
@@ -30,7 +31,20 @@ export default function Bank({ store, add, remove, update }) {
   const [connecting, setConnecting] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState(null)
-  const [txExpanded, setTxExpanded] = useState(false)
+
+  const incomingFilter = store?.uiState?.bankCategoryFilter
+  const [txExpanded, setTxExpanded] = useState(Boolean(incomingFilter))
+  const [categoryFilter, setCategoryFilter] = useState(incomingFilter || "all")
+  const [searchText, setSearchText] = useState("")
+
+  // Consume the one-off filter preset (set by clicking a Dashboard card)
+  // so it doesn't stick around and reapply itself on a later visit.
+  useEffect(() => {
+    if (incomingFilter && typeof update === "function") {
+      update("uiState.bankCategoryFilter", null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [uploadType, setUploadType] = useState("credit-card")
   const [uploadName, setUploadName] = useState("")
@@ -41,6 +55,61 @@ export default function Bank({ store, add, remove, update }) {
   const bankTransactions = store?.bankTransactions || []
   const categoryOverrides = store?.categoryOverrides || {}
   const accountRoles = store?.accountRoles || {}
+  const aiCategoryGuesses = store?.aiCategoryGuesses || {}
+
+  // Any merchant the keyword list can't classify (e.g. a pub with a
+  // creative name) gets asked to the AI once, then cached forever so it
+  // never needs asking again.
+  useEffect(() => {
+    if (bankTransactions.length === 0) return
+
+    const uncategorisedNames = new Set()
+    bankTransactions
+      .filter((t) => t.amount < 0)
+      .filter((t) => !isInternalTransfer(t.description))
+      .forEach((t) => {
+        const key = normalizeMerchant(t.description)
+        if (categoryOverrides[key]) return
+        if (aiCategoryGuesses[key]) return
+        if (autoCategorize(t.description) !== "uncategorised") return
+        uncategorisedNames.add(t.description)
+      })
+
+    if (uncategorisedNames.size === 0) return
+
+    ;(async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession()
+        const token = sessionData?.session?.access_token
+        if (!token) return
+
+        const res = await fetch("/api/ai/categorize-merchants", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ merchants: [...uncategorisedNames] })
+        })
+        const data = await res.json()
+        if (!res.ok) return
+
+        const newGuesses = {}
+        Object.entries(data.categories || {}).forEach(([name, cat]) => {
+          if (cat === "essential" || cat === "discretionary") {
+            newGuesses[normalizeMerchant(name)] = cat
+          }
+        })
+
+        if (Object.keys(newGuesses).length > 0 && typeof update === "function") {
+          update("aiCategoryGuesses", { ...aiCategoryGuesses, ...newGuesses })
+        }
+      } catch (err) {
+        console.error("AI categorization fetch failed:", err)
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bankTransactions.length])
 
   async function runSync(showSpinner = true) {
     if (showSpinner) setSyncing(true)
@@ -200,13 +269,13 @@ export default function Bank({ store, add, remove, update }) {
   // cards / Klarna) — so "Total Balance" isn't misleadingly inflated by
   // debt, and investments aren't confused with cash on hand.
   const cashAccounts = linkedAccounts.filter(
-    (a) => a.type !== "CREDIT_CARD" && a.type !== "INVESTMENT"
+    (a) => !isCreditType(a.type) && !isInvestmentType(a.type)
   )
   const investmentAccounts = linkedAccounts.filter(
-    (a) => a.type === "INVESTMENT"
+    (a) => isInvestmentType(a.type)
   )
   const creditAccounts = linkedAccounts.filter(
-    (a) => a.type === "CREDIT_CARD"
+    (a) => isCreditType(a.type)
   )
 
   const cashTotal =
@@ -230,8 +299,9 @@ export default function Bank({ store, add, remove, update }) {
 
   const discretionaryTotal = bankTransactions
     .filter((t) => t.amount < 0)
+    .filter((t) => !isInternalTransfer(t.description))
     .filter(
-      (t) => resolveCategory(t, categoryOverrides) === "discretionary"
+      (t) => resolveCategory(t, categoryOverrides, aiCategoryGuesses) === "discretionary"
     )
     .reduce((sum, t) => sum + Math.abs(t.amount), 0)
 
@@ -250,7 +320,21 @@ export default function Bank({ store, add, remove, update }) {
     0
   )
 
-  const visibleTransactions = txExpanded ? regularTransactions : []
+  const filteredTransactions = regularTransactions.filter((t) => {
+    if (categoryFilter !== "all") {
+      const cat = resolveCategory(t, categoryOverrides, aiCategoryGuesses)
+      if (categoryFilter === "essential" && cat !== "essential") return false
+      if (categoryFilter === "discretionary" && cat !== "discretionary")
+        return false
+    }
+    if (searchText.trim()) {
+      const q = searchText.trim().toLowerCase()
+      if (!t.description.toLowerCase().includes(q)) return false
+    }
+    return true
+  })
+
+  const visibleTransactions = txExpanded ? filteredTransactions : []
 
   return (
     <Page title="Bank Accounts">
@@ -399,13 +483,13 @@ export default function Bank({ store, add, remove, update }) {
                 {accounts.map((acc) => {
                   const role = accountRoles[acc.id]
                   const roleOptions =
-                    acc.type === "SAVINGS"
+                    isSavingsType(acc.type)
                       ? [
                           ["house", "House Deposit"],
                           ["kids", "Kids"],
                           ["general", "General"]
                         ]
-                      : acc.type === "INVESTMENT"
+                      : isInvestmentType(acc.type)
                       ? []
                       : [
                           ["spending", "Spending"],
@@ -471,7 +555,7 @@ export default function Bank({ store, add, remove, update }) {
                       <div
                         style={{
                           color:
-                            acc.type === "CREDIT_CARD"
+                            isCreditType(acc.type)
                               ? "#EF4444"
                               : "var(--accent)",
                           fontWeight: 700
@@ -632,8 +716,66 @@ export default function Bank({ store, add, remove, update }) {
                 : `Show ${bankTransactions.length} transactions ▼`}
             </button>
 
+            {txExpanded && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  alignItems: "center"
+                }}
+              >
+                <input
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  placeholder="Search transactions…"
+                  style={{
+                    flex: "1 1 160px",
+                    padding: "8px 10px",
+                    borderRadius: "var(--radius)",
+                    border: "1px solid var(--border)",
+                    background: "var(--bg)",
+                    color: "var(--text)",
+                    fontSize: 13
+                  }}
+                />
+
+                {[
+                  ["all", "All"],
+                  ["essential", "Essential"],
+                  ["discretionary", "Non-essential"]
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => setCategoryFilter(value)}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 999,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      border:
+                        categoryFilter === value
+                          ? "1px solid var(--accent)"
+                          : "1px solid var(--border)",
+                      background:
+                        categoryFilter === value
+                          ? "rgba(255,138,0,0.15)"
+                          : "transparent",
+                      color:
+                        categoryFilter === value
+                          ? "var(--accent)"
+                          : "var(--subtext)"
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {visibleTransactions.map((t) => {
-              const category = resolveCategory(t, categoryOverrides)
+              const category = resolveCategory(t, categoryOverrides, aiCategoryGuesses)
               return (
                 <div
                   key={t.id}

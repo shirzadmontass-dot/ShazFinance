@@ -34,15 +34,28 @@ export default function Commitments({ store, add, remove }) {
     ? monthly.commitments
     : manualTotalCommitments
 
+  const bankCommitmentTx = hasBankData
+    ? monthly.commitmentTransactions || []
+    : []
+
+  // These now reflect real detected bills once a bank is linked, not just
+  // manually added ones — falls back to manual-only when no bank data.
+  const commitmentCount = hasBankData
+    ? bankCommitmentTx.length
+    : commitments.length
+
   const averageCommitment =
-    commitments.length > 0
-      ? Math.round(manualTotalCommitments / commitments.length)
+    commitmentCount > 0
+      ? Math.round(totalCommitments / commitmentCount)
       : 0
 
-  const highestCommitment =
-    commitments.length > 0
-      ? Math.max(...commitments.map((c) => Number(c.amount || 0)))
+  const highestCommitment = hasBankData
+    ? bankCommitmentTx.length > 0
+      ? Math.max(...bankCommitmentTx.map((t) => Math.abs(t.amount)))
       : 0
+    : commitments.length > 0
+    ? Math.max(...commitments.map((c) => Number(c.amount || 0)))
+    : 0
 
   return (
     <Page title="Monthly Commitments">
@@ -65,9 +78,9 @@ export default function Commitments({ store, add, remove }) {
         <StatCard
           title="Commitments"
           icon="📋"
-          value={commitments.length}
+          value={commitmentCount}
           colour="var(--accent)"
-          subtitle="Manually added"
+          subtitle={hasBankData ? "Detected + manual" : "Manually added"}
         />
 
         <StatCard
@@ -75,7 +88,7 @@ export default function Commitments({ store, add, remove }) {
           icon="📊"
           value={`£${averageCommitment.toLocaleString()}`}
           colour="var(--accent)"
-          subtitle="Per manual bill"
+          subtitle="Per bill"
         />
 
         <StatCard
@@ -83,7 +96,7 @@ export default function Commitments({ store, add, remove }) {
           icon="🏆"
           value={`£${highestCommitment.toLocaleString()}`}
           colour="#EF4444"
-          subtitle="Biggest manual commitment"
+          subtitle="Biggest commitment"
         />
       </Grid>
 
@@ -187,6 +200,40 @@ export default function Commitments({ store, add, remove }) {
         )}
       </Card>
 
+      {hasBankData && bankCommitmentTx.length > 0 && (
+        <Card title="Detected from your bank" icon="🏦">
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10
+            }}
+          >
+            {bankCommitmentTx.map((t) => (
+              <div
+                key={t.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "8px 0",
+                  borderBottom: "1px solid var(--border)"
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 600 }}>{t.description}</div>
+                  <div style={{ fontSize: 12, color: "var(--subtext)" }}>
+                    {t.date}
+                  </div>
+                </div>
+                <div style={{ fontWeight: 700, color: "#EF4444" }}>
+                  -£{Math.abs(t.amount).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       <Card title="Add Commitment" icon="➕">
         <div
           style={{ color: "var(--subtext)", fontSize: 13, marginBottom: 12 }}
@@ -247,7 +294,7 @@ export default function Commitments({ store, add, remove }) {
             style={{
               border: "none",
               borderRadius: 12,
-              padding: 14,
+              padding: 15,
               cursor: "pointer",
               fontWeight: 700,
               color: "white",

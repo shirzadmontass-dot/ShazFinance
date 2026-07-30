@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useIsMobile } from "./hooks/useIsMobile.js"
 import { computeMonthlyFigures } from "./utils/monthlyFigures.js"
 import { resolveCategory } from "./utils/categorize.js"
+import { isSavingsType } from "./utils/accountTypes.js"
 import AICoach from "./components/AICoach.jsx"
 import { usePrivacy } from "./PrivacyContext.jsx"
 
@@ -28,7 +29,7 @@ function buildFinancialSummary(store) {
     0
   )
   const linkedSavingsBalance = bankAccounts
-    .filter((a) => a.type === "SAVINGS")
+    .filter((a) => isSavingsType(a.type))
     .filter((a) => {
       const role = accountRoles[a.id]
       return role !== "house" && role !== "kids"
@@ -76,6 +77,10 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
   const { hideAll, toggleHideAll } = usePrivacy()
   const today = new Date()
   const initial = user?.email ? user.email[0].toUpperCase() : "S"
+
+  // Internal screen key stays "Dashboard" everywhere in the code (so
+  // nothing else needs touching), only the displayed label changes.
+  const displayScreenName = screen === "Dashboard" ? "Homepage" : screen
 
   const date = today.toLocaleDateString("en-GB", {
     weekday: "long",
@@ -365,12 +370,14 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
           <img
             src="/logo-icon.png"
             alt="Mula"
+            onClick={() => typeof setScreen === "function" && setScreen("Dashboard")}
             style={{
               width: 26,
               height: 26,
               borderRadius: 7,
               flexShrink: 0,
-              objectFit: "contain"
+              objectFit: "contain",
+              cursor: "pointer"
             }}
           />
         </div>
@@ -386,7 +393,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
             textOverflow: "ellipsis"
           }}
         >
-          {screen}
+          {displayScreenName}
         </div>
 
         {privacyButton(true)}
@@ -422,11 +429,13 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
         }}
       >
         <div
+          onClick={() => typeof setScreen === "function" && setScreen("Dashboard")}
           style={{
             display: "flex",
             alignItems: "center",
             gap: 8,
-            flexShrink: 0
+            flexShrink: 0,
+            cursor: "pointer"
           }}
         >
           <img
@@ -475,7 +484,7 @@ export default function Header({ screen, user, onSignOut, onMenuClick, store, se
           whiteSpace: "nowrap"
         }}
       >
-        {screen}
+        {displayScreenName}
       </div>
 
       <div

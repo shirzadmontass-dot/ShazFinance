@@ -5,12 +5,14 @@ export default function StatCard({
   value,
   colour,
   icon,
-  subtitle
+  subtitle,
+  onClick
 }) {
   const isMobile = useIsMobile()
 
   return (
     <div
+      onClick={onClick}
       style={{
         position: "relative",
         overflow: "hidden",
@@ -18,12 +20,14 @@ export default function StatCard({
           "linear-gradient(180deg,#243B55 0%,#1B263B 100%)",
         borderRadius: isMobile ? "14px" : "22px",
         padding: isMobile ? "12px 14px" : "22px",
-        border: "1px solid rgba(255,255,255,.08)",
+        border: onClick
+          ? "1px solid rgba(255,138,0,0.3)"
+          : "1px solid rgba(255,255,255,.08)",
         boxShadow: isMobile
           ? "0 6px 16px rgba(0,0,0,.25)"
           : "0 15px 35px rgba(0,0,0,.30)",
         transition: "all .25s ease",
-        cursor: "default"
+        cursor: onClick ? "pointer" : "default"
       }}
     >
       {!isMobile && (

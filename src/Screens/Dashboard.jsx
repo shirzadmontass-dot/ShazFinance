@@ -10,7 +10,8 @@ import {
   Section
 } from "../components/ui/index.js"
 
-import { resolveCategory } from "../utils/categorize.js"
+import { resolveCategory, isInternalTransfer } from "../utils/categorize.js"
+import { isSavingsType, isCreditType, isInvestmentType, isTransactionType } from "../utils/accountTypes.js"
 import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
 import MaskedValue from "../components/MaskedValue.jsx"
 
@@ -33,8 +34,17 @@ function useIsWide(breakpoint = 700) {
   return wide
 }
 
-export default function Dashboard({ store, update }) {
+export default function Dashboard({ store, update, setScreen }) {
   const wide = useIsWide()
+
+  function goToBank(filter) {
+    if (typeof update === "function") {
+      update("uiState.bankCategoryFilter", filter)
+    }
+    if (typeof setScreen === "function") {
+      setScreen("Bank")
+    }
+  }
 
   if (!store) return null
 
@@ -90,7 +100,7 @@ export default function Dashboard({ store, update }) {
   // safety net — it's spoken for, so it's excluded here and counted
   // against those specific goals instead.
   const linkedSavingsBalance = bankAccounts
-    .filter((a) => a.type === "SAVINGS")
+    .filter((a) => isSavingsType(a.type))
     .filter((a) => {
       const role = accountRoles[a.id]
       return role !== "house" && role !== "kids"
@@ -105,11 +115,12 @@ export default function Dashboard({ store, update }) {
 
   const wastedOnNonEssentials = bankTransactions
     .filter((t) => t.amount < 0)
+    .filter((t) => !isInternalTransfer(t.description))
     .filter((t) => resolveCategory(t, categoryOverrides) === "discretionary")
     .reduce((sum, t) => sum + Math.abs(t.amount), 0)
 
   const linkedCreditOwed = bankAccounts
-    .filter((a) => a.type === "CREDIT_CARD")
+    .filter((a) => isCreditType(a.type))
     .reduce((sum, a) => sum + Number(a.balance || 0), 0)
 
   const debtTotal =
@@ -119,7 +130,7 @@ export default function Dashboard({ store, update }) {
     ) + linkedCreditOwed
 
   const linkedInvestmentTotal = bankAccounts
-    .filter((a) => a.type === "INVESTMENT")
+    .filter((a) => isInvestmentType(a.type))
     .reduce((sum, a) => sum + Number(a.balance || 0), 0)
 
   const investmentsTotal =
@@ -138,7 +149,7 @@ export default function Dashboard({ store, update }) {
   // transaction accounts only. Savings, credit cards, and investments
   // are all excluded (each has its own place elsewhere on the dashboard).
   const transactionAccountsBalance = bankAccounts
-    .filter((a) => a.type === "TRANSACTION")
+    .filter((a) => isTransactionType(a.type))
     .reduce((sum, a) => sum + Number(a.balance || 0), 0)
 
   const leftover = hasBankData
@@ -152,6 +163,26 @@ export default function Dashboard({ store, update }) {
           Math.round((depositSaved / depositTarget) * 100)
         )
       : 0
+
+  // "Long Term Goal" on the hero banner reflects whatever goal the user
+  // actually picked during onboarding (generic goals system), not a
+  // hardcoded house deposit. Falls back to the legacy house-deposit
+  // display only for accounts set up before the goals system existed.
+  const goals = store.goals || []
+  const primaryGoal = goals.length > 0 ? goals[0] : null
+
+  const heroGoalLabel = primaryGoal
+    ? `${primaryGoal.icon || "🎯"} ${primaryGoal.name}`
+    : "Buy My Home 🏡"
+
+  const heroGoalPercent = primaryGoal
+    ? primaryGoal.target > 0
+      ? Math.min(
+          100,
+          Math.round((Number(primaryGoal.current || 0) / primaryGoal.target) * 100)
+        )
+      : 0
+    : depositPercent
 
   // September Attack (generically: "this month's attack") is now
   // auto-tracked from real numbers instead of manual checkboxes.
@@ -316,8 +347,8 @@ export default function Dashboard({ store, update }) {
             subtitle="Stay on top of your money with a clear, calm overview."
             currentFocusLabel={attackPlanTitle}
             currentFocusPercent={plannerPercent}
-            goalLabel="Buy My Home 🏡"
-            goalPercent={depositPercent}
+            goalLabel={heroGoalLabel}
+            goalPercent={heroGoalPercent}
           />
 
           <div style={{ marginTop: wide ? 16 : 12 }}>
@@ -818,6 +849,7 @@ export default function Dashboard({ store, update }) {
             value={<MaskedValue value={`£${incomeTotal.toLocaleString()}`} />}
             colour="var(--accent)"
             subtitle="Monthly income"
+            onClick={() => goToBank("all")}
           />
 
           <StatCard
@@ -828,6 +860,7 @@ export default function Dashboard({ store, update }) {
             }
             colour="var(--accent)"
             subtitle="Monthly bills"
+            onClick={() => goToBank("essential")}
           />
 
           <StatCard
@@ -838,6 +871,7 @@ export default function Dashboard({ store, update }) {
             }
             colour="var(--accent)"
             subtitle="Monthly spending"
+            onClick={() => goToBank("all")}
           />
 
           <StatCard
@@ -870,6 +904,7 @@ export default function Dashboard({ store, update }) {
             }
             colour="#F97316"
             subtitle="Non-essential spend"
+            onClick={() => goToBank("discretionary")}
           />
 
           <StatCard

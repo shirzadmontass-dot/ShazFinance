@@ -2,6 +2,7 @@ import Card from "./Card.jsx"
 import { computeMonthlyFigures } from "../utils/monthlyFigures.js"
 import { resolveCategory } from "../utils/categorize.js"
 import MaskedValue from "./MaskedValue.jsx"
+import { isCreditType } from "../utils/accountTypes.js"
 
 function computeFigures(store) {
   const savings = (store.savings || []).reduce(
@@ -24,11 +25,11 @@ function computeFigures(store) {
   // asset too, on top of anything entered manually — except credit cards
   // and Klarna/BNPL, which represent money owed, not money you have.
   const linkedAssetTotal = bankAccounts
-    .filter((a) => a.type !== "CREDIT_CARD")
+    .filter((a) => !isCreditType(a.type))
     .reduce((sum, item) => sum + Number(item.balance || 0), 0)
 
   const linkedCreditOwed = bankAccounts
-    .filter((a) => a.type === "CREDIT_CARD")
+    .filter((a) => isCreditType(a.type))
     .reduce((sum, item) => sum + Number(item.balance || 0), 0)
 
   const debts = manualDebts + linkedCreditOwed

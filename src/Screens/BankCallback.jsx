@@ -117,7 +117,7 @@ export default function BankCallback() {
             cursor: "pointer"
           }}
         >
-          Back to ShazPlan
+          Back to Mula
         </button>
       )}
     </div>

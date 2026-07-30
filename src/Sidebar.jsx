@@ -5,7 +5,7 @@ const NAV_GROUPS = [
   },
   {
     label: "Money Goals",
-    items: ["Debt", "Deposit", "Savings", "Children", "Investments", "Bank"]
+    items: ["Debt", "Deposit", "Savings", "Children", "Investments", "Goals", "Bank"]
   }
 ]
 
@@ -37,7 +37,7 @@ export default function Sidebar({
     >
       {/* Dashboard pinned above the grouped sections */}
       <NavItem
-        label="Dashboard"
+        label="Homepage"
         active={screen === "Dashboard"}
         onClick={() => go("Dashboard")}
       />
